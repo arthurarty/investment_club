@@ -1,1 +1,1 @@
-# Investment Clugs
+# Investment Clubs
