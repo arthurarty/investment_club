@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.views import View
 
 
-def login_view(request):
-    context = {"name": "World"}
-    return render(request, "accounts/index.html", context)
+class LoginView(View):
+    def get(self, request):
+        context = {}
+        return render(request, "accounts/index.html", context)
