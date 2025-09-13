@@ -16,3 +16,13 @@ Install pre-commit
 ```bash
 pre-commit install
 ```
+
+## Migrations
+Upon setup you want to run migrations. Use the command below.
+```bash
+python manage.py migrate
+```
+If you make any changes to the models, you can create new migrations with the command.
+```bash
+python manage.py makemigrations
+```
