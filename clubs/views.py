@@ -1,8 +1,9 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.views import View
 
 
-class ClubsView(View):
+class ClubsView(LoginRequiredMixin, View):
     """
     View to display a list of investment clubs.
     """
