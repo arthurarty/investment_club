@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Nairobi"
 
 USE_I18N = True
 
@@ -139,3 +139,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.CustomUser"
+LOGIN_URL = "/accounts/"
+LOGIN_REDIRECT_URL = "/clubs/"
+LOGOUT_REDIRECT_URL = "/accounts/"

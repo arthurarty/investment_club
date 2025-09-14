@@ -1,5 +1,6 @@
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpRequest
+from django.shortcuts import redirect, render
 from django.views import View
 
 from accounts.login_form import LoginForm
@@ -31,3 +32,11 @@ class LoginView(View):
         login(request, user)
         context = {"user": user}
         return render(request, "accounts/successful_login.html", context)
+
+
+def logout_view(request: HttpRequest):
+    """
+    Logout a user.
+    """
+    logout(request)
+    return redirect("accounts:index")
