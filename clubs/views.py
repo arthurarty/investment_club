@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.views import View
 
+from clubs.forms.club_creation_form import ClubCreationForm
 from clubs.models import Club
 
 
@@ -23,5 +24,6 @@ class ClubsView(LoginRequiredMixin, View):
         context = {
             "clubs": clubs,
             "user": current_user,
+            "create_club_form": ClubCreationForm(),
         }
         return render(request, "clubs/index.html", context)

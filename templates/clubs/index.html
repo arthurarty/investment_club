@@ -336,6 +336,14 @@
                         </tbody>
                     </table>
                 </div>
+                {% comment %} Move this to Bootstrap Modal {% endcomment %}
+                <div>
+                    <form action="{% url 'clubs:index' %}" method="POST">
+                        {% csrf_token %}
+                        {{ create_club_form }}
+                        <button type="submit" class="btn btn-success mt-2">Create Club</button>
+                    </form>
+                </div>
             </main>
         </div>
     </div>
