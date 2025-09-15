@@ -2,6 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.views import View
 
+from clubs.models import Club
+
 
 class ClubsView(LoginRequiredMixin, View):
     """
@@ -12,6 +14,14 @@ class ClubsView(LoginRequiredMixin, View):
         """
         Handle GET requests to display the list of clubs.
         """
-        # Logic to retrieve and display clubs would go here
-        context = {}
+        current_user = request.user
+        clubs = (
+            Club.objects.filter(created_by=current_user)
+            .order_by("created_at")
+            .all()[:10]
+        )
+        context = {
+            "clubs": clubs,
+            "user": current_user,
+        }
         return render(request, "clubs/index.html", context)

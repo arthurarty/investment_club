@@ -30,8 +30,7 @@ class LoginView(View):
         if user is None:
             return render(request, "accounts/failed_login.html", {})
         login(request, user)
-        context = {"user": user}
-        return render(request, "accounts/successful_login.html", context)
+        return redirect("clubs:index")
 
 
 def logout_view(request: HttpRequest):
