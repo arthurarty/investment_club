@@ -6,7 +6,7 @@ from clubs.forms.club_creation_form import ClubCreationForm
 from clubs.models import Club
 
 
-class ClubsView(LoginRequiredMixin, View):
+class ClubsListView(LoginRequiredMixin, View):
     """
     View to display a list of investment clubs.
     """
