@@ -35,3 +35,42 @@ class Club(BaseTimestampedModel, models.Model):
 
     def __str__(self):
         return f"{self.pk} - {self.name}"
+
+
+class ClubMember(BaseTimestampedModel, models.Model):
+    """
+    Model representing a member of an investment club.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="club_memberships",
+    )
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="members")
+    joined_at = models.DateTimeField(auto_now_add=True)
+    is_admin = models.BooleanField(
+        default=False
+    )  # User has admin privileges in the club
+    is_active = models.BooleanField(
+        default=True
+    )  # User is currently active in the club
+    is_confirmed = models.BooleanField(
+        default=False
+    )  # User has confirmed membership via email or other means
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invitations_sent",
+    )
+    role = models.CharField(
+        max_length=150, blank=True, default="member"
+    )  # Role of the member in the club (e.g., Treasurer, Secretary)
+
+    class Meta:
+        unique_together = ("user", "club")
+
+    def __str__(self):
+        return f"{self.user.first_name} in {self.club.name}"
