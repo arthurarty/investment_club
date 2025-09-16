@@ -6,7 +6,7 @@ from clubs.forms.club_creation_form import ClubCreationForm
 from clubs.models import Club
 
 
-class ClubsView(LoginRequiredMixin, View):
+class ClubsListView(LoginRequiredMixin, View):
     """
     View to display a list of investment clubs.
     """
@@ -52,3 +52,25 @@ class ClubsView(LoginRequiredMixin, View):
         new_club.save()
         form.save_m2m()  # Save many-to-many relationships if any
         return redirect("clubs:index")
+
+
+class ClubDetailView(LoginRequiredMixin, View):
+    """
+    View to display details of a specific investment club.
+    """
+
+    def get(self, request, club_id):
+        """
+        Handle GET requests to display club details.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+        except Club.DoesNotExist:
+            return redirect("clubs:index")
+        members = club.members.select_related("user").all()[:25]
+        context = {
+            "club": club,
+            "user": request.user,
+            "members": members,
+        }
+        return render(request, "clubs/detail.html", context)
