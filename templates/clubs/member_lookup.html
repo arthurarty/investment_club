@@ -1,0 +1,37 @@
+{% extends 'clubs/base.html' %}
+{% load static %}
+{% block content %}
+<div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        Member look up
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2"> <button type="button"
+                class="btn btn-sm btn-outline-secondary">Share</button> <button type="button"
+                class="btn btn-sm btn-outline-secondary">Export</button> </div> <button type="button"
+            class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1">
+            <svg class="bi" aria-hidden="true">
+                <use xlink:href="#calendar3"></use>
+            </svg>
+            This week
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-4 mx-auto">
+        <p>
+            To add a member to your club, you need to look up their profile using the email address they are registered with.
+        </p>
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{ look_up_form }}
+            <button type="submit" class="btn btn-success mt-2 ">
+                Search
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block after_main %}
+{% endblock %}
