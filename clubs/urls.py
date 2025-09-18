@@ -1,6 +1,6 @@
 from django.urls import path
 
-from clubs.views import ClubDetailView, ClubsListView
+from clubs.views.club_views import ClubDetailView, ClubsListView
 
 app_name = "clubs"
 
