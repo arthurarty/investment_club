@@ -10,13 +10,21 @@ class MemberLookUpView(LoginRequiredMixin, View):
     View to look up and display member details.
     """
 
-    def get(self, request):
+    def post(self, request):
         """
-        Handle GET requests to display member details.
+        Handle POST requests to look up a member by email.
         """
-        # Placeholder for actual member lookup logic
+        form = MemberLookupForm(request.POST)
+        if not form.is_valid():
+            context = {
+                "look_up_form": form,
+                "user": request.user,
+            }
+            return render(request, "clubs/member_lookup.html", context)
+        email = form.cleaned_data["email"]
         context = {
-            "look_up_form": MemberLookupForm(),
+            "look_up_form": form,
             "user": request.user,
+            "email": email,
         }
         return render(request, "clubs/member_lookup.html", context)

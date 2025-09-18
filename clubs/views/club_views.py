@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from clubs.forms.club_creation_form import ClubCreationForm
+from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club
 
 
@@ -68,9 +69,11 @@ class ClubDetailView(LoginRequiredMixin, View):
         except Club.DoesNotExist:
             return redirect("clubs:index")
         members = club.members.select_related("user").all()[:25]
+        member_look_up_form = MemberLookupForm()
         context = {
             "club": club,
             "user": request.user,
             "members": members,
+            "look_up_form": member_look_up_form,
         }
         return render(request, "clubs/detail.html", context)

@@ -57,34 +57,34 @@
     </table>
 </div>
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClubFormModal">
-Register a club
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
+Add member
 </button>
-<a href="{% url 'clubs:member-lookup' %}" class="btn btn-success">Add member</a>
+
 {% endblock %}
 {% block after_main %}
-<!-- Modal -->
-<div class="modal fade" id="createClubFormModal" tabindex="-1" aria-labelledby="createClubFormModalLabel" aria-hidden="true">
+<!-- MemberLook up Form Modal -->
+<div class="modal fade" id="memberLookUpFormModal" tabindex="-1" aria-labelledby="memberLookUpFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="createClubFormModalLabel">
-                    Create a new club
+                <h1 class="modal-title fs-5" id="memberLookUpFormModalLabel">
+                    Enter Member Email
                 </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
-            <form action="{% url 'clubs:index' %}" method="POST">
+            <form action="{% url 'clubs:member-lookup' %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
-                    {{ create_club_form }}
+                    {{ look_up_form }}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Close
                     </button>
                     <button type="submit" class="btn btn-success">
-                        Create Club
+                        Search
                     </button>
                 </div>
             </form>

@@ -8,6 +8,8 @@ class MemberLookupForm(forms.Form):
 
     email = forms.EmailField(
         required=True,
-        label="Member Email",
-        widget=forms.EmailInput(attrs={"class": "form-control"}),
+        label="",
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "jane.doe@example.com"}
+        ),
     )
