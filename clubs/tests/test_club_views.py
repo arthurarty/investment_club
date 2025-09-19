@@ -67,10 +67,21 @@ class ClubListViewTestCase(TestCase):
             response.url, reverse("clubs:index")
         )  # Redirects to clubs index
 
-    # def test_post_invalid_login(self):
-    #     response = self.client.post(
-    #         reverse("accounts:index"),
-    #         {"email": "jack@example.com", "password": "wrongpassword"},
-    #     )
-    #     self.assertEqual(response.status_code, HTTPStatus.OK)
-    #     self.assertTemplateUsed(response, "accounts/failed_login.html")
+    def test_post_invalid_data(self):
+        """
+        Test POST request with invalid data.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        response = self.client.post(
+            reverse("clubs:index"),
+            {
+                "name": "",  # Name is required, so this should fail
+                "description": "A club without a name.",
+                "contact_email": "invalidemail",  # Invalid email format
+                "status": "active",
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
+        self.assertTemplateUsed(response, "clubs/index.html")
+        self.assertIn("create_club_form", response.context)
+        self.assertEqual(Club.objects.count(), 1)  # No new club created
