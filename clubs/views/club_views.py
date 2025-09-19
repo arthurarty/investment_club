@@ -24,7 +24,6 @@ class ClubsListView(LoginRequiredMixin, View):
         )
         context = {
             "clubs": clubs,
-            "user": current_user,
             "create_club_form": ClubCreationForm(),
         }
         return render(request, "clubs/index.html", context)
@@ -43,7 +42,6 @@ class ClubsListView(LoginRequiredMixin, View):
             )
             context = {
                 "clubs": clubs,
-                "user": current_user,
                 "create_club_form": form,
             }
             return render(request, "clubs/index.html", context)
@@ -72,7 +70,6 @@ class ClubDetailView(LoginRequiredMixin, View):
         member_look_up_form = MemberLookupForm()
         context = {
             "club": club,
-            "user": request.user,
             "members": members,
             "look_up_form": member_look_up_form,
         }
