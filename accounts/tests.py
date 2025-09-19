@@ -31,6 +31,5 @@ class LoginViewTestCase(TestCase):
         response = self.client.post(
             reverse("accounts:index"), {"email": email, "password": password}
         )
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTemplateUsed(response, "accounts/successful_login.html")
-        self.assertContains(response, "Jane")
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(response.url, reverse("clubs:index"))
