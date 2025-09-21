@@ -62,6 +62,11 @@ class AddMemberToClubView(LoginRequiredMixin, View):
         club = Club.objects.get(id=club_id)
         if not club:
             return redirect("clubs:index")
+        if not ClubMember.objects.filter(
+            club=club, user=request.user, is_admin=True
+        ).exists():
+            # Todo: Add message to inform user that they do not have permission to view this page.
+            return redirect("clubs:detail", club_id=club.id)
         form = MemberLookupForm(request.GET)
         if not form.is_valid():
             return redirect("clubs:detail", club_id=club.id)
