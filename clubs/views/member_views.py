@@ -59,11 +59,13 @@ class AddMemberToClubView(LoginRequiredMixin, View):
         """
         Handle POST requests to add a member to a club.
         """
-        member_email = request.GET.get("email")
         club = Club.objects.get(id=club_id)
         if not club:
             return redirect("clubs:index")
-        user = User.objects.filter(email=member_email).first()
+        form = MemberLookupForm(request.GET)
+        if not form.is_valid():
+            return redirect("clubs:detail", club_id=club.id)
+        user = User.objects.filter(email=form.cleaned_data["email"]).first()
         if not user:
             return redirect("clubs:detail", club_id=club.id)
         ClubMember.objects.get_or_create(club=club, user=user, is_admin=False)
