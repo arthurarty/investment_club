@@ -24,6 +24,12 @@ class MemberLookUpViewTestCase(TestCase):
             email=self.test_email,
             password=self.test_password,
         )
+        self.second_user = User.objects.create_user(
+            email="cindy@example.com",
+            password="anotherPass123",
+            first_name="Cindy",
+            last_name="Doe",
+        )
         self.investment_club = Club.objects.create(
             name="Test Club",
             description="A club for testing.",
@@ -71,3 +77,18 @@ class MemberLookUpViewTestCase(TestCase):
         self.assertIn(
             reverse("clubs:detail", args=[self.investment_club.id]), response.url
         )
+
+    def test_post_method_admin_valid_email(self):
+        """
+        Test POST request to the member lookup view when user is an admin of the club
+        and provides a valid email.
+        """
+        self.client.login(email=self.user.email, password=self.test_password)
+        response = self.client.post(
+            reverse("clubs:member-lookup", args=[self.investment_club.id]),
+            {
+                "email": self.second_user.email,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, self.second_user.first_name)
