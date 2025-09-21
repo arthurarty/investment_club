@@ -74,7 +74,7 @@ Add member
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
-            <form action="{% url 'clubs:member-lookup' %}" method="POST">
+            <form action="{% url 'clubs:member-lookup' club.id %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
                     {{ look_up_form }}

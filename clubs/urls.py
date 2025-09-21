@@ -8,5 +8,7 @@ app_name = "clubs"
 urlpatterns = [
     path("", ClubsListView.as_view(), name="index"),
     path("<int:club_id>/", ClubDetailView.as_view(), name="detail"),
-    path("member-lookup/", MemberLookUpView.as_view(), name="member-lookup"),
+    path(
+        "<int:club_id>/member-lookup/", MemberLookUpView.as_view(), name="member-lookup"
+    ),
 ]
