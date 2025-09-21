@@ -18,24 +18,23 @@
         </button>
     </div>
 </div>
-<h2>Clubs</h2>
-<div class="table-responsive small">
-    <table class="table table-striped table-sm">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Name</th>
-                <th scope="col">Description</th>
-                <th scope="col">Created at</th>
-                <th scope="col">Created by</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    <p>
-        Email entered: {{email}}
-    </p>
+<div>
+    {% if member %}
+        <p>
+            Below is the user matching your query.
+        </p>
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{member.first_name}} {{member.last_name}}</h5>
+                <h6 class="card-subtitle mb-2 text-body-secondary">{{member.email}}</h6>
+                <a href="{% url 'clubs:add-member' club.id %}?email={{ member.email }}" class="btn btn-success">Add to Club</a>
+            </div>
+        </div>
+    {% else %}
+        <p>
+            No members found with email: {{email}}. Invite them to sign up.
+        </p>
+    {% endif %}
 </div>
 {% endblock %}
 {% block after_main %}
