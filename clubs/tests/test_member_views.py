@@ -68,3 +68,6 @@ class MemberLookUpViewTestCase(TestCase):
             },
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertIn(
+            reverse("clubs:detail", args=[self.investment_club.id]), response.url
+        )
