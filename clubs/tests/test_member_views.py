@@ -135,7 +135,7 @@ class AddMemberToClubViewTestCase(TestCase):
         Test GET request to the add member view when user is not authenticated.
         """
         response = self.client.get(
-            reverse("clubs:add-member", args=[self.investment_club.id]),
+            reverse("clubs:club-member", args=[self.investment_club.id]),
             {
                 "email": self.second_user.email,
             },
@@ -154,7 +154,7 @@ class AddMemberToClubViewTestCase(TestCase):
         )
         self.client.login(email=non_admin_user.email, password=non_admin_user_password)
         response = self.client.get(
-            reverse("clubs:add-member", args=[self.investment_club.id]),
+            reverse("clubs:club-member", args=[self.investment_club.id]),
             {
                 "email": self.second_user.email,
             },
@@ -171,7 +171,7 @@ class AddMemberToClubViewTestCase(TestCase):
         """
         self.client.login(email=self.user.email, password=self.test_password)
         response = self.client.get(
-            reverse("clubs:add-member", args=[self.investment_club.id]),
+            reverse("clubs:club-member", args=[self.investment_club.id]),
             {
                 "email": self.second_user.email,
             },
