@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -92,6 +93,12 @@ DATABASES = {
         "PORT": os.environ.get("POSTGRES_DB_PORT"),
     }
 }
+
+if "test" in sys.argv or "test_coverage" in sys.argv:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
 
 
 # Password validation
