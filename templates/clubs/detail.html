@@ -112,7 +112,7 @@ New Financial Year
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
-            <form action="{% url 'clubs:member-lookup' club.id %}" method="POST">
+            <form action="{% url 'clubs:financial-year' club.id %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
                     {{ financial_year_form }}
