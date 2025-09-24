@@ -3,6 +3,10 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from clubs.forms.club_creation_form import ClubCreationForm
+from clubs.forms.club_financials_forms import (
+    FinancialYearForm,
+    FinancialYearParticipantForm,
+)
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club
 
@@ -67,10 +71,58 @@ class ClubDetailView(LoginRequiredMixin, View):
         except Club.DoesNotExist:
             return redirect("clubs:index")
         members = club.members.select_related("user").all()[:25]
-        member_look_up_form = MemberLookupForm()
         context = {
             "club": club,
             "members": members,
-            "look_up_form": member_look_up_form,
+            "look_up_form": MemberLookupForm(),
+            "financial_year_form": FinancialYearForm(),
         }
         return render(request, "clubs/detail.html", context)
+
+
+class ClubFinancialYearCreateView(LoginRequiredMixin, View):
+    """
+    View to handle the creation of a new financial year for a club.
+    """
+
+    def post(self, request, club_id):
+        """
+        Handle POST requests to create a new financial year.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+        except Club.DoesNotExist:
+            return redirect("clubs:index")
+
+        form = FinancialYearForm(request.POST)
+        if not form.is_valid():
+            members = club.members.select_related("user").all()[:25]
+            context = {
+                "club": club,
+                "members": members,
+                "look_up_form": MemberLookupForm(),
+                "financial_year_form": form,
+            }
+            return render(request, "clubs/detail.html", context)
+
+        new_financial_year = form.save(commit=False)
+        new_financial_year.club = club
+        new_financial_year.created_by = request.user
+        new_financial_year.updated_by = request.user
+        new_financial_year.save()
+        form.save_m2m()  # Save many-to-many relationships if any
+
+        # Automatically add the club creator as a participant in the new financial year
+        participant_form = FinancialYearParticipantForm(
+            data={
+                "club_member": request.user.clubmember_set.get(club=club).id,
+                "financial_year": new_financial_year.id,
+            }
+        )
+        if participant_form.is_valid():
+            participant = participant_form.save(commit=False)
+            participant.created_by = request.user
+            participant.updated_by = request.user
+            participant.save()
+
+        return redirect("clubs:detail", club_id=club.id)
