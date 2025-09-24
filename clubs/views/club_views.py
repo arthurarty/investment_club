@@ -8,7 +8,7 @@ from clubs.forms.club_financials_forms import (
     FinancialYearParticipantForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
-from clubs.models import Club
+from clubs.models import Club, ClubMember
 
 
 class ClubsListView(LoginRequiredMixin, View):
@@ -53,6 +53,10 @@ class ClubsListView(LoginRequiredMixin, View):
         new_club.created_by = request.user
         new_club.updated_by = request.user
         new_club.save()
+        club_member = ClubMember(user=request.user, club=new_club, is_admin=True)
+        club_member.created_by = request.user
+        club_member.updated_by = request.user
+        club_member.save()
         form.save_m2m()  # Save many-to-many relationships if any
         return redirect("clubs:index")
 
