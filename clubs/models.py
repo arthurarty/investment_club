@@ -27,10 +27,10 @@ class Club(BaseTimestampedModel, models.Model):
         max_length=20, choices=ClubStatus.choices, default=ClubStatus.ACTIVE
     )
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_clubs"
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_clubs"
     )
     updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="updated_clubs"
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="updated_clubs"
     )
 
     def __str__(self):
@@ -44,7 +44,7 @@ class ClubMember(BaseTimestampedModel, models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="club_memberships",
     )
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="members")
@@ -74,3 +74,63 @@ class ClubMember(BaseTimestampedModel, models.Model):
 
     def __str__(self):
         return f"{self.user.first_name} in {self.club.name}"
+
+
+class FinancialYear(BaseTimestampedModel, models.Model):
+    """
+    Model representing a financial year for a club.
+    """
+
+    club = models.ForeignKey(
+        Club, on_delete=models.CASCADE, related_name="financial_years"
+    )
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+    monthly_contribution = models.DecimalField(max_digits=10, decimal_places=2)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_financial_years",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_financial_years",
+    )
+
+    class Meta:
+        unique_together = ("club", "start_date", "end_date")
+
+    def __str__(self):
+        return f"FY {self.start_date.year}-{self.end_date.year} for {self.club}"
+
+
+class FinancialYearParticipant(BaseTimestampedModel, models.Model):
+    """
+    Model representing a participant in a financial year.
+    """
+
+    financial_year = models.ForeignKey(
+        FinancialYear, on_delete=models.CASCADE, related_name="participants"
+    )
+    club_member = models.ForeignKey(
+        ClubMember, on_delete=models.CASCADE, related_name="financial_years"
+    )
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_financial_year_participants",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_financial_year_participants",
+    )
+
+    class Meta:
+        unique_together = ("financial_year", "club_member")
+
+    def __str__(self):
+        return f"{self.club_member} in {self.financial_year}"

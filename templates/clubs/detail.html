@@ -23,6 +23,13 @@
         {{club.description}}
     </p>
 </div>
+{% comment %} 
+Todo: Make use of tabs to show the various components of a club. 
+Tabs: 
+    1. Latest Financial year.
+    2. Other Financial years
+    3. Club Members
+{% endcomment %}
 <h2>
     Club Members
 </h2>
@@ -60,6 +67,9 @@
 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
 Add member
 </button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clubFinancialYearFormModal">
+New Financial Year
+</button>
 
 {% endblock %}
 {% block after_main %}
@@ -85,6 +95,34 @@ Add member
                     </button>
                     <button type="submit" class="btn btn-success">
                         Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Club Financial Form Modal -->
+<div class="modal fade" id="clubFinancialYearFormModal" tabindex="-1" aria-labelledby="clubFinancialYearFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="clubFinancialYearFormModalLabel">
+                    Enter Financial Year Details
+                </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
+            </div>
+            <form action="{% url 'clubs:financial-year' club.id %}" method="POST">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ financial_year_form }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        Create
                     </button>
                 </div>
             </form>

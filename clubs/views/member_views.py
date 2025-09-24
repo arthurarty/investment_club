@@ -50,14 +50,14 @@ class MemberLookUpView(LoginRequiredMixin, View):
         return render(request, "clubs/member_lookup.html", context)
 
 
-class AddMemberToClubView(LoginRequiredMixin, View):
+class ClubMemberView(LoginRequiredMixin, View):
     """
     View to add a member to a club.
     """
 
     def get(self, request, club_id: int):
         """
-        Handle POST requests to add a member to a club.
+        Handle get requests to add a member to a club.
         """
         club = Club.objects.get(id=club_id)
         if not club:

@@ -1,7 +1,8 @@
 from django.urls import path
 
+from clubs.views.club_financial_view import ClubFinancialYearCreateView
 from clubs.views.club_views import ClubDetailView, ClubsListView
-from clubs.views.member_views import AddMemberToClubView, MemberLookUpView
+from clubs.views.member_views import ClubMemberView, MemberLookUpView
 
 app_name = "clubs"
 
@@ -11,5 +12,10 @@ urlpatterns = [
     path(
         "<int:club_id>/member-lookup/", MemberLookUpView.as_view(), name="member-lookup"
     ),
-    path("<int:club_id>/add-member/", AddMemberToClubView.as_view(), name="add-member"),
+    path("<int:club_id>/club-member/", ClubMemberView.as_view(), name="club-member"),
+    path(
+        "<int:club_id>/financial-year/",
+        ClubFinancialYearCreateView.as_view(),
+        name="financial-year",
+    ),
 ]
