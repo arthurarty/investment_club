@@ -7,7 +7,7 @@ from clubs.forms.club_financials_forms import (
     FinancialYearForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
-from clubs.models import Club, ClubMember
+from clubs.models import Club, ClubMember, FinancialYear
 
 
 class ClubsListView(LoginRequiredMixin, View):
@@ -74,10 +74,14 @@ class ClubDetailView(LoginRequiredMixin, View):
         except Club.DoesNotExist:
             return redirect("clubs:index")
         members = club.members.select_related("user").all()[:25]
+        financial_years = FinancialYear.objects.filter(club=club).order_by(
+            "-start_date"
+        )
         context = {
             "club": club,
             "members": members,
             "look_up_form": MemberLookupForm(),
             "financial_year_form": FinancialYearForm(),
+            "financial_years": financial_years,
         }
         return render(request, "clubs/detail.html", context)
