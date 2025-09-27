@@ -40,3 +40,20 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
         new_financial_year.updated_by = request.user
         new_financial_year.save()
         return redirect("clubs:detail", club_id=club.id)
+
+
+class ClubFinancialYearDetailView(LoginRequiredMixin, View):
+    """
+    View to display details of a specific financial year for a club.
+    """
+
+    def get(self, request, club_id, financial_year_id):
+        """
+        Handle GET requests to display the financial year details.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+            return redirect("clubs:index")
+        # Todo: Create a detailed view for the financial year along with html template
