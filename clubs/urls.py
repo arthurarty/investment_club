@@ -1,6 +1,9 @@
 from django.urls import path
 
-from clubs.views.club_financial_view import ClubFinancialYearCreateView
+from clubs.views.club_financial_view import (
+    ClubFinancialYearCreateView,
+    ClubFinancialYearDetailView,
+)
 from clubs.views.club_views import ClubDetailView, ClubsListView
 from clubs.views.member_views import ClubMemberView, MemberLookUpView
 
@@ -17,5 +20,10 @@ urlpatterns = [
         "<int:club_id>/financial-year/",
         ClubFinancialYearCreateView.as_view(),
         name="financial-year",
+    ),
+    path(
+        "<int:club_id>/financial-year/<int:financial_year_id>/",
+        ClubFinancialYearDetailView.as_view(),
+        name="financial-year-detail",
     ),
 ]

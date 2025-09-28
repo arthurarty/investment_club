@@ -4,6 +4,7 @@ from django.views import View
 
 from clubs.forms.club_financials_forms import (
     FinancialYearForm,
+    FinancialYearParticipant,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club
@@ -56,4 +57,12 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
             financial_year = club.financial_years.get(id=financial_year_id)
         except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
             return redirect("clubs:index")
-        # Todo: Create a detailed view for the financial year along with html template
+        participants = FinancialYearParticipant.objects.filter(
+            financial_year=financial_year
+        ).select_related("club_member__user")
+        context = {
+            "club": club,
+            "financial_year": financial_year,
+            "participants": participants,
+        }
+        return render(request, "clubs/financial_year_detail.html", context)

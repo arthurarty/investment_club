@@ -21,32 +21,19 @@
 <div>
     <p>
         <i>
-            Club Description:
+            Financial Year:
         </i>
-        {{club.description}}
+        {{financial_year.start_date}} - {{financial_year.end_date}}
     </p>
 </div>
-{% comment %} 
-Todo: Make use of tabs to show the various components of a club. 
-Tabs: 
-    1. Latest Financial year.
-    2. Other Financial years
-    3. Club Members
-{% endcomment %}
 <nav>
   <div class="nav nav-tabs" id="nav-tab" role="tablist">
     <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">
-        Members
+        Transactions
     </button>
     <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
-        Financial Years
+        Participants
     </button>
-    {% comment %} <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">
-        Contact
-    </button>
-    <button class="nav-link" id="nav-disabled-tab" data-bs-toggle="tab" data-bs-target="#nav-disabled" type="button" role="tab" aria-controls="nav-disabled" aria-selected="false" disabled>
-        Disabled
-    </button> {% endcomment %}
   </div>
 </nav>
 <div class="tab-content" id="nav-tabContent">
@@ -55,29 +42,13 @@ Tabs:
         <table class="table table-striped table-sm">
             <thead>
                 <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Role</th>
-                    <th scope="col">Is active</th>
-                    <th scope="col">Joined At</th>
+                    <th scope="col">Start date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Monthly Fees</th>
+                    <th scope="col">Is_active</th>
                 </tr>
             </thead>
             <tbody>
-                {% for member in members %}
-                    <tr>
-                        <td>
-                            {{member.user.first_name}} {{member.user.last_name}}
-                        </td>
-                        <td>
-                            {{member.role}}
-                        </td>
-                        <td>
-                            {{member.is_active}}
-                        </td>
-                        <td>
-                            {{member.joined_at}}
-                        </td>
-                    </tr>
-                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -87,30 +58,22 @@ Tabs:
         <table class="table table-striped table-sm">
             <thead>
                 <tr>
-                    <th scope="col">Start date</th>
-                    <th scope="col">End Date</th>
-                    <th scope="col">Monthly Fees</th>
-                    <th scope="col">Is_active</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Is active</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody>
-                {% for financial_year in financial_years %}
+                {% for member in participants %}
                     <tr>
                         <td>
-                            {{financial_year.start_date}}
+                            {{member.club_member.user.first_name}} {{member.club_member.user.last_name}}
                         </td>
                         <td>
-                            {{financial_year.end_date}}
+                            {{member.is_active}}
                         </td>
                         <td>
-                            {{financial_year.monthly_contribution}}
-                        </td>
-                        <td>
-                            {{financial_year.is_active}}
-                        </td>
-                        <td>
-                            <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}">View</a>
+                            <a href="">View</a>
                         </td>
                     </tr>
                 {% endfor %}

@@ -103,7 +103,7 @@ class FinancialYear(BaseTimestampedModel, models.Model):
         unique_together = ("club", "start_date", "end_date")
 
     def __str__(self):
-        return f"FY {self.start_date.year}-{self.end_date.year} for {self.club}"
+        return f"FY {self.start_date}->{self.end_date} for {self.club}"
 
 
 class FinancialYearParticipant(BaseTimestampedModel, models.Model):
