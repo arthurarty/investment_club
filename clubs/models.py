@@ -134,3 +134,41 @@ class FinancialYearParticipant(BaseTimestampedModel, models.Model):
 
     def __str__(self):
         return f"{self.club_member} in {self.financial_year}"
+
+
+class FinancialTransaction(BaseTimestampedModel, models.Model):
+    """
+    Model representing a financial transaction within a financial year.
+    """
+
+    financial_year = models.ForeignKey(
+        FinancialYear, on_delete=models.CASCADE, related_name="transactions"
+    )
+    description = models.CharField(max_length=1000)
+    credit = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )  # Money received
+    debit = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )  # Money spent
+    transaction_date = models.DateField()
+    club_member = models.ForeignKey(
+        ClubMember,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="financial_transactions",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_financial_transactions",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_financial_transactions",
+    )
+
+    def __str__(self):
+        return f"Transaction {self.credit} {self.debit} - {self.transaction_date} - {self.financial_year}"
