@@ -4,10 +4,14 @@ from django.views import View
 
 from clubs.forms.club_financials_forms import (
     FinancialYearForm,
-    FinancialYearParticipant,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
-from clubs.models import Club
+from clubs.models import (
+    Club,
+    FinancialTransaction,
+    FinancialYearContribution,
+    FinancialYearParticipant,
+)
 
 
 class ClubFinancialYearCreateView(LoginRequiredMixin, View):
@@ -60,9 +64,19 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
         participants = FinancialYearParticipant.objects.filter(
             financial_year=financial_year
         ).select_related("club_member__user")
+        dues = FinancialYearContribution.objects.filter(
+            financial_year=financial_year
+        ).order_by("due_period")
+        transactions = (
+            FinancialTransaction.objects.filter(financial_year=financial_year)
+            .order_by("-transaction_date")
+            .select_related("club_member__user")
+        )
         context = {
             "club": club,
             "financial_year": financial_year,
             "participants": participants,
+            "dues": dues,
+            "transactions": transactions,
         }
         return render(request, "clubs/financial_year_detail.html", context)
