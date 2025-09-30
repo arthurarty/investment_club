@@ -14,6 +14,16 @@ class ClubStatus(models.TextChoices):
     DISSOLVED = "dissolved", "Dissolved"
 
 
+class DuePeriod(models.TextChoices):
+    """
+    Options for due periods.
+    """
+
+    MONTHLY = "monthly", "Monthly"
+    QUARTERLY = "quarterly", "Quarterly"
+    YEARLY = "yearly", "Yearly"
+
+
 class Club(BaseTimestampedModel, models.Model):
     """
     Model representing an investment club.
@@ -87,7 +97,6 @@ class FinancialYear(BaseTimestampedModel, models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)
-    monthly_contribution = models.DecimalField(max_digits=10, decimal_places=2)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -104,6 +113,33 @@ class FinancialYear(BaseTimestampedModel, models.Model):
 
     def __str__(self):
         return f"FY {self.start_date}->{self.end_date} for {self.club}"
+
+
+class FinancialYearContribution(BaseTimestampedModel, models.Model):
+    """
+    Model representing a member's contribution to a financial year.
+    """
+
+    financial_year = models.ForeignKey(
+        FinancialYear, on_delete=models.CASCADE, related_name="contributions"
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    due_period = models.CharField(
+        max_length=20, choices=DuePeriod.choices, default=DuePeriod.MONTHLY
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_financial_year_contributions",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_financial_year_contributions",
+    )
+
+    def __str__(self):
+        return f"{self.financial_year} - {self.amount} - {self.due_period}"
 
 
 class FinancialYearParticipant(BaseTimestampedModel, models.Model):
@@ -171,4 +207,4 @@ class FinancialTransaction(BaseTimestampedModel, models.Model):
     )
 
     def __str__(self):
-        return f"Transaction {self.credit} {self.debit} - {self.transaction_date} - {self.financial_year}"
+        return f"TSN {self.credit} {self.debit} - {self.transaction_date} - {self.financial_year}"

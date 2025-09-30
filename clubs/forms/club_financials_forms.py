@@ -10,7 +10,7 @@ class FinancialYearForm(forms.ModelForm):
 
     class Meta:
         model = FinancialYear
-        fields = ["start_date", "end_date", "monthly_contribution"]
+        fields = ["start_date", "end_date"]
         widgets = {
             "start_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
@@ -18,9 +18,9 @@ class FinancialYearForm(forms.ModelForm):
             "end_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
-            "monthly_contribution": forms.NumberInput(
-                attrs={"step": "10000.00", "class": "form-control"}
-            ),
+            # "monthly_contribution": forms.NumberInput(
+            #     attrs={"step": "10000.00", "class": "form-control"}
+            # ),
         }
 
 
