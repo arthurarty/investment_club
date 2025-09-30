@@ -1,6 +1,10 @@
 from django import forms
 
-from clubs.models import FinancialYear, FinancialYearParticipant
+from clubs.models import (
+    FinancialYear,
+    FinancialYearContribution,
+    FinancialYearParticipant,
+)
 
 
 class FinancialYearForm(forms.ModelForm):
@@ -18,9 +22,22 @@ class FinancialYearForm(forms.ModelForm):
             "end_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
-            # "monthly_contribution": forms.NumberInput(
-            #     attrs={"step": "10000.00", "class": "form-control"}
-            # ),
+        }
+
+
+class FinancialYearContributionForm(forms.ModelForm):
+    """
+    Form for adding a contribution to a Financial Year.
+    """
+
+    class Meta:
+        model = FinancialYearContribution
+        fields = ["amount", "due_period"]
+        widgets = {
+            "amount": forms.NumberInput(
+                attrs={"step": "10000.00", "class": "form-control"}
+            ),
+            "due_period": forms.Select(attrs={"class": "form-select"}),
         }
 
 
