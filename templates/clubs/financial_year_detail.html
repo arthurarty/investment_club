@@ -137,7 +137,7 @@
 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
 Record Transaction
 </button>
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clubFinancialYearFormModal">
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
 Add new Due
 </button>
 
@@ -172,20 +172,20 @@ Add new Due
     </div>
 </div>
 <!-- Club Financial Form Modal -->
-<div class="modal fade" id="clubFinancialYearFormModal" tabindex="-1" aria-labelledby="clubFinancialYearFormModalLabel" aria-hidden="true">
+<div class="modal fade" id="clubDueFormModal" tabindex="-1" aria-labelledby="clubDueFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="clubFinancialYearFormModalLabel">
-                    Enter Financial Year Details
+                <h1 class="modal-title fs-5" id="clubDueFormModalLabel">
+                    Enter Contribution/Due Detail
                 </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
-            <form action="{% url 'clubs:financial-year' club.id %}" method="POST">
+            <form action="{% url 'clubs:financial-year-due' club.id financial_year.id %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
-                    {{ financial_year_form }}
+                    {{ financial_contribution_form }}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">

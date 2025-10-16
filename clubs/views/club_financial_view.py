@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from clubs.forms.club_financials_forms import (
+    FinancialYearContributionForm,
     FinancialYearForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
@@ -72,11 +73,65 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
             .order_by("-transaction_date")
             .select_related("club_member__user")
         )
+        financial_contribution_form = FinancialYearContributionForm()
         context = {
             "club": club,
             "financial_year": financial_year,
             "participants": participants,
             "dues": dues,
             "transactions": transactions,
+            "financial_contribution_form": financial_contribution_form,
+        }
+        return render(request, "clubs/financial_year_detail.html", context)
+
+
+class FinancialYearDueCreateView(LoginRequiredMixin, View):
+    """
+    View to handle the creation of a new due/contribution for a financial year.
+    """
+
+    def post(self, request, club_id: int, financial_year_id: int):
+        """
+        Handle POST requests to create a new due/contribution.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+            return redirect("clubs:index")
+        form = FinancialYearContributionForm(request.POST)
+        participants = FinancialYearParticipant.objects.filter(
+            financial_year=financial_year
+        ).select_related("club_member__user")
+        dues = FinancialYearContribution.objects.filter(
+            financial_year=financial_year
+        ).order_by("due_period")
+        transactions = (
+            FinancialTransaction.objects.filter(financial_year=financial_year)
+            .order_by("-transaction_date")
+            .select_related("club_member__user")
+        )
+        if not form.is_valid():
+            context = {
+                "club": club,
+                "financial_year": financial_year,
+                "participants": participants,
+                "dues": dues,
+                "transactions": transactions,
+                "financial_contribution_form": FinancialYearContributionForm(),
+            }
+            return render(request, "clubs/financial_year_detail.html", context)
+        new_due = form.save(commit=False)
+        new_due.financial_year = financial_year
+        new_due.created_by = request.user
+        new_due.updated_by = request.user
+        new_due.save()
+        context = {
+            "club": club,
+            "financial_year": financial_year,
+            "participants": participants,
+            "dues": dues,
+            "transactions": transactions,
+            "financial_contribution_form": FinancialYearContributionForm(),
         }
         return render(request, "clubs/financial_year_detail.html", context)
