@@ -3,6 +3,7 @@ from django.urls import path
 from clubs.views.club_financial_view import (
     ClubFinancialYearCreateView,
     ClubFinancialYearDetailView,
+    FinancialTransactionCreateView,
     FinancialYearDueCreateView,
 )
 from clubs.views.club_views import ClubDetailView, ClubsListView
@@ -31,5 +32,10 @@ urlpatterns = [
         "<int:club_id>/financial-year/<int:financial_year_id>/due/",
         FinancialYearDueCreateView.as_view(),
         name="financial-year-due",
+    ),
+    path(
+        "<int:club_id>/financial-year/<int:financial_year_id>/transaction/",
+        FinancialTransactionCreateView.as_view(),
+        name="financial-transaction",
     ),
 ]

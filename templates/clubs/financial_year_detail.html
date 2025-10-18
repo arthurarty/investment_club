@@ -74,6 +74,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
+            Record Transaction
+        </button>
     </div>
   </div>
   <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
@@ -102,6 +106,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        <!-- modal for adding new Due -->
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
+            Add new Due
+        </button>
     </div>
   </div>
   <div class="tab-pane fade" id="nav-parts" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
@@ -130,16 +138,13 @@
                 {% endfor %}
             </tbody>
         </table>
+        <!-- modal for adding Participant for a financial year -->
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
+            Add Participant
+        </button>
     </div>
   </div>
 </div>
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
-    Record Transaction
-</button>
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
-    Add new Due
-</button>
 
 {% endblock %}
 {% block after_main %}
@@ -154,7 +159,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
-            <form action="{% url 'clubs:member-lookup' club.id %}" method="POST">
+            <form action="{% url 'clubs:financial-transaction' club.id financial_year.id %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
                     {{ financial_transaction_form }}
