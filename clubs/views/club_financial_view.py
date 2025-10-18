@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from clubs.forms.club_financials_forms import (
+    FinancialTransactionForm,
     FinancialYearContributionForm,
     FinancialYearForm,
 )
@@ -73,14 +74,14 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
             .order_by("-transaction_date")
             .select_related("club_member__user")
         )
-        financial_contribution_form = FinancialYearContributionForm()
         context = {
             "club": club,
             "financial_year": financial_year,
             "participants": participants,
             "dues": dues,
             "transactions": transactions,
-            "financial_contribution_form": financial_contribution_form,
+            "financial_contribution_form": FinancialYearContributionForm(),
+            "financial_transaction_form": FinancialTransactionForm(),
         }
         return render(request, "clubs/financial_year_detail.html", context)
 

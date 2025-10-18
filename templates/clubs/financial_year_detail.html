@@ -134,21 +134,21 @@
   </div>
 </div>
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
-Record Transaction
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
+    Record Transaction
 </button>
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
-Add new Due
+    Add new Due
 </button>
 
 {% endblock %}
 {% block after_main %}
 <!-- MemberLook up Form Modal -->
-<div class="modal fade" id="memberLookUpFormModal" tabindex="-1" aria-labelledby="memberLookUpFormModalLabel" aria-hidden="true">
+<div class="modal fade" id="addTransactionFormModal" tabindex="-1" aria-labelledby="addTransactionFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="memberLookUpFormModalLabel">
+                <h1 class="modal-title fs-5" id="addTransactionFormModalLabel">
                     Enter Member Email
                 </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
@@ -157,14 +157,14 @@ Add new Due
             <form action="{% url 'clubs:member-lookup' club.id %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
-                    {{ look_up_form }}
+                    {{ financial_transaction_form }}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Close
                     </button>
                     <button type="submit" class="btn btn-success">
-                        Search
+                        Add
                     </button>
                 </div>
             </form>

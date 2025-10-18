@@ -117,7 +117,8 @@ class FinancialYear(BaseTimestampedModel, models.Model):
 
 class FinancialYearContribution(BaseTimestampedModel, models.Model):
     """
-    Model representing a member's contribution to a financial year.
+    Model represents the amounts of money per due period that club
+    members are expected to contribute during a financial year.
     """
 
     financial_year = models.ForeignKey(

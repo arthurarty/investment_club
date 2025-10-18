@@ -1,6 +1,7 @@
 from django import forms
 
 from clubs.models import (
+    FinancialTransaction,
     FinancialYear,
     FinancialYearContribution,
     FinancialYearParticipant,
@@ -49,3 +50,26 @@ class FinancialYearParticipantForm(forms.ModelForm):
     class Meta:
         model = FinancialYearParticipant
         fields = ["club_member", "financial_year"]
+
+
+class FinancialTransactionForm(forms.ModelForm):
+    """
+    Form for recording a financial transaction for a Financial Year.
+    """
+
+    class Meta:
+        model = FinancialTransaction
+        fields = ["club_member", "credit", "debit", "transaction_date", "description"]
+        widgets = {
+            "club_member": forms.Select(attrs={"class": "form-select"}),
+            "credit": forms.NumberInput(
+                attrs={"step": "10000.00", "class": "form-control"}
+            ),
+            "debit": forms.NumberInput(
+                attrs={"step": "10000.00", "class": "form-control"}
+            ),
+            "transaction_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}
+            ),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        }
