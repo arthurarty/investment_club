@@ -7,7 +7,9 @@ from accounts.models import CustomUser as User
 from clubs.models import (
     Club,
     ClubMember,
+    DuePeriod,
     FinancialYear,
+    FinancialYearContribution,
     FinancialYearParticipant,
 )
 from clubs.views.club_financial_view import prepare_financial_year_context
@@ -239,9 +241,110 @@ class TestFinancialYearDueCreateView(TestCase):
             args=[self.club.id, self.financial_year.id],
         )
         data = {
-            "amount": "50000.00",
-            "due_period": "Q1",
+            "amount": 50000,
+            "due_period": DuePeriod.MONTHLY,
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTPStatus.OK)  # Redirect on success
+        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertTrue(
+            FinancialYearContribution.objects.filter(
+                amount=50000, due_period=DuePeriod.MONTHLY.value
+            ).exists()
+        )
+
+    def test_create_financial_year_due_invalid_data(self):
+        """
+        Test the creation of a new financial year due with invalid data.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-due",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {
+            "amount": "invalid-amount",
+            "due_period": "Q1",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
+        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+
+
+class TestFinancialTransactionCreateView(TestCase):
+    """
+    Test case for the FinancialTransactionCreateView.
+    """
+
+    def setUp(self):
+        """
+        Set up test data for clubs, financial years, and users.
+        """
+        self.user = User.objects.create_user(
+            email="jane.doe@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="Investment Club",
+            description="A club for investment enthusiasts.",
+            contact_email=self.user.email,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2023-01-01",
+            end_date="2023-12-31",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+    def test_create_financial_transaction_success(self):
+        """
+        Test the creation of a new financial transaction via POST request.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-transaction",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {
+            "club_member": "",
+            "credit": "10000.00",
+            "debit": "0.00",
+            "transaction_date": "2023-06-15",
+            "description": "Membership fee",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)  # Redirect on success
+        self.assertEqual(
+            response.url,
+            reverse(
+                "clubs:financial-year-detail",
+                args=[self.club.id, self.financial_year.id],
+            ),
+        )
+        self.assertTrue(
+            FinancialYear.objects.filter(
+                club=self.club, start_date="2023-01-01", end_date="2023-12-31"
+            ).exists()
+        )
+
+    def test_create_financial_transaction_invalid_data(self):
+        """
+        Test the creation of a new financial transaction with invalid data.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-transaction",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {
+            "club_member": "",
+            "credit": "invalid-credit",
+            "debit": "0.00",
+            "transaction_date": "2023-06-15",
+            "description": "Membership fee",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
         self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
