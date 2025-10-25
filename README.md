@@ -26,3 +26,17 @@ If you make any changes to the models, you can create new migrations with the co
 ```bash
 python manage.py makemigrations
 ```
+
+## Testing
+To run tests you can use the command.
+```bash
+python manage.py test
+```
+To run tests with coverage you run the command like this.
+```bash
+coverage run --source='.' manage.py test
+```
+You can then see a report using the command below.
+```bash
+coverage report
+```
