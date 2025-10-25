@@ -94,7 +94,7 @@ class TestClubFinancialYearCreateView(TestCase):
             updated_by=self.user,
         )
 
-    def test_create_financial_year(self):
+    def test_create_financial_year_success(self):
         """
         Test the creation of a new financial year via POST request.
         """
@@ -111,4 +111,21 @@ class TestClubFinancialYearCreateView(TestCase):
             FinancialYear.objects.filter(
                 club=self.club, start_date="2024-01-01", end_date="2024-12-31"
             ).exists()
+        )
+
+    def test_create_financial_year_invalid_data(self):
+        """
+        Test the creation of a new financial year with invalid data.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse("clubs:financial-year", args=[self.club.id])
+        data = {
+            "start_date": "invalid-date",
+            "end_date": "2022-12-31",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
+        self.assertTemplateUsed(response, "clubs/detail.html")
+        self.assertFalse(
+            FinancialYear.objects.filter(club=self.club, end_date="2022-12-31").exists()
         )
