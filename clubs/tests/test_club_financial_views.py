@@ -1,4 +1,7 @@
+from http import HTTPStatus
+
 from django.test import TestCase
+from django.urls import reverse
 
 from accounts.models import CustomUser as User
 from clubs.models import (
@@ -69,3 +72,43 @@ class TestPrepareFinancialYearContext(TestCase):
         self.assertEqual(len(context["participants"]), 1)
         self.assertEqual(len(context["dues"]), 0)
         self.assertEqual(len(context["transactions"]), 0)
+
+
+class TestClubFinancialYearCreateView(TestCase):
+    """
+    Test case for the ClubFinancialYearCreateView.
+    """
+
+    def setUp(self):
+        """
+        Set up test data for clubs and users.
+        """
+        self.user = User.objects.create_user(
+            email="john.doe@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="Finance Club",
+            description="A club for financial enthusiasts.",
+            contact_email=self.user.email,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+    def test_create_financial_year(self):
+        """
+        Test the creation of a new financial year via POST request.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse("clubs:financial-year", args=[self.club.id])
+        data = {
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)  # Redirect on success
+        self.assertEqual(response.url, reverse("clubs:detail", args=[self.club.id]))
+        self.assertTrue(
+            FinancialYear.objects.filter(
+                club=self.club, start_date="2024-01-01", end_date="2024-12-31"
+            ).exists()
+        )
