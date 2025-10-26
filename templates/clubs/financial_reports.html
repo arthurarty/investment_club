@@ -45,10 +45,10 @@
             <thead>
                 <tr>
                     <th scope="col">Date</th>
+                    <th scope="col">Member</th>
                     <th scope="col">Description</th>
                     <th scope="col">Credit</th>
                     <th scope="col">Debit</th>
-                    <th scope="col">Member</th>
                 </tr>
             </thead>
             <tbody>
@@ -56,6 +56,9 @@
                     <tr>
                         <td>
                             {{trans.transaction_date}}
+                        </td>
+                        <td>
+                            {{trans.club_member.user.first_name}} {{trans.club_member.user.last_name}}
                         </td>
                         <td>
                             {{trans.description}}
@@ -66,9 +69,6 @@
                         <td>
                             {{trans.debit|floatformat:1|intcomma}}
                         </td>
-                        <td>
-                            {{trans.club_member.user.id}} : {{trans.club_member.user.first_name}}
-                        </td>
                     </tr>
                 {% endfor %}
                 <tr>
@@ -76,6 +76,7 @@
                     <td>Total</td>
                     <td>{{ sum_credit|floatformat:1|intcomma }}</td>
                     <td>{{sum_debit|floatformat:1|intcomma }}</td>
+                    <td></td>
                 </tr>
             </tbody>
         </table>
