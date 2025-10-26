@@ -6,6 +6,7 @@ from clubs.forms.club_financials_forms import (
     FinancialTransactionForm,
     FinancialYearContributionForm,
     FinancialYearForm,
+    FinancialYearParticipantForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import (
@@ -39,6 +40,7 @@ def prepare_financial_year_context(club, financial_year):
         "transactions": transactions,
         "financial_contribution_form": FinancialYearContributionForm(),
         "financial_transaction_form": FinancialTransactionForm(),
+        "participant_form": FinancialYearParticipantForm(),
     }
     return context
 
