@@ -1,0 +1,167 @@
+{% extends 'clubs/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {{club.name}} {{financial_year.start_date}} - {{financial_year.end_date}}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2"> <button type="button"
+                class="btn btn-sm btn-outline-secondary">Share</button> <button type="button"
+                class="btn btn-sm btn-outline-secondary">Export</button> </div> <button type="button"
+            class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1">
+            <svg class="bi" aria-hidden="true">
+                <use xlink:href="#calendar3"></use>
+            </svg>
+            This week
+        </button>
+    </div>
+</div>
+<div>
+    <p>
+        <i>Selected Month:</i>
+        {{ selected_month|date:"F, Y" }}
+    </p>
+</div>
+<nav>
+  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">
+        Cash Flow Statement
+    </button>
+    <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
+        Monthly Report
+    </button>
+    <button class="nav-link" id="nav-parts-tab" data-bs-toggle="tab" data-bs-target="#nav-parts" type="button" role="tab" aria-controls="nav-parts" aria-selected="false">
+        Quarterly Report
+    </button>
+  </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+  <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
+    <div class="table-responsive small">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Member</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Credit</th>
+                    <th scope="col">Debit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in financial_transactions %}
+                    <tr>
+                        <td>
+                            {{trans.transaction_date}}
+                        </td>
+                        <td>
+                            {{trans.club_member.user.first_name}} {{trans.club_member.user.last_name}}
+                        </td>
+                        <td>
+                            {{trans.description}}
+                        </td>
+                        <td>
+                            {{trans.credit|floatformat:1|intcomma}}
+                        </td>
+                        <td>
+                            {{trans.debit|floatformat:1|intcomma}}
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>Total</td>
+                    <td>{{ sum_credit|floatformat:1|intcomma }}</td>
+                    <td>{{sum_debit|floatformat:1|intcomma }}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
+    <div class="table-responsive small">
+        <h3>Applicable Dues</h3>
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Due</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for due in applicable_dues %}
+                    <tr>
+                        <td>
+                            {{due.amount}}
+                        </td>
+                        <td>
+                            {{due.due_period}}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Total Due</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in participants %}
+                    <tr>
+                        <td>
+                            {{member.club_member.user.first_name}} {{member.club_member.user.last_name}}
+                        </td>
+                        <td>
+                            {{total_monthly_due}}
+                        </td>
+                        <td>
+                            <a href="">View</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="nav-parts" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
+    <div class="table-responsive small">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Is active</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% comment %} {% for member in participants %}
+                    <tr>
+                        <td>
+                            {{member.club_member.user.first_name}} {{member.club_member.user.last_name}}
+                        </td>
+                        <td>
+                            {{member.is_active}}
+                        </td>
+                        <td>
+                            <a href="">View</a>
+                        </td>
+                    </tr>
+                {% endfor %} {% endcomment %}
+            </tbody>
+        </table>
+        <!-- modal for adding Participant for a financial year -->
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
+            Add Participant
+        </button>
+    </div>
+  </div>
+</div>
+{% endblock %}

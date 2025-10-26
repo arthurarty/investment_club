@@ -6,6 +6,7 @@ from clubs.forms.club_financials_forms import (
     FinancialTransactionForm,
     FinancialYearContributionForm,
     FinancialYearForm,
+    FinancialYearParticipantForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import (
@@ -39,6 +40,7 @@ def prepare_financial_year_context(club, financial_year):
         "transactions": transactions,
         "financial_contribution_form": FinancialYearContributionForm(),
         "financial_transaction_form": FinancialTransactionForm(),
+        "participant_form": FinancialYearParticipantForm(),
     }
     return context
 
@@ -156,6 +158,39 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
         new_transaction.created_by = request.user
         new_transaction.updated_by = request.user
         new_transaction.save()
+        return redirect(
+            "clubs:financial-year-detail",
+            club_id=club.id,
+            financial_year_id=financial_year.id,
+        )
+
+
+class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
+    """
+    View to handle the creation of a new participant for a financial year.
+    """
+
+    def post(self, request, club_id: int, financial_year_id: int):
+        """
+        Handle POST requests to create a new financial year participant.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+            return redirect("clubs:index")
+        form = FinancialYearParticipantForm(request.POST)
+        if not form.is_valid():
+            return render(
+                request,
+                "clubs/financial_year_detail.html",
+                prepare_financial_year_context(club, financial_year),
+            )
+        new_participant = form.save(commit=False)
+        new_participant.financial_year = financial_year
+        new_participant.created_by = request.user
+        new_participant.updated_by = request.user
+        new_participant.save()
         return redirect(
             "clubs:financial-year-detail",
             club_id=club.id,
