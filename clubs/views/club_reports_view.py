@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Sum
 from django.shortcuts import redirect, render
 from django.views import View
 
@@ -36,10 +37,15 @@ class FinancialReportsView(LoginRequiredMixin, View):
             .order_by("transaction_date")
             .select_related("club_member__user")
         )
+        totals = FinancialTransaction.objects.filter(
+            financial_year=financial_year, transaction_date__month=selected_month
+        ).aggregate(total_credit=Sum("credit"), total_debit=Sum("debit"))
         context = {
             "club": club,
             "financial_year": financial_year,
             "financial_transactions": financial_transactions,
             "selected_month": datetime(current_datetime.year, int(selected_month), 1),
+            "sum_credit": totals["total_credit"] or 0,
+            "sum_debit": totals["total_debit"] or 0,
         }
         return render(request, "clubs/financial_reports.html", context)

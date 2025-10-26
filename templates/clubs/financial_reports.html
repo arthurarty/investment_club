@@ -1,5 +1,6 @@
 {% extends 'clubs/base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div
     class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -60,22 +61,24 @@
                             {{trans.description}}
                         </td>
                         <td>
-                            {{trans.credit}}
+                            {{trans.credit|floatformat:1|intcomma}}
                         </td>
                         <td>
-                            {{trans.debit}}
+                            {{trans.debit|floatformat:1|intcomma}}
                         </td>
                         <td>
                             {{trans.club_member.user.id}} : {{trans.club_member.user.first_name}}
                         </td>
                     </tr>
                 {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>Total</td>
+                    <td>{{ sum_credit|floatformat:1|intcomma }}</td>
+                    <td>{{sum_debit|floatformat:1|intcomma }}</td>
+                </tr>
             </tbody>
         </table>
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
-            Record Transaction
-        </button>
     </div>
   </div>
   <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
