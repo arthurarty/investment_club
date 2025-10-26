@@ -214,7 +214,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
-            <form action="{% url 'clubs:financial-year-due' club.id financial_year.id %}" method="POST">
+            <form action="{% url 'clubs:financial-year-participant' club.id financial_year.id %}" method="POST">
                 <div class="modal-body">
                     {% csrf_token %}
                     {{ participant_form }}

@@ -49,10 +49,9 @@ class FinancialYearParticipantForm(forms.ModelForm):
 
     class Meta:
         model = FinancialYearParticipant
-        fields = ["club_member", "financial_year"]
+        fields = ["club_member"]
         widgets = {
             "club_member": forms.Select(attrs={"class": "form-select"}),
-            "financial_year": forms.Select(attrs={"class": "form-select"}),
         }
 
 
