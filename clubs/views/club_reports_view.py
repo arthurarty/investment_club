@@ -11,7 +11,7 @@ from clubs.models import (
 )
 
 
-class FinancialReportsView(LoginRequiredMixin, View):
+class CashFlowReportView(LoginRequiredMixin, View):
     """
     View to display financial reports for a specific financial year of a club.
     """
