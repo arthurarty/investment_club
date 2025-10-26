@@ -73,3 +73,7 @@ class FinancialTransactionForm(forms.ModelForm):
             ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
+        labels = {
+            "credit": "Credit (money received)",
+            "debit": "Debit (money paid out)",
+        }
