@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Investment Club Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .sidebar {
+    width: 256px;
+    min-height: 100vh;
+    background-color: #fff;
+    border-right: 1px solid #e5e7eb;
+  }
+  
+  [data-bs-theme="dark"] .sidebar {
+    background-color: #1e293b;
+    border-right-color: #334155;
+  }
+  
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    color: #4b5563;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    font-weight: 500;
+  }
+  
+  [data-bs-theme="dark"] .sidebar-link {
+    color: #d1d5db;
+  }
+  
+  .sidebar-link:hover {
+    background-color: #f3f4f6;
+  }
+  
+  [data-bs-theme="dark"] .sidebar-link:hover {
+    background-color: #334155;
+  }
+  
+  .sidebar-link.active {
+    color: #2563eb;
+    background-color: #dbeafe;
+  }
+  
+  [data-bs-theme="dark"] .sidebar-link.active {
+    background-color: rgba(37, 99, 235, 0.5);
+  }
+  
+  .top-header {
+    height: 64px;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  [data-bs-theme="dark"] .top-header {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+  }
+  
+  .main-content {
+    background-color: #f8fafc;
+  }
+  
+  [data-bs-theme="dark"] .main-content {
+    background-color: #0f172a;
+  }
+  
+  .card-custom {
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+  }
+  
+  [data-bs-theme="dark"] .card-custom {
+    background-color: #1e293b;
+    border-color: #334155;
+  }
+  
+  .nav-tabs-custom {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  [data-bs-theme="dark"] .nav-tabs-custom {
+    border-bottom-color: #334155;
+  }
+  
+  .nav-tabs-custom .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 1rem 0.25rem;
+    margin-right: 2rem;
+  }
+  
+  [data-bs-theme="dark"] .nav-tabs-custom .nav-link {
+    color: #9ca3af;
+  }
+  
+  .nav-tabs-custom .nav-link.active {
+    border-bottom-color: #2563eb;
+    color: #2563eb;
+    background-color: transparent;
+  }
+  
+  .table-custom {
+    font-size: 0.875rem;
+  }
+  
+  .table-custom thead {
+    background-color: #f9fafb;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #4b5563;
+  }
+  
+  [data-bs-theme="dark"] .table-custom thead {
+    background-color: rgba(15, 23, 42, 0.5);
+    color: #d1d5db;
+  }
+  
+  .table-custom tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  [data-bs-theme="dark"] .table-custom tbody tr {
+    border-bottom-color: #334155;
+  }
+  
+  .table-custom tbody tr:hover {
+    background-color: #f9fafb;
+  }
+  
+  [data-bs-theme="dark"] .table-custom tbody tr:hover {
+    background-color: rgba(51, 65, 85, 0.5);
+  }
+  
+  [data-bs-theme="dark"] .table-custom {
+    color: #e5e7eb;
+  }
+  
+  .btn-amber {
+    background-color: #fbbf24;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  
+  .btn-amber:hover {
+    background-color: #f59e0b;
+    color: #0f172a;
+  }
+  
+  .btn-outline-secondary {
+    background-color: #fff;
+    border-color: #d1d5db;
+    color: #374151;
+  }
+  
+  .btn-outline-secondary:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    color: #374151;
+  }
+  
+  [data-bs-theme="dark"] .btn-outline-secondary {
+    background-color: #334155;
+    border-color: #475569;
+    color: #e5e7eb;
+  }
+  
+  [data-bs-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #475569;
+    border-color: #475569;
+    color: #e5e7eb;
+  }
+</style>
+</head>
+<body>
+{% block content %}{% endblock %}
+{% block after_main %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+</body>
+</html>
