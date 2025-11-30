@@ -1,54 +1,32 @@
-{% extends 'clubs/base.html' %}
+{% extends 'clubs/base_v2.html' %}
 {% load static %}
 {% block content %}
-<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-<div
-    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">
-        Dashboard
-    </h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <div class="btn-group me-2"> <button type="button"
-                class="btn btn-sm btn-outline-secondary">Share</button> <button type="button"
-                class="btn btn-sm btn-outline-secondary">Export</button> </div> <button type="button"
-            class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1">
-            <svg class="bi" aria-hidden="true">
-                <use xlink:href="#calendar3"></use>
-            </svg>
-            This week
-        </button>
+<div class="col-12">
+    <div class="page-header">
+        <h1 class="page-title">Savings Clubs</h1>
+        <button class="btn btn-new-club" data-bs-toggle="modal" data-bs-target="#createClubFormModal">New Club</button>
     </div>
+    {% for club in clubs %}
+        <div class="club-item">
+            <div class="club-info">
+                <div class="club-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="club-details">
+                    <a href="{% url 'clubs:detail' club.id %}">
+                        <h6>{{ club.name }}</h6>
+                    </a>
+                    <p>12 members</p>
+                </div>
+            </div>
+            <p class="club-amount">Ugx 250,000</p>
+        </div>
+    {% endfor %}
 </div>
-<h2>Clubs</h2>
-<div class="table-responsive small">
-    <table class="table table-striped table-sm">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Name</th>
-                <th scope="col">Description</th>
-                <th scope="col">Created at</th>
-                <th scope="col">Created by</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for club in clubs %}
-                    <tr>
-                        <td>{{ club.id }}</td>
-                        <td>{{ club.name }}</td>
-                        <td>{{ club.description }}</td>
-                        <td>{{ club.created_at }}</td>
-                        <td>{{ club.created_by.first_name }}</td>
-                        <td><a href="{% url 'clubs:detail' club.id %}">View</a></td>
-                    </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClubFormModal">
-Register a club
-</button>
+
 {% endblock %}
 {% block after_main %}
 <!-- Modal -->
