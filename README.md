@@ -1,4 +1,7 @@
 # Investment Clubs
+## Requirements:
+- Python 3.13
+
 ## Setup
 Create a virtual env for python3.13
 ```bash
