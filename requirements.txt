@@ -5,7 +5,7 @@ cfgv==3.4.0
 click==8.2.1
 coverage==7.11.0
 distlib==0.4.0
-Django==5.2.5
+Django==6.0
 filelock==3.19.1
 identify==2.6.13
 isort==6.0.1
