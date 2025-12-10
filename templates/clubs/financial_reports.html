@@ -6,11 +6,11 @@
   <aside class="sidebar d-flex flex-column">
     <div class="flex-grow-1 p-3">
       <div class="d-flex flex-column gap-2">
-        <a class="sidebar-link active" href="{% url 'clubs:index' %}">
+        <a class="sidebar-link" href="{% url 'clubs:index' %}">
           <span class="material-icons">dashboard</span>
           <span>Dashboard</span>
         </a>
-        <a class="sidebar-link" href="{% url 'clubs:financial-reports' club.id  financial_year.id %}">
+        <a class="sidebar-link active" href="{% url 'clubs:financial-reports' club.id  financial_year.id %}">
           <span class="material-icons">bar_chart</span>
           <span>Reports</span>
         </a>
@@ -42,7 +42,7 @@
           <div>
             <h2 class="h2 fw-bold mb-1">{{club.name}}</h2>
             <p class="text-muted mb-0">
-                {{club.description}} Financial Year: {{financial_year.start_date}} - {{financial_year.end_date}}
+                {{ selected_month|date:"F, Y" }}
             </p>
           </div>
           <div class="d-flex align-items-center gap-2">
@@ -61,17 +61,17 @@
             <ul class="nav nav-tabs border-0">
               <li class="nav-item">
                 <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">
-                   Transactions
+                   Cash Flow Statement
                 </button>
               </li>
               <li class="nav-item">
                 <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
-                    Dues
+                    Monthly Report
                 </button>
               </li>
               <li class="nav-item">
                 <button class="nav-link" id="nav-parts-tab" data-bs-toggle="tab" data-bs-target="#nav-parts" type="button" role="tab" aria-controls="nav-parts" aria-selected="false">
-                    Participants
+                    Quarterly Report
                 </button>
               </li>
             </ul>
@@ -83,48 +83,56 @@
                     <thead>
                         <tr>
                             <th scope="col" class="px-4 py-3 fw-medium">Date</th>
+                            <th scope="col" class="px-4 py-3 fw-medium">Member</th>
                             <th scope="col" class="px-4 py-3 fw-medium">Description</th>
                             <th scope="col" class="px-4 py-3 fw-medium">Credit</th>
                             <th scope="col" class="px-4 py-3 fw-medium">Debit</th>
-                            <th scope="col" class="px-4 py-3 fw-medium">Member</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for trans in transactions %}
+                    {% for trans in financial_transactions %}
                         <tr>
                             <td class="px-4 py-3 fw-medium">
                                  {{trans.transaction_date}}
                             </td>
                             <td class="px-4 py-3">
+                                {{trans.club_member.user.first_name}} {{trans.club_member.user.last_name}}
+                            </td>
+                            <td class="px-4 py-3">
                                 {{trans.description}}
                             </td>
                             <td class="px-4 py-3">
-                                {{trans.credit}}
+                                {{trans.credit|floatformat:1|intcomma}}
                             </td>
                             <td class="px-4 py-3">
-                                {{trans.debit}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{trans.club_member.user.id}} : {{trans.club_member.user.first_name}}
+                                {{trans.debit|floatformat:1|intcomma}}
                             </td>
                         </tr>
                     {% endfor %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td class="px-4 py-3">Total</td>
+                            <td class="px-4 py-3">{{ sum_credit|floatformat:1|intcomma }}</td>
+                            <td class="px-4 py-3">{{sum_debit|floatformat:1|intcomma }}</td>
+                        </tr>
                     </tbody>
                     </table>
                 </div>
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
                 <div class="table-responsive small">
-                    <table class="table table-striped table-sm">
+                    <p class="px-4 py-1">Applicable Dues</p>
+                    <table class="table table-custom mb-0">
                         <thead>
                             <tr>
-                                <th scope="col" class="px-4 py-3 fw-medium">Amount</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Due</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Action</th>
+                                <th scope="col" class="px-4 py-1 fw-medium">Name</th>
+                                <th scope="col" class="px-4 py-1 fw-medium">Total Due</th>
+                                <th scope="col" class="px-4 py-1 fw-medium">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for due in dues %}
+                            {% for due in applicable_dues %}
                                 <tr>
                                     <td class="px-4 py-3 fw-medium">
                                         {{due.amount}}
@@ -143,11 +151,11 @@
             </div>
             <div class="tab-pane fade" id="nav-parts" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
                 <div class="table-responsive small">
-                    <table class="table table-striped table-sm">
+                    <table class="table table-custom mb-0">
                         <thead>
                             <tr>
                                 <th scope="col" class="px-4 py-3 fw-medium">Name</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Is active</th>
+                                <th scope="col" class="px-4 py-3 fw-medium">Total Due</th>
                                 <th scope="col" class="px-4 py-3 fw-medium">Action</th>
                             </tr>
                         </thead>
@@ -158,7 +166,7 @@
                                         {{member.club_member.user.first_name}} {{member.club_member.user.last_name}}
                                     </td>
                                     <td class="px-4 py-3">
-                                        {{member.is_active}}
+                                        {{total_monthly_due}}
                                     </td>
                                     <td class="px-4 py-3">
                                         <a href="">View</a>
@@ -194,207 +202,4 @@
 </div>
 {% endblock %}
 {% block after_main %}
-<!-- MemberLook up Form Modal -->
-<div class="modal fade" id="addTransactionFormModal" tabindex="-1" aria-labelledby="addTransactionFormModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="addTransactionFormModalLabel">
-                    Enter Member Email
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{% url 'clubs:financial-transaction' club.id financial_year.id %}" method="POST">
-                <div class="modal-body">
-                    {% csrf_token %}
-                    {{ financial_transaction_form }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Add
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Club Financial Form Modal -->
-<div class="modal fade" id="clubDueFormModal" tabindex="-1" aria-labelledby="clubDueFormModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="clubDueFormModalLabel">
-                    Enter Contribution/Due Detail
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{% url 'clubs:financial-year-due' club.id financial_year.id %}" method="POST">
-                <div class="modal-body">
-                    {% csrf_token %}
-                    {{ financial_contribution_form }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Create
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="fyParticipantFormModal" tabindex="-1" aria-labelledby="fyParticipantFormModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="fyParticipantFormModalLabel">
-                    Enter Financial Year Participant
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{% url 'clubs:financial-year-participant' club.id financial_year.id %}" method="POST">
-                <div class="modal-body">
-                    {% csrf_token %}
-                    {{ participant_form }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Create
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block content %}
-<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-    <div>
-        <p>
-            <i>Selected Month:</i>
-            {{ selected_month|date:"F, Y" }}
-        </p>
-    </div>
-    <nav>
-    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-        <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">
-            Cash Flow Statement
-        </button>
-        <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
-            Monthly Report
-        </button>
-        <button class="nav-link" id="nav-parts-tab" data-bs-toggle="tab" data-bs-target="#nav-parts" type="button" role="tab" aria-controls="nav-parts" aria-selected="false">
-            Quarterly Report
-        </button>
-    </div>
-    </nav>
-    <div class="tab-content" id="nav-tabContent">
-    <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
-        <div class="table-responsive small">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Member</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Credit</th>
-                        <th scope="col">Debit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for trans in financial_transactions %}
-                        <tr>
-                            <td>
-                                {{trans.transaction_date}}
-                            </td>
-                            <td>
-                                {{trans.club_member.user.first_name}} {{trans.club_member.user.last_name}}
-                            </td>
-                            <td>
-                                {{trans.description}}
-                            </td>
-                            <td>
-                                {{trans.credit|floatformat:1|intcomma}}
-                            </td>
-                            <td>
-                                {{trans.debit|floatformat:1|intcomma}}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    <tr>
-                        <td></td>
-                        <td>Total</td>
-                        <td>{{ sum_credit|floatformat:1|intcomma }}</td>
-                        <td>{{sum_debit|floatformat:1|intcomma }}</td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
-        <div class="table-responsive small">
-            <h3>Applicable Dues</h3>
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th scope="col">Amount</th>
-                        <th scope="col">Due</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for due in applicable_dues %}
-                        <tr>
-                            <td>
-                                {{due.amount}}
-                            </td>
-                            <td>
-                                {{due.due_period}}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Total Due</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for member in participants %}
-                        <tr>
-                            <td>
-                                {{member.club_member.user.first_name}} {{member.club_member.user.last_name}}
-                            </td>
-                            <td>
-                                {{total_monthly_due}}
-                            </td>
-                            <td>
-                                <a href="">View</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="tab-pane fade" id="nav-parts" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
-    </div>
-    </div>
-</main>
 {% endblock %}
