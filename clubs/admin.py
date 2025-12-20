@@ -7,6 +7,7 @@ from clubs.models import (
     FinancialYear,
     FinancialYearContribution,
     FinancialYearParticipant,
+    IndividualDue,
 )
 
 admin.site.register(Club)
@@ -15,3 +16,4 @@ admin.site.register(FinancialYear)
 admin.site.register(FinancialYearParticipant)
 admin.site.register(FinancialTransaction)
 admin.site.register(FinancialYearContribution)
+admin.site.register(IndividualDue)
