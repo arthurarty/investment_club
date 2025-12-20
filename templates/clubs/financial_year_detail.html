@@ -73,6 +73,11 @@
                     Participants
                 </button>
               </li>
+              <li class="nav-item">
+                <button class="nav-link" id="nav-individual-dues-tab" data-bs-toggle="tab" data-bs-target="#nav-individual-dues" type="button" role="tab" aria-controls="nav-individual-dues" aria-selected="false">
+                    Individual Dues
+                </button>
+              </li>
             </ul>
           </div>
           <div class="tab-content" id="nav-tabContent">
@@ -169,10 +174,41 @@
 
                 </div>
             </div>
+            <div class="tab-pane fade" id="nav-individual-dues" role="tabpanel" aria-labelledby="nav-individual-dues-tab" tabindex="0">
+                <div class="table-responsive small">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="px-4 py-3 fw-medium">Amount</th>
+                                <th scope="col" class="px-4 py-3 fw-medium">Due</th>
+                                <th scope="col" class="px-4 py-3 fw-medium">Description</th>
+                                <th scope="col" class="px-4 py-3 fw-medium">Member</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for due in individual_dues %}
+                                <tr>
+                                    <td class="px-4 py-3 fw-medium">
+                                        {{due.amount}}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        {{due.due_date}}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        {{due.description}}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        {{due.club_member}}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
           </div>
 
         </div>
-        
         <div class="mt-4 d-flex gap-3">
             <!-- Button to trigger modal to record new transaction -->
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">

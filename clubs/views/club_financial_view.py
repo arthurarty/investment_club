@@ -32,6 +32,7 @@ def prepare_financial_year_context(club, financial_year):
         .order_by("-transaction_date")
         .select_related("club_member__user")
     )
+    individual_dues = financial_year.individual_dues.select_related("club_member__user")
     context = {
         "club": club,
         "financial_year": financial_year,
@@ -41,6 +42,7 @@ def prepare_financial_year_context(club, financial_year):
         "financial_contribution_form": FinancialYearContributionForm(),
         "financial_transaction_form": FinancialTransactionForm(),
         "participant_form": FinancialYearParticipantForm(),
+        "individual_dues": individual_dues,
     }
     return context
 
