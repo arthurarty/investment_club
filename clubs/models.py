@@ -173,6 +173,36 @@ class FinancialYearParticipant(BaseTimestampedModel, models.Model):
         return f"{self.club_member} in {self.financial_year}"
 
 
+class IndividualDue(BaseTimestampedModel, models.Model):
+    """
+    Represents dues that only apply a particular club member within a financial year.
+    This can be used for fines, special assessments, or other individual charges.
+    """
+
+    financial_year = models.ForeignKey(
+        FinancialYear, on_delete=models.CASCADE, related_name="individual_dues"
+    )
+    club_member = models.ForeignKey(
+        ClubMember, on_delete=models.CASCADE, related_name="individual_dues"
+    )
+    description = models.CharField(max_length=1000)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    due_date = models.DateField()
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_individual_dues",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_individual_dues",
+    )
+
+    def __str__(self):
+        return f"Due {self.amount} - {self.financial_year} - {self.club_member}"
+
+
 class FinancialTransaction(BaseTimestampedModel, models.Model):
     """
     Model representing a financial transaction within a financial year.
