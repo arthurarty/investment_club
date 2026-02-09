@@ -216,11 +216,15 @@
             </button>
             <!-- button to trigger modal for adding new due -->
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
-                Add new Due
+                Add New Due
             </button>
             <!-- modal for adding Participant for a financial year -->
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#fyParticipantFormModal">
                 Add Participant
+            </button>
+            <!-- modal for adding an individual due -->
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#individualDueForm">
+                Add Individual due
             </button>
         </div>
       </div>
@@ -257,7 +261,7 @@
         </div>
     </div>
 </div>
-<!-- Club Financial Form Modal -->
+<!-- Club Financial Contribution Form Modal -->
 <div class="modal fade" id="clubDueFormModal" tabindex="-1" aria-labelledby="clubDueFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -285,6 +289,7 @@
         </div>
     </div>
 </div>
+<!-- Financial year participant form -->
 <div class="modal fade" id="fyParticipantFormModal" tabindex="-1" aria-labelledby="fyParticipantFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -299,6 +304,34 @@
                 <div class="modal-body">
                     {% csrf_token %}
                     {{ participant_form }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- individual due form -->
+<div class="modal fade" id="individualDueForm" tabindex="-1" aria-labelledby="individualDueFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="individualDueFormModalLabel">
+                    Enter Individual Due
+                </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
+            </div>
+            <form action="{% url 'clubs:financial-year-individual-due' club.id financial_year.id %}" method="POST">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ individual_due_form }}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">

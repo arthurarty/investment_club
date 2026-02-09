@@ -207,6 +207,8 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
     View to handle the creation of an IndividualDue for a financial year.
     """
 
+    # Todo: check if the participant is part of the financial year
+    # before allowing the creation of an individual due for that participant.
     def post(self, request, club_id: int, financial_year_id: int):
         try:
             club = Club.objects.get(id=club_id)
