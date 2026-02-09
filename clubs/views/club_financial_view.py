@@ -7,6 +7,7 @@ from clubs.forms.club_financials_forms import (
     FinancialYearContributionForm,
     FinancialYearForm,
     FinancialYearParticipantForm,
+    IndividualDueForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import (
@@ -42,6 +43,7 @@ def prepare_financial_year_context(club, financial_year):
         "financial_contribution_form": FinancialYearContributionForm(),
         "financial_transaction_form": FinancialTransactionForm(),
         "participant_form": FinancialYearParticipantForm(),
+        "individual_due_form": IndividualDueForm(),
         "individual_dues": individual_dues,
     }
     return context
@@ -197,4 +199,36 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
             "clubs:financial-year-detail",
             club_id=club.id,
             financial_year_id=financial_year.id,
+        )
+
+
+class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
+    """
+    View to handle the creation of an IndividualDue for a financial year.
+    """
+
+    # Todo: check if the participant is part of the financial year
+    # before allowing the creation of an individual due for that participant.
+    def post(self, request, club_id: int, financial_year_id: int):
+        try:
+            club = Club.objects.get(id=club_id)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+            return redirect("clubs:index")
+        form = IndividualDueForm(request.POST)
+        if not form.is_valid():
+            return render(
+                request,
+                "clubs/financial_year_detail.html",
+                prepare_financial_year_context(club, financial_year),
+            )
+        new_due = form.save(commit=False)
+        new_due.financial_year = financial_year
+        new_due.created_by = request.user
+        new_due.updated_by = request.user
+        new_due.save()
+        return render(
+            request,
+            "clubs/financial_year_detail.html",
+            prepare_financial_year_context(club, financial_year),
         )
