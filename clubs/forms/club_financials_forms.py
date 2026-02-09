@@ -5,6 +5,7 @@ from clubs.models import (
     FinancialYear,
     FinancialYearContribution,
     FinancialYearParticipant,
+    IndividualDue,
 )
 
 
@@ -79,4 +80,24 @@ class FinancialTransactionForm(forms.ModelForm):
         labels = {
             "credit": "Credit (money received)",
             "debit": "Debit (money paid out)",
+        }
+
+
+class IndividualDueForm(forms.ModelForm):
+    """
+    Form for creating an IndividualDue for a Financial Year.
+    """
+
+    class Meta:
+        model = IndividualDue
+        fields = ["club_member", "description", "amount", "due_date"]
+        widgets = {
+            "club_member": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "amount": forms.NumberInput(
+                attrs={"step": "0.01", "class": "form-control"}
+            ),
+            "due_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}
+            ),
         }
