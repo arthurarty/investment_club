@@ -160,13 +160,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for member in participants %}
+                            {% for participant_due in participant_dues %}
                                 <tr>
                                     <td class="px-4 py-3 fw-medium">
-                                        {{member.club_member.user.first_name}} {{member.club_member.user.last_name}}
+                                        {{participant_due.first_name}} {{participant_due.last_name}}
                                     </td>
                                     <td class="px-4 py-3">
-                                        {{total_monthly_due}}
+                                        {{participant_due.due}}
                                     </td>
                                     <td class="px-4 py-3">
                                         <a href="">View</a>

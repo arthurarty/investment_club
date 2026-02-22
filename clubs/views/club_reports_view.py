@@ -11,6 +11,7 @@ from clubs.models import (
     FinancialTransaction,
     FinancialYearContribution,
     FinancialYearParticipant,
+    IndividualDue,
 )
 
 
@@ -22,6 +23,24 @@ def compute_monthly_due(dues, no_of_months: int) -> float:
     dues = dues.aggregate(total_due=Sum("amount"))
     total_due = dues["total_due"] or 0
     return total_due * no_of_months
+
+
+def calculate_monthly_due_for_participant(
+    dues,
+    participant: FinancialYearParticipant,
+    no_of_months: int,
+    selected_month_obj: datetime,
+) -> float:
+    """
+    Calculate the due for given participant.
+    """
+    monthly_dues = compute_monthly_due(dues, no_of_months)
+    individual_dues = IndividualDue.objects.filter(
+        financial_year=participant.financial_year,
+        club_member=participant.club_member,
+        due_date__month__lte=selected_month_obj.month,
+    ).aggregate(total_individual_due=Sum("amount"))
+    return monthly_dues + (individual_dues["total_individual_due"] or 0)
 
 
 class FinancialReportView(LoginRequiredMixin, View):
@@ -63,6 +82,18 @@ class FinancialReportView(LoginRequiredMixin, View):
         participants = FinancialYearParticipant.objects.filter(
             financial_year=financial_year
         ).select_related("club_member__user")
+        participant_dues = []
+        for participant in participants:
+            participant_due = calculate_monthly_due_for_participant(
+                applicable_dues, participant, no_of_months, selected_month_obj
+            )
+            participant_dues.append(
+                {
+                    "first_name": participant.club_member.user.first_name,
+                    "last_name": participant.club_member.user.last_name,
+                    "due": participant_due,
+                }
+            )
         context = {
             "club": club,
             "financial_year": financial_year,
@@ -73,5 +104,6 @@ class FinancialReportView(LoginRequiredMixin, View):
             "total_monthly_due": total_computed_due,
             "applicable_dues": applicable_dues,
             "participants": participants,
+            "participant_dues": participant_dues,
         }
         return render(request, "clubs/financial_reports.html", context)
