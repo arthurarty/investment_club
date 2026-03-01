@@ -17,6 +17,21 @@ from clubs.models import (
     IndividualDue,
 )
 
+MONTH_CHOICES = [
+    (1, "January"),
+    (2, "February"),
+    (3, "March"),
+    (4, "April"),
+    (5, "May"),
+    (6, "June"),
+    (7, "July"),
+    (8, "August"),
+    (9, "September"),
+    (10, "October"),
+    (11, "November"),
+    (12, "December"),
+]
+
 
 def compute_monthly_due(dues, no_of_months: int) -> float:
     """
@@ -198,27 +213,13 @@ class FinancialReportView(LoginRequiredMixin, View):
             selected_month,
             selected_year,
         )
-        month_choices = [
-            (1, "January"),
-            (2, "February"),
-            (3, "March"),
-            (4, "April"),
-            (5, "May"),
-            (6, "June"),
-            (7, "July"),
-            (8, "August"),
-            (9, "September"),
-            (10, "October"),
-            (11, "November"),
-            (12, "December"),
-        ]
         year_choices = [(y, y) for y in fy_years]
         context = {
             "club": club,
             "financial_year": financial_year,
             "financial_transactions": financial_transactions,
             "selected_month": selected_month_obj,
-            "month_choices": month_choices,
+            "month_choices": MONTH_CHOICES,
             "year_choices": year_choices,
             "sum_credit": cash_flow_totals["total_credit"] or 0,
             "sum_debit": cash_flow_totals["total_debit"] or 0,
