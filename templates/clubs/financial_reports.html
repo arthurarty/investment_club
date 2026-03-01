@@ -41,18 +41,35 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
             <h2 class="h2 fw-bold mb-1">{{club.name}}</h2>
-            <p class="text-muted mb-0">
-                {{ selected_month|date:"F, Y" }}
-            </p>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary btn-sm">Share</button>
             <button class="btn btn-outline-secondary btn-sm">Export</button>
-            <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
-              <span class="material-icons" style="font-size: 16px;">calendar_today</span>
-              This week
-              <span class="material-icons" style="font-size: 16px;">expand_more</span>
-            </button>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="material-icons" style="font-size: 16px;">calendar_today</span>
+                {{ selected_month|date:"F, Y" }}
+                <span class="material-icons" style="font-size: 16px;">expand_more</span>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end p-3">
+                <form action="{% url 'clubs:financial-reports' club.id financial_year.id %}" method="get" class="month-select-form">
+                  <label for="month" class="form-label small mb-2">Select month and year</label>
+                  <div class="d-flex gap-2 align-items-end">
+                    <select name="month" id="month" class="form-select form-select-sm" style="min-width: 120px;">
+                      {% for month_num, month_name in month_choices %}
+                        <option value="{{ month_num }}" {% if selected_month.month == month_num %}selected{% endif %}>{{ month_name }}</option>
+                      {% endfor %}
+                    </select>
+                    <select name="year" id="year" class="form-select form-select-sm" style="min-width: 90px;">
+                      {% for year_val, year_label in year_choices %}
+                        <option value="{{ year_val }}" {% if selected_month.year == year_val %}selected{% endif %}>{{ year_label }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -67,11 +84,6 @@
               <li class="nav-item">
                 <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
                     Monthly Report
-                </button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" id="nav-parts-tab" data-bs-toggle="tab" data-bs-target="#nav-parts" type="button" role="tab" aria-controls="nav-parts" aria-selected="false">
-                    Quarterly Report
                 </button>
               </li>
             </ul>
@@ -122,40 +134,12 @@
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
                 <div class="table-responsive small">
-                    <p class="px-4 py-1">Applicable Dues</p>
-                    <table class="table table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="px-4 py-1 fw-medium">Name</th>
-                                <th scope="col" class="px-4 py-1 fw-medium">Total Due</th>
-                                <th scope="col" class="px-4 py-1 fw-medium">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for due in applicable_dues %}
-                                <tr>
-                                    <td class="px-4 py-3 fw-medium">
-                                        {{due.amount}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        {{due.due_period}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <a href="">View</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="nav-parts" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
-                <div class="table-responsive small">
                     <table class="table table-custom mb-0">
                         <thead>
                             <tr>
                                 <th scope="col" class="px-4 py-3 fw-medium">Name</th>
                                 <th scope="col" class="px-4 py-3 fw-medium">Total Due</th>
+                                <th scope="col" class="px-4 py-4 fw-medium">Total Paid</th>
                                 <th scope="col" class="px-4 py-3 fw-medium">Action</th>
                             </tr>
                         </thead>
@@ -166,7 +150,10 @@
                                         {{participant_due.first_name}} {{participant_due.last_name}}
                                     </td>
                                     <td class="px-4 py-3">
-                                        {{participant_due.due}}
+                                        {{participant_due.due|floatformat:1|intcomma}}
+                                    </td>
+                                    <td class="px-4 py-3 fw-medium">
+                                        {{participant_due.total_credit|floatformat:1|intcomma}}
                                     </td>
                                     <td class="px-4 py-3">
                                         <a href="">View</a>
