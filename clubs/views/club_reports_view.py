@@ -184,7 +184,6 @@ class FinancialReportView(LoginRequiredMixin, View):
             "year_choices": year_choices,
             "sum_credit": cash_flow_totals["total_credit"] or 0,
             "sum_debit": cash_flow_totals["total_debit"] or 0,
-            "participants": participants,
             "participant_dues": participant_dues,
         }
         return render(request, "clubs/financial_reports.html", context)
