@@ -13,6 +13,7 @@ from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import (
     Club,
     FinancialTransaction,
+    FinancialYear,
     FinancialYearContribution,
     FinancialYearParticipant,
 )
@@ -94,7 +95,7 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         return render(
             request,
@@ -115,7 +116,7 @@ class FinancialYearDueCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialYearContributionForm(request.POST)
         if not form.is_valid():
@@ -148,7 +149,7 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialTransactionForm(request.POST)
         if not form.is_valid():
@@ -181,7 +182,7 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialYearParticipantForm(request.POST)
         if not form.is_valid():
@@ -213,7 +214,7 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-        except (Club.DoesNotExist, club.financial_years.model.DoesNotExist):
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = IndividualDueForm(request.POST)
         if not form.is_valid():
