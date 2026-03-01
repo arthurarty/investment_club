@@ -82,12 +82,12 @@ class FinancialReportView(LoginRequiredMixin, View):
         participants = FinancialYearParticipant.objects.filter(
             financial_year=financial_year
         ).select_related("club_member__user")
-        participant_dues = []
+        quarterly_participant_dues = []
         for participant in participants:
             participant_due = calculate_monthly_due_for_participant(
                 applicable_dues, participant, no_of_months, selected_month_obj
             )
-            participant_dues.append(
+            quarterly_participant_dues.append(
                 {
                     "first_name": participant.club_member.user.first_name,
                     "last_name": participant.club_member.user.last_name,
@@ -104,6 +104,6 @@ class FinancialReportView(LoginRequiredMixin, View):
             "total_monthly_due": total_computed_due,
             "applicable_dues": applicable_dues,
             "participants": participants,
-            "participant_dues": participant_dues,
+            "participant_dues": quarterly_participant_dues,
         }
         return render(request, "clubs/financial_reports.html", context)
