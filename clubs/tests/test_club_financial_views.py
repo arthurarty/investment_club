@@ -348,3 +348,139 @@ class TestFinancialTransactionCreateView(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
         self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+
+
+class TestFinancialYearParticipantCreateView(TestCase):
+    """
+    Test case for the FinancialYearParticipantCreateView.
+    """
+
+    def setUp(self):
+        """
+        Set up test data for clubs, financial years, club members, and users.
+        """
+        self.user = User.objects.create_user(
+            email="jane.doe@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="Investment Club",
+            description="A club for investment enthusiasts.",
+            contact_email=self.user.email,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2023-01-01",
+            end_date="2023-12-31",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.club_member = ClubMember.objects.create(
+            user=self.user,
+            club=self.club,
+            is_admin=True,
+            role="admin",
+            invited_by=self.user,
+        )
+
+    def test_create_participant_requires_login(self):
+        """
+        Test that unauthenticated users are redirected to login.
+        """
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, self.financial_year.id],
+        )
+        response = self.client.post(url, {"club_member": self.club_member.id})
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertIn("accounts", response.url)
+
+    def test_create_participant_success(self):
+        """
+        Test the creation of a new financial year participant via POST request.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {"club_member": self.club_member.id}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(
+            response.url,
+            reverse(
+                "clubs:financial-year-detail",
+                args=[self.club.id, self.financial_year.id],
+            ),
+        )
+        self.assertTrue(
+            FinancialYearParticipant.objects.filter(
+                financial_year=self.financial_year,
+                club_member=self.club_member,
+            ).exists()
+        )
+
+    def test_create_participant_sets_created_by_and_updated_by(self):
+        """
+        Test that created_by and updated_by are set to the requesting user.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {"club_member": self.club_member.id}
+        self.client.post(url, data)
+        participant = FinancialYearParticipant.objects.get(
+            financial_year=self.financial_year,
+            club_member=self.club_member,
+        )
+        self.assertEqual(participant.created_by, self.user)
+        self.assertEqual(participant.updated_by, self.user)
+
+    def test_create_participant_invalid_data(self):
+        """
+        Test the creation of a participant with invalid data re-renders the form.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {"club_member": ""}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertFalse(
+            FinancialYearParticipant.objects.filter(
+                financial_year=self.financial_year,
+            ).exists()
+        )
+
+    def test_create_participant_nonexistent_club_redirects_to_index(self):
+        """
+        Test that POST to non-existent club redirects to clubs index.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[9999, self.financial_year.id],
+        )
+        response = self.client.post(url, {"club_member": self.club_member.id})
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(response.url, reverse("clubs:index"))
+
+    def test_create_participant_nonexistent_financial_year_redirects_to_index(self):
+        """
+        Test that POST to non-existent financial year redirects to clubs index.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, 9999],
+        )
+        response = self.client.post(url, {"club_member": self.club_member.id})
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(response.url, reverse("clubs:index"))
