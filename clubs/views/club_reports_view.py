@@ -1,5 +1,6 @@
 from calendar import monthrange
 from datetime import date, datetime
+from http import HTTPStatus
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
@@ -177,6 +178,10 @@ class FinancialReportView(LoginRequiredMixin, View):
         """
         try:
             club = Club.objects.get(id=club_id)
+            is_creator = club.created_by_id == request.user.id
+            is_member = club.members.filter(user=request.user).exists()
+            if not is_creator and not is_member:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
             financial_year = club.financial_years.get(id=financial_year_id)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")

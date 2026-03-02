@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
@@ -25,8 +27,15 @@ class ClubsListView(LoginRequiredMixin, View):
             .order_by("created_at")
             .all()[:10]
         )
+        additional_clubs = (
+            Club.objects.filter(members__user=current_user)
+            .exclude(created_by=current_user)
+            .order_by("created_at")
+            .all()[:10]
+        )
         context = {
             "clubs": clubs,
+            "additional_clubs": additional_clubs,
             "create_club_form": ClubCreationForm(),
         }
         return render(request, "clubs/index.html", context)
@@ -43,8 +52,15 @@ class ClubsListView(LoginRequiredMixin, View):
                 .order_by("created_at")
                 .all()[:10]
             )
+            additional_clubs = (
+                Club.objects.filter(members__user=current_user)
+                .exclude(created_by=current_user)
+                .order_by("created_at")
+                .all()[:10]
+            )
             context = {
                 "clubs": clubs,
+                "additional_clubs": additional_clubs,
                 "create_club_form": form,
             }
             return render(request, "clubs/index.html", context)
@@ -73,6 +89,12 @@ class ClubDetailView(LoginRequiredMixin, View):
             club = Club.objects.get(id=club_id)
         except Club.DoesNotExist:
             return redirect("clubs:index")
+
+        is_creator = club.created_by_id == request.user.id
+        is_member = club.members.filter(user=request.user).exists()
+        if not is_creator and not is_member:
+            return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+
         members = club.members.select_related("user").all()[:25]
         financial_years = FinancialYear.objects.filter(club=club).order_by(
             "-start_date"
