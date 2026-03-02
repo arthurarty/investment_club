@@ -25,8 +25,15 @@ class ClubsListView(LoginRequiredMixin, View):
             .order_by("created_at")
             .all()[:10]
         )
+        additional_clubs = (
+            Club.objects.filter(members__user=current_user)
+            .exclude(created_by=current_user)
+            .order_by("created_at")
+            .all()[:10]
+        )
         context = {
             "clubs": clubs,
+            "additional_clubs": additional_clubs,
             "create_club_form": ClubCreationForm(),
         }
         return render(request, "clubs/index.html", context)
@@ -43,8 +50,15 @@ class ClubsListView(LoginRequiredMixin, View):
                 .order_by("created_at")
                 .all()[:10]
             )
+            additional_clubs = (
+                Club.objects.filter(members__user=current_user)
+                .exclude(created_by=current_user)
+                .order_by("created_at")
+                .all()[:10]
+            )
             context = {
                 "clubs": clubs,
+                "additional_clubs": additional_clubs,
                 "create_club_form": form,
             }
             return render(request, "clubs/index.html", context)
