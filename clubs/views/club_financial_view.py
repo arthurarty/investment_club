@@ -64,7 +64,7 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             is_creator = club.created_by_id == request.user.id
-            club_member = club.members.get(user=request.user)
+            club_member = club.members.filter(user=request.user).first()
             if not club_member:
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
             # user has to either be an admin or creator to add a financial year
@@ -129,6 +129,14 @@ class FinancialYearDueCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
+            is_creator = club.created_by_id == request.user.id
+            club_member = club.members.filter(user=request.user).first()
+            if not club_member:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+            # user has to either be an admin or creator to add a financial year
+            can_create = is_creator or club_member.is_admin
+            if not can_create:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialYearContributionForm(request.POST)

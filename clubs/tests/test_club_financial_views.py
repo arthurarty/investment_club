@@ -138,6 +138,35 @@ class TestClubFinancialYearCreateView(TestCase):
             FinancialYear.objects.filter(club=self.club, end_date="2022-12-31").exists()
         )
 
+    def test_create_financial_year_creator_not_member_gets_403(self):
+        """
+        Test that a club creator who is not a member gets 403.
+        """
+        creator = User.objects.create_user(
+            email="creator@example.com", password="testPass123"
+        )
+        club = Club.objects.create(
+            name="Creator Only Club",
+            description="Club where creator is not a member.",
+            contact_email=creator.email,
+            created_by=creator,
+            updated_by=creator,
+        )
+        self.client.login(email=creator.email, password="testPass123")
+        url = reverse("clubs:financial-year", args=[club.id])
+        data = {
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
+        self.assertFalse(
+            FinancialYear.objects.filter(
+                club=club, start_date="2024-01-01", end_date="2024-12-31"
+            ).exists()
+        )
+
     def test_create_financial_year_non_admin_non_creator_gets_403(self):
         """
         Test that a user who is a member but neither admin nor creator gets 403.
@@ -264,6 +293,12 @@ class TestFinancialYearDueCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
+        ClubMember.objects.create(
+            user=self.user,
+            club=self.club,
+            is_admin=False,
+            role="chairman",
+        )
 
     def test_create_financial_year_due_success(self):
         """
@@ -303,6 +338,37 @@ class TestFinancialYearDueCreateView(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
         self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+
+    def test_create_financial_year_due_non_admin_non_creator_gets_403(self):
+        """
+        Test that a user who is a member but neither admin nor creator gets 403.
+        """
+        regular_member = User.objects.create_user(
+            email="regular.member@example.com", password="testPass123"
+        )
+        ClubMember.objects.create(
+            user=regular_member,
+            club=self.club,
+            is_admin=False,
+            role="member",
+        )
+        self.client.login(email=regular_member.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-due",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {
+            "amount": 50000,
+            "due_period": DuePeriod.MONTHLY,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
+        self.assertFalse(
+            FinancialYearContribution.objects.filter(
+                amount=50000, due_period=DuePeriod.MONTHLY.value
+            ).exists()
+        )
 
 
 class TestFinancialTransactionCreateView(TestCase):
