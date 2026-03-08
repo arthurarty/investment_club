@@ -37,7 +37,7 @@ class FinancialYearContributionForm(forms.ModelForm):
         fields = ["amount", "due_period"]
         widgets = {
             "amount": forms.NumberInput(
-                attrs={"step": "10000.00", "class": "form-control"}
+                attrs={"step": "5000.00", "class": "form-control"}
             ),
             "due_period": forms.Select(attrs={"class": "form-select"}),
         }
