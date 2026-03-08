@@ -95,6 +95,12 @@ class TestClubFinancialYearCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
+        ClubMember.objects.create(
+            user=self.user,
+            club=self.club,
+            is_admin=False,
+            role="chairman",
+        )
 
     def test_create_financial_year_success(self):
         """
@@ -130,6 +136,34 @@ class TestClubFinancialYearCreateView(TestCase):
         self.assertTemplateUsed(response, "clubs/detail.html")
         self.assertFalse(
             FinancialYear.objects.filter(club=self.club, end_date="2022-12-31").exists()
+        )
+
+    def test_create_financial_year_non_admin_non_creator_gets_403(self):
+        """
+        Test that a user who is a member but neither admin nor creator gets 403.
+        """
+        regular_member = User.objects.create_user(
+            email="regular.member@example.com", password="testPass123"
+        )
+        ClubMember.objects.create(
+            user=regular_member,
+            club=self.club,
+            is_admin=False,
+            role="member",
+        )
+        self.client.login(email=regular_member.email, password="testPass123")
+        url = reverse("clubs:financial-year", args=[self.club.id])
+        data = {
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
+        self.assertFalse(
+            FinancialYear.objects.filter(
+                club=self.club, start_date="2024-01-01", end_date="2024-12-31"
+            ).exists()
         )
 
 
