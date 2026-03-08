@@ -212,6 +212,9 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
+            forbidden = user_can_manage_club_financials(request, club)
+            if forbidden:
+                return forbidden
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialYearParticipantForm(request.POST)
@@ -244,6 +247,9 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
+            forbidden = user_can_manage_club_financials(request, club)
+            if forbidden:
+                return forbidden
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = IndividualDueForm(request.POST)
