@@ -397,6 +397,12 @@ class TestFinancialTransactionCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
+        ClubMember.objects.create(
+            user=self.user,
+            club=self.club,
+            is_admin=False,
+            role="chairman",
+        )
 
     def test_create_financial_transaction_success(self):
         """
