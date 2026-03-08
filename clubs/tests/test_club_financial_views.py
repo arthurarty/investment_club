@@ -590,3 +590,69 @@ class TestFinancialYearParticipantCreateView(TestCase):
         response = self.client.post(url, {"club_member": self.club_member.id})
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(response.url, reverse("clubs:index"))
+
+    def test_create_participant_non_admin_non_creator_gets_403(self):
+        """
+        Test that a user who is a member but neither admin nor creator gets 403.
+        """
+        regular_member = User.objects.create_user(
+            email="regular.member@example.com", password="testPass123"
+        )
+        other_club_member = ClubMember.objects.create(
+            user=regular_member,
+            club=self.club,
+            is_admin=False,
+            role="member",
+        )
+        self.client.login(email=regular_member.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, self.financial_year.id],
+        )
+        response = self.client.post(url, {"club_member": other_club_member.id})
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
+        self.assertFalse(
+            FinancialYearParticipant.objects.filter(
+                financial_year=self.financial_year,
+                club_member=other_club_member,
+            ).exists()
+        )
+
+    def test_create_participant_creator_not_member_gets_403(self):
+        """
+        Test that a club creator who is not a member gets 403.
+        """
+        creator = User.objects.create_user(
+            email="creator@example.com", password="testPass123"
+        )
+        club = Club.objects.create(
+            name="Creator Only Club",
+            description="Club where creator is not a member.",
+            contact_email=creator.email,
+            created_by=creator,
+            updated_by=creator,
+        )
+        financial_year = FinancialYear.objects.create(
+            club=club,
+            start_date="2023-01-01",
+            end_date="2023-12-31",
+            created_by=creator,
+            updated_by=creator,
+        )
+        member_to_add = ClubMember.objects.create(
+            user=User.objects.create_user(
+                email="member@example.com", password="testPass123"
+            ),
+            club=club,
+            is_admin=False,
+            role="member",
+        )
+        self.client.login(email=creator.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[club.id, financial_year.id],
+        )
+        response = self.client.post(url, {"club_member": member_to_add.id})
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
