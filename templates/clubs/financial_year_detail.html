@@ -207,8 +207,8 @@
                 </div>
             </div>
           </div>
-
         </div>
+        {% if is_club_admin %}
         <div class="mt-4 d-flex gap-3">
             <!-- Button to trigger modal to record new transaction -->
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
@@ -227,12 +227,14 @@
                 Add Individual due
             </button>
         </div>
+        {% endif %}
       </div>
     </main>
   </div>
 </div>
 {% endblock %}
 {% block after_main %}
+{% if is_club_admin %}
 <!-- MemberLook up Form Modal -->
 <div class="modal fade" id="addTransactionFormModal" tabindex="-1" aria-labelledby="addTransactionFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -345,4 +347,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

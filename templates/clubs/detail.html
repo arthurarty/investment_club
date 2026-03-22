@@ -151,6 +151,7 @@
 </div>
 {% endblock %}
 {% block after_main %}
+{% if is_creator_or_admin %}
 <!-- MemberLook up Form Modal -->
 <div class="modal fade" id="memberLookUpFormModal" tabindex="-1" aria-labelledby="memberLookUpFormModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -207,4 +208,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
