@@ -19,9 +19,12 @@ from clubs.models import (
     FinancialYearContribution,
     FinancialYearParticipant,
 )
+from clubs.views.utils import is_club_admin_or_creator
 
 
-def prepare_financial_year_context(club, financial_year):
+def prepare_financial_year_context(
+    club: Club, financial_year, is_club_admin: bool = True
+) -> dict:
     """
     Prepare context data for a financial year detail view.
     """
@@ -48,24 +51,9 @@ def prepare_financial_year_context(club, financial_year):
         "participant_form": FinancialYearParticipantForm(),
         "individual_due_form": IndividualDueForm(),
         "individual_dues": individual_dues,
+        "is_club_admin": is_club_admin,
     }
     return context
-
-
-def user_can_manage_club_financials(request, club):
-    """
-    Check if the user can manage club financials (create financial years, dues, etc).
-    User must be a member and either the club creator or an admin.
-    Returns None if allowed, or a 403 response if not.
-    """
-    is_creator = club.created_by_id == request.user.id
-    club_member = club.members.filter(user=request.user).first()
-    if not club_member:
-        return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
-    can_create = is_creator or club_member.is_admin
-    if not can_create:
-        return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
-    return None
 
 
 class ClubFinancialYearCreateView(LoginRequiredMixin, View):
@@ -79,9 +67,9 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
         """
         try:
             club = Club.objects.get(id=club_id)
-            forbidden = user_can_manage_club_financials(request, club)
-            if forbidden:
-                return forbidden
+            allowed = is_club_admin_or_creator(request, club)
+            if not allowed:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except Club.DoesNotExist:
             return redirect("clubs:index")
         form = FinancialYearForm(request.POST)
@@ -114,9 +102,9 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
         """
         try:
             club = Club.objects.get(id=club_id)
-            is_creator = club.created_by_id == request.user.id
+            is_club_admin = is_club_admin_or_creator(request, club)
             is_member = club.members.filter(user=request.user).exists()
-            if not is_creator and not is_member:
+            if not is_club_admin and not is_member:
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
             financial_year = club.financial_years.get(id=financial_year_id)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
@@ -124,7 +112,7 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
         return render(
             request,
             "clubs/financial_year_detail.html",
-            prepare_financial_year_context(club, financial_year),
+            prepare_financial_year_context(club, financial_year, is_club_admin),
         )
 
 
@@ -140,9 +128,9 @@ class FinancialYearDueCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-            forbidden = user_can_manage_club_financials(request, club)
-            if forbidden:
-                return forbidden
+            allowed = is_club_admin_or_creator(request, club)
+            if not allowed:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialYearContributionForm(request.POST)
@@ -160,7 +148,7 @@ class FinancialYearDueCreateView(LoginRequiredMixin, View):
         return render(
             request,
             "clubs/financial_year_detail.html",
-            prepare_financial_year_context(club, financial_year),
+            prepare_financial_year_context(club, financial_year, allowed),
         )
 
 
@@ -176,9 +164,9 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-            forbidden = user_can_manage_club_financials(request, club)
-            if forbidden:
-                return forbidden
+            allowed = is_club_admin_or_creator(request, club)
+            if not allowed:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialTransactionForm(request.POST)
@@ -186,7 +174,7 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
             return render(
                 request,
                 "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year),
+                prepare_financial_year_context(club, financial_year, allowed),
             )
         new_transaction = form.save(commit=False)
         new_transaction.financial_year = financial_year
@@ -212,9 +200,9 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-            forbidden = user_can_manage_club_financials(request, club)
-            if forbidden:
-                return forbidden
+            allowed = is_club_admin_or_creator(request, club)
+            if not allowed:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = FinancialYearParticipantForm(request.POST)
@@ -222,7 +210,7 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
             return render(
                 request,
                 "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year),
+                prepare_financial_year_context(club, financial_year, allowed),
             )
         new_participant = form.save(commit=False)
         new_participant.financial_year = financial_year
@@ -247,9 +235,9 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
         try:
             club = Club.objects.get(id=club_id)
             financial_year = club.financial_years.get(id=financial_year_id)
-            forbidden = user_can_manage_club_financials(request, club)
-            if forbidden:
-                return forbidden
+            allowed = is_club_admin_or_creator(request, club)
+            if not allowed:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
         form = IndividualDueForm(request.POST)
@@ -257,7 +245,7 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
             return render(
                 request,
                 "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year),
+                prepare_financial_year_context(club, financial_year, allowed),
             )
         new_due = form.save(commit=False)
         new_due.financial_year = financial_year
@@ -267,5 +255,5 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
         return render(
             request,
             "clubs/financial_year_detail.html",
-            prepare_financial_year_context(club, financial_year),
+            prepare_financial_year_context(club, financial_year, allowed),
         )
