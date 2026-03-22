@@ -10,6 +10,7 @@ from clubs.forms.club_financials_forms import (
 )
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club, ClubMember, FinancialYear
+from clubs.views.utils import is_club_admin_or_creator
 
 
 class ClubsListView(LoginRequiredMixin, View):
@@ -90,9 +91,9 @@ class ClubDetailView(LoginRequiredMixin, View):
         except Club.DoesNotExist:
             return redirect("clubs:index")
 
-        is_creator = club.created_by_id == request.user.id
+        creator_or_admin = is_club_admin_or_creator(request, club)
         is_member = club.members.filter(user=request.user).exists()
-        if not is_creator and not is_member:
+        if not creator_or_admin and not is_member:
             return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
 
         members = club.members.select_related("user").all()[:25]
@@ -105,5 +106,6 @@ class ClubDetailView(LoginRequiredMixin, View):
             "look_up_form": MemberLookupForm(),
             "financial_year_form": FinancialYearForm(),
             "financial_years": financial_years,
+            "is_creator_or_admin": creator_or_admin,
         }
         return render(request, "clubs/detail.html", context)
