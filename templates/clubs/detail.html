@@ -134,9 +134,8 @@
                 </div>
             </div>
           </div>
-
         </div>
-        
+        {% if is_creator_or_admin %}
         <div class="mt-4 d-flex gap-3">
             <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
                 Add member
@@ -145,17 +144,11 @@
             New Financial Year
           </button>
         </div>
+        {% endif %}
       </div>
     </main>
   </div>
 </div>
-{% comment %} 
-Todo: Make use of tabs to show the various components of a club. 
-Tabs: 
-    1. Latest Financial year.
-    2. Other Financial years
-    3. Club Members
-{% endcomment %}
 {% endblock %}
 {% block after_main %}
 <!-- MemberLook up Form Modal -->
