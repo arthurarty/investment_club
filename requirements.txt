@@ -7,6 +7,7 @@ coverage==7.11.0
 distlib==0.4.0
 Django==6.0
 filelock==3.19.1
+gunicorn==23.0.0
 identify==2.6.13
 isort==6.0.1
 mypy_extensions==1.1.0
