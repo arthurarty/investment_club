@@ -43,3 +43,14 @@ You can then see a report using the command below.
 ```bash
 coverage report
 ```
+
+## Server configs
+### Editing Gunicorn file
+```bash
+sudo nano /etc/systemd/system/gunicorn.service
+```
+After editing.
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn
+```
