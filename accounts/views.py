@@ -14,7 +14,7 @@ class LoginView(View):
     def get(self, request):
         """
         Render the login form."""
-        context = {}
+        context = {"form": LoginForm()}
         return render(request, "accounts/index.html", context)
 
     def post(self, request):

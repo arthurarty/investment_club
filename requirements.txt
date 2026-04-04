@@ -6,6 +6,7 @@ click==8.2.1
 coverage==7.11.0
 distlib==0.4.0
 Django==6.0
+django-recaptcha==4.1.0
 filelock==3.19.1
 gunicorn==23.0.0
 identify==2.6.13

@@ -27,6 +27,7 @@ services:
       POSTGRES_DB_PORT: 5432
       DJANGO_ALLOWED_HOSTS: localhost 127.0.0.1
     volumes:
+      - .:/app
       - static_files:/app/staticfiles
     depends_on:
       db:

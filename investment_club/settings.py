@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Custom apps
     "accounts",
     "clubs",
+    "django_recaptcha",
 ]
 
 MIDDLEWARE = [
@@ -150,3 +151,11 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_URL = "/accounts/"
 LOGIN_REDIRECT_URL = "/clubs/"
 LOGOUT_REDIRECT_URL = "/accounts/"
+
+RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC_KEY")
+RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
+RECAPTCHA_REQUIRED_SCORE = 0.85
+
+if DEBUG:
+    SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
+    RECAPTCHA_REQUIRED_SCORE = 0
