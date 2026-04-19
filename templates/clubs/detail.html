@@ -1,212 +1,223 @@
 {% extends 'clubs/dashboard_base.html' %}
 {% load static %}
+
+{% block page_title %}{{ club.name }} — SavingsInc{% endblock %}
+{% block nav_dashboard_active %}active{% endblock %}
+
 {% block content %}
-<div class="d-flex">
-  <aside class="sidebar d-flex flex-column">
-    <div class="flex-grow-1 p-3">
-      <div class="d-flex flex-column gap-2">
-        <a class="sidebar-link active" href="{% url 'clubs:index' %}">
-          <span class="material-icons">dashboard</span>
-          <span>Dashboard</span>
-        </a>
-        <a class="sidebar-link" href="#">
-          <span class="material-icons">bar_chart</span>
-          <span>Reports</span>
-        </a>
-      </div>
-    </div>
-    <div class="p-3 border-top">
-      <div class="d-flex flex-column gap-2">
-        <a class="sidebar-link" href="#">
-          <span class="material-icons">settings</span>
-          <span>Settings</span>
-        </a>
-        <a class="sidebar-link" href="{% url 'accounts:logout' %}">
-          <span class="material-icons">logout</span>
-          <span>Sign out</span>
-        </a>
-      </div>
-    </div>
-  </aside>
-  
-  <div class="flex-grow-1 d-flex flex-column">
-    <header class="top-header d-flex align-items-center justify-content-between px-4">
-      <h1 class="h5 mb-0 fw-semibold">Home</h1>
-      <a href="{% url 'accounts:logout' %}" class="btn btn-amber">Sign-out</a>
-    </header>
-    
-    <main class="main-content flex-grow-1 p-4 overflow-auto">
-      <div class="container-fluid" style="max-width: 1280px;">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-          <div>
-            <h2 class="h2 fw-bold mb-1">{{club.name}}</h2>
-            <p class="text-muted mb-0">{{club.description}}</p>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-secondary btn-sm">Share</button>
-            <button class="btn btn-outline-secondary btn-sm">Export</button>
-            <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
-              <span class="material-icons" style="font-size: 16px;">calendar_today</span>
-              This week
-              <span class="material-icons" style="font-size: 16px;">expand_more</span>
-            </button>
-          </div>
-        </div>
-        
-        <div class="card-custom rounded shadow-sm">
-          <div class="nav-tabs-custom px-4">
-            <ul class="nav nav-tabs border-0">
-              <li class="nav-item">
-                <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">
-                    Members
-                </button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
-                    Financial Years
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
-                <div class="table-responsive">
-                    <table class="table table-custom mb-0">
-                    <thead>
-                        <tr>
-                        <th scope="col" class="px-4 py-3 fw-medium">Name</th>
-                        <th scope="col" class="px-4 py-3 fw-medium">Role</th>
-                        <th scope="col" class="px-4 py-3 fw-medium">Is active</th>
-                        <th scope="col" class="px-4 py-3 fw-medium">Joined At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for member in members %}
-                        <tr>
-                            <td class="px-4 py-3 fw-medium">
-                                {{member.user.first_name}} {{member.user.last_name}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{member.role}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{member.is_active}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{member.joined_at}}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
-                <div class="table-responsive small">
-                    <table class="table table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="px-4 py-3 fw-medium">Start date</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">End Date</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Is_active</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for financial_year in financial_years %}
-                                <tr>
-                                    <td class="px-4 py-3 fw-medium">
-                                        {{financial_year.start_date}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        {{financial_year.end_date}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        {{financial_year.is_active}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}">View</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-          </div>
-        </div>
-        {% if is_creator_or_admin %}
-        <div class="mt-4 d-flex gap-3">
-            <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
-                Add member
-            </button>
-          <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#clubFinancialYearFormModal">
-            New Financial Year
-          </button>
-        </div>
-        {% endif %}
-      </div>
-    </main>
+<div class="si-topbar">
+  <div>
+    <h1 class="si-topbar-title">{{ club.name }}</h1>
+    <p class="si-topbar-subtitle">{{ club.description }}</p>
+  </div>
+  <div class="si-topbar-actions">
+    <button class="si-btn si-btn-ghost si-btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>
+      Share
+    </button>
+    <button class="si-btn si-btn-ghost si-btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+      Export
+    </button>
   </div>
 </div>
+
+<a href="{% url 'clubs:index' %}" class="si-back-link">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  Back to clubs
+</a>
+
+<div class="si-page-body">
+  <!-- Stat cards -->
+  <div class="si-stat-row">
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Members</span>
+        <div class="si-stat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value">{{ members|length }}</div>
+    </div>
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Financial Years</span>
+        <div class="si-stat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value">{{ financial_years|length }}</div>
+    </div>
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Status</span>
+        <div class="si-stat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2m-4-6h8"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value" style="font-size:14px;margin-top:14px;">
+        <span class="si-badge si-badge-green">{{ club.status }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs card -->
+  <div class="si-card" data-si-tabgroup>
+    <div class="si-tabs" data-si-tabs>
+      <button class="si-tab-btn active" data-si-tab="members">Members</button>
+      <button class="si-tab-btn" data-si-tab="financial-years">Financial Years</button>
+    </div>
+
+    <div data-si-panes>
+      <!-- Members tab -->
+      <div class="si-tab-pane active" data-si-pane="members">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for member in members %}
+              <tr>
+                <td>
+                  <div class="si-member-cell">
+                    <div class="si-avatar">{{ member.user.first_name|slice:":1"|upper }}{{ member.user.last_name|slice:":1"|upper }}</div>
+                    <div>
+                      <div class="si-member-name">{{ member.user.first_name }} {{ member.user.last_name }}</div>
+                      <div class="si-member-email">{{ member.user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if member.is_admin %}
+                    <span class="si-badge si-badge-amber">Admin</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">{{ member.role }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if member.is_active %}
+                    <span class="si-badge si-badge-green">Active</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">Inactive</span>
+                  {% endif %}
+                </td>
+                <td><span style="color:var(--si-text-2);font-size:12px;">{{ member.joined_at|date:"M j, Y" }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" style="text-align:center;color:var(--si-text-3);padding:32px;">No members yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Financial Years tab -->
+      <div class="si-tab-pane" data-si-pane="financial-years">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Start date</th>
+                <th>End date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for financial_year in financial_years %}
+              <tr>
+                <td><span class="mono">{{ financial_year.start_date }}</span></td>
+                <td><span class="mono">{{ financial_year.end_date }}</span></td>
+                <td>
+                  {% if financial_year.is_active %}
+                    <span class="si-badge si-badge-green">Active</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">Closed</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}" class="si-view-link">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" style="text-align:center;color:var(--si-text-3);padding:32px;">No financial years yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if is_creator_or_admin %}
+  <div class="si-action-bar">
+    <button class="si-btn si-btn-primary" data-bs-toggle="modal" data-bs-target="#memberLookUpFormModal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add member
+    </button>
+    <button class="si-btn si-btn-secondary" data-bs-toggle="modal" data-bs-target="#clubFinancialYearFormModal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      New financial year
+    </button>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
+
 {% block after_main %}
 {% if is_creator_or_admin %}
-<!-- MemberLook up Form Modal -->
-<div class="modal fade" id="memberLookUpFormModal" tabindex="-1" aria-labelledby="memberLookUpFormModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="memberLookUpFormModalLabel">
-                    Enter Member Email
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{% url 'clubs:member-lookup' club.id %}" method="POST">
-                <div class="modal-body">
-                    {% csrf_token %}
-                    {{ look_up_form }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Search
-                    </button>
-                </div>
-            </form>
+<!-- Add Member Modal -->
+<div class="modal fade" id="memberLookUpFormModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add member</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'clubs:member-lookup' club.id %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p style="font-size:13px;color:var(--si-text-2);margin-bottom:14px;">Enter the email address of an existing user to add them to this club.</p>
+          {{ look_up_form.as_p }}
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Search</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
-<!-- Club Financial Form Modal -->
-<div class="modal fade" id="clubFinancialYearFormModal" tabindex="-1" aria-labelledby="clubFinancialYearFormModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="clubFinancialYearFormModalLabel">
-                    Enter Financial Year Details
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{% url 'clubs:financial-year' club.id %}" method="POST">
-                <div class="modal-body">
-                    {% csrf_token %}
-                    {{ financial_year_form }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Create
-                    </button>
-                </div>
-            </form>
+
+<!-- New Financial Year Modal -->
+<div class="modal fade" id="clubFinancialYearFormModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New financial year</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'clubs:financial-year' club.id %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          {{ financial_year_form.as_p }}
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Create</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endif %}
 {% endblock %}
