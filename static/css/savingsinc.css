@@ -682,6 +682,7 @@ body {
 /* ── Bootstrap form overrides ────────────────────────── */
 .form-control,
 .form-select {
+  width: 100%;
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 13px;
   color: var(--si-text-1);
