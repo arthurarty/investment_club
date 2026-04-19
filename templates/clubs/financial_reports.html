@@ -1,192 +1,161 @@
 {% extends 'clubs/dashboard_base.html' %}
 {% load static %}
 {% load humanize %}
+
+{% block page_title %}Reports — {{ club.name }} — SavingsInc{% endblock %}
+{% block nav_reports_active %}active{% endblock %}
+{% block reports_url %}{% url 'clubs:financial-reports' club.id financial_year.id %}{% endblock %}
+
 {% block content %}
-<div class="d-flex">
-  <aside class="sidebar d-flex flex-column">
-    <div class="flex-grow-1 p-3">
-      <div class="d-flex flex-column gap-2">
-        <a class="sidebar-link" href="{% url 'clubs:index' %}">
-          <span class="material-icons">dashboard</span>
-          <span>Dashboard</span>
-        </a>
-        <a class="sidebar-link active" href="{% url 'clubs:financial-reports' club.id  financial_year.id %}">
-          <span class="material-icons">bar_chart</span>
-          <span>Reports</span>
-        </a>
-      </div>
-    </div>
-    <div class="p-3 border-top">
-      <div class="d-flex flex-column gap-2">
-        <a class="sidebar-link" href="#">
-          <span class="material-icons">settings</span>
-          <span>Settings</span>
-        </a>
-        <a class="sidebar-link" href="{% url 'accounts:logout' %}">
-          <span class="material-icons">logout</span>
-          <span>Sign out</span>
-        </a>
-      </div>
-    </div>
-  </aside>
-  
-  <div class="flex-grow-1 d-flex flex-column">
-    <header class="top-header d-flex align-items-center justify-content-between px-4">
-      <h1 class="h5 mb-0 fw-semibold">Home</h1>
-      <a href="" class="btn btn-amber">Sign-out</a>
-    </header>
-    
-    <main class="main-content flex-grow-1 p-4 overflow-auto">
-      <div class="container-fluid" style="max-width: 1280px;">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-          <div>
-            <h2 class="h2 fw-bold mb-1">{{club.name}}</h2>
+<div class="si-topbar">
+  <div>
+    <h1 class="si-topbar-title">{{ club.name }}</h1>
+    <p class="si-topbar-subtitle">Financial Year: {{ financial_year.start_date }} – {{ financial_year.end_date }}</p>
+  </div>
+  <div class="si-topbar-actions">
+    <button class="si-btn si-btn-ghost si-btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>
+      Share
+    </button>
+    <button class="si-btn si-btn-ghost si-btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+      Export
+    </button>
+
+    <!-- Month/year picker -->
+    <div class="dropdown">
+      <button class="si-btn si-btn-ghost si-btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        {{ selected_month|date:"F, Y" }}
+      </button>
+      <div class="dropdown-menu dropdown-menu-end" style="min-width:260px;">
+        <form action="{% url 'clubs:financial-reports' club.id financial_year.id %}" method="get">
+          <label class="form-label" style="font-size:12px;margin-bottom:6px;display:block;">Select month and year</label>
+          <div class="d-flex gap-2 align-items-end">
+            <select name="month" class="form-select form-select-sm" style="min-width:120px;">
+              {% for month_num, month_name in month_choices %}
+                <option value="{{ month_num }}" {% if selected_month.month == month_num %}selected{% endif %}>{{ month_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="year" class="form-select form-select-sm" style="min-width:90px;">
+              {% for year_val, year_label in year_choices %}
+                <option value="{{ year_val }}" {% if selected_month.year == year_val %}selected{% endif %}>{{ year_label }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-secondary btn-sm">Share</button>
-            <button class="btn btn-outline-secondary btn-sm">Export</button>
-            <div class="dropdown">
-              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="material-icons" style="font-size: 16px;">calendar_today</span>
-                {{ selected_month|date:"F, Y" }}
-                <span class="material-icons" style="font-size: 16px;">expand_more</span>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end p-3">
-                <form action="{% url 'clubs:financial-reports' club.id financial_year.id %}" method="get" class="month-select-form">
-                  <label for="month" class="form-label small mb-2">Select month and year</label>
-                  <div class="d-flex gap-2 align-items-end">
-                    <select name="month" id="month" class="form-select form-select-sm" style="min-width: 120px;">
-                      {% for month_num, month_name in month_choices %}
-                        <option value="{{ month_num }}" {% if selected_month.month == month_num %}selected{% endif %}>{{ month_name }}</option>
-                      {% endfor %}
-                    </select>
-                    <select name="year" id="year" class="form-select form-select-sm" style="min-width: 90px;">
-                      {% for year_val, year_label in year_choices %}
-                        <option value="{{ year_val }}" {% if selected_month.year == year_val %}selected{% endif %}>{{ year_label }}</option>
-                      {% endfor %}
-                    </select>
-                    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}" class="si-back-link">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  Back to financial year
+</a>
+
+<div class="si-page-body">
+  <div class="si-card" data-si-tabgroup>
+    <div class="si-tabs" data-si-tabs>
+      <button class="si-tab-btn active" data-si-tab="cashflow">Cash Flow Statement</button>
+      <button class="si-tab-btn" data-si-tab="monthly">Monthly Report</button>
+    </div>
+
+    <div data-si-panes>
+      <!-- Cash Flow Statement -->
+      <div class="si-tab-pane active" data-si-pane="cashflow">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Member</th>
+                <th>Description</th>
+                <th>Credit</th>
+                <th>Debit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trans in financial_transactions %}
+              <tr>
+                <td><span class="mono">{{ trans.transaction_date }}</span></td>
+                <td>
+                  {% if trans.club_member %}
+                  <div class="si-member-cell">
+                    <div class="si-avatar sm">{{ trans.club_member.user.first_name|slice:":1"|upper }}{{ trans.club_member.user.last_name|slice:":1"|upper }}</div>
+                    <span style="font-size:12px;color:var(--si-text-2);">{{ trans.club_member.user.first_name }} {{ trans.club_member.user.last_name }}</span>
                   </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card-custom rounded shadow-sm">
-          <div class="nav-tabs-custom px-4">
-            <ul class="nav nav-tabs border-0">
-              <li class="nav-item">
-                <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">
-                   Cash Flow Statement
-                </button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">
-                    Monthly Report
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
-                <div class="table-responsive">
-                    <table class="table table-custom mb-0">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="px-4 py-3 fw-medium">Date</th>
-                            <th scope="col" class="px-4 py-3 fw-medium">Member</th>
-                            <th scope="col" class="px-4 py-3 fw-medium">Description</th>
-                            <th scope="col" class="px-4 py-3 fw-medium">Credit</th>
-                            <th scope="col" class="px-4 py-3 fw-medium">Debit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for trans in financial_transactions %}
-                        <tr>
-                            <td class="px-4 py-3 fw-medium">
-                                 {{trans.transaction_date}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{trans.club_member.user.first_name}} {{trans.club_member.user.last_name}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{trans.description}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{trans.credit|floatformat:1|intcomma}}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{trans.debit|floatformat:1|intcomma}}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td class="px-4 py-3">Total</td>
-                            <td class="px-4 py-3">{{ sum_credit|floatformat:1|intcomma }}</td>
-                            <td class="px-4 py-3">{{sum_debit|floatformat:1|intcomma }}</td>
-                        </tr>
-                    </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
-                <div class="table-responsive small">
-                    <table class="table table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="px-4 py-3 fw-medium">Name</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Total Due</th>
-                                <th scope="col" class="px-4 py-4 fw-medium">Total Paid</th>
-                                <th scope="col" class="px-4 py-3 fw-medium">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for participant_due in participant_dues %}
-                                <tr>
-                                    <td class="px-4 py-3 fw-medium">
-                                        {{participant_due.first_name}} {{participant_due.last_name}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        {{participant_due.due|floatformat:1|intcomma}}
-                                    </td>
-                                    <td class="px-4 py-3 fw-medium">
-                                        {{participant_due.total_credit|floatformat:1|intcomma}}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <a href="">View</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-
-                </div>
-            </div>
-          </div>
-
-        </div>
-        
-        <div class="mt-4 d-flex gap-3">
-            <!-- Button to trigger modal to record new transaction -->
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
-                Record Transaction
-            </button>
-            <!-- button to trigger modal for adding new due -->
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
-                Add new Due
-            </button>
-            <!-- modal for adding Participant for a financial year -->
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#fyParticipantFormModal">
-                Add Participant
-            </button>
+                  {% else %}<span style="color:var(--si-text-3);">—</span>{% endif %}
+                </td>
+                <td style="color:var(--si-text-2);">{{ trans.description }}</td>
+                <td>
+                  {% if trans.credit %}
+                    <span class="credit mono">{{ trans.credit|floatformat:1|intcomma }}</span>
+                  {% else %}
+                    <span style="color:var(--si-text-3);">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if trans.debit %}
+                    <span class="debit mono">{{ trans.debit|floatformat:1|intcomma }}</span>
+                  {% else %}
+                    <span style="color:var(--si-text-3);">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" style="text-align:center;color:var(--si-text-3);padding:32px;">No transactions for this period.</td></tr>
+              {% endfor %}
+              {% if financial_transactions %}
+              <tr class="total-row">
+                <td></td>
+                <td></td>
+                <td style="font-weight:600;">Total</td>
+                <td><span class="credit mono">{{ sum_credit|floatformat:1|intcomma }}</span></td>
+                <td><span class="debit mono">{{ sum_debit|floatformat:1|intcomma }}</span></td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
         </div>
       </div>
-    </main>
+
+      <!-- Monthly Report -->
+      <div class="si-tab-pane" data-si-pane="monthly">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Total Due</th>
+                <th>Total Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for participant_due in participant_dues %}
+              <tr>
+                <td>
+                  <div class="si-member-cell">
+                    <div class="si-avatar">{{ participant_due.first_name|slice:":1"|upper }}{{ participant_due.last_name|slice:":1"|upper }}</div>
+                    <div>
+                      <div class="si-member-name">{{ participant_due.first_name }} {{ participant_due.last_name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="mono">{{ participant_due.due|floatformat:1|intcomma }}</span></td>
+                <td><span class="credit mono">{{ participant_due.total_credit|floatformat:1|intcomma }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" style="text-align:center;color:var(--si-text-3);padding:32px;">No participant data for this period.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
-{% block after_main %}
-{% endblock %}
+
+{% block after_main %}{% endblock %}
