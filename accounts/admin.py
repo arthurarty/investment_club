@@ -22,14 +22,34 @@ class CustomUserCreationForm(ModelForm):
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ("email", "first_name", "last_name", "is_staff", "is_active")
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "is_staff",
+        "is_active",
+        "date_joined",
+        "gender",
+        "occupation",
+    )
     list_filter = ("is_staff", "is_active")
     ordering = ("email",)
     search_fields = ("email",)
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name")}),
+        (
+            "Personal info",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "date_joined",
+                    "gender",
+                    "occupation",
+                )
+            },
+        ),
         (
             "Permissions",
             {
@@ -44,7 +64,7 @@ class CustomUserAdmin(UserAdmin):
         ),
         ("Important dates", {"fields": ("last_login",)}),
     )
-    readonly_fields = ("date_joined",)
+    readonly_fields = ("date_joined", "gender", "occupation")
 
     add_fieldsets = (
         (
