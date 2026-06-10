@@ -6,6 +6,16 @@ from django.contrib.auth.models import (
 from django.db import models
 
 
+class GenderChoices(models.TextChoices):
+    """
+    Options for gender.
+    """
+
+    MALE = "male", "MALE"
+    FEMALE = "female", "FEMALE"
+    NOT_SPECIFIED = "not_specified", "NOT_SPECIFIED"
+
+
 class CustomUserManager(BaseUserManager):
     """Manager for CustomUser where email is the unique identifier"""
 
@@ -33,13 +43,25 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, db_index=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True, editable=False)
-
+    gender = models.CharField(
+        max_length=20,
+        choices=GenderChoices.choices,
+        default=GenderChoices.NOT_SPECIFIED,
+    )
+    date_of_birth = models.DateField(null=True, blank=True)
+    id_number = models.CharField(max_length=20, blank=True)
+    phone_number = models.CharField(max_length=15, blank=False)
+    physical_address = models.CharField(max_length=200, blank=False)
+    occupation = models.CharField(max_length=200, blank=False)
+    employer = models.CharField(max_length=200, blank=True)
+    emergency_contact_full_name = models.CharField(max_length=200, blank=True)
+    emergency_contact_phone_number = models.CharField(max_length=15, blank=True)
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
