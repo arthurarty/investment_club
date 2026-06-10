@@ -1,6 +1,10 @@
 # Investment Clubs
 ## Requirements:
 - Python 3.13
+- Docker
+
+## External Documentation
+- [AnyMail](https://anymail.dev/en/stable/quickstart/#)
 
 ## Setup
 Create a virtual env for python3.13
