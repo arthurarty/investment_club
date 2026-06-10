@@ -50,6 +50,5 @@ class LoginViewTestCase(TestCase):
             reverse("accounts:index"),
             {"email": email, "password": password, "captcha": "PASSED"},
         )
-        # breakpoint()
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(response.url, reverse("clubs:index"))
