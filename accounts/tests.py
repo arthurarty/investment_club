@@ -1,11 +1,12 @@
 from http import HTTPStatus
 
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
 
 
+@override_settings(RECAPTCHA_TESTING=True)
 class LoginViewTestCase(TestCase):
     """Test case for the login view."""
 
@@ -37,10 +38,18 @@ class LoginViewTestCase(TestCase):
         """
         email, password = "janedoe@example.com", "securepassword123"
         User.objects.create_user(
-            email=email, password=password, first_name="Jane", last_name="Doe"
+            email=email,
+            password=password,
+            first_name="Jane",
+            last_name="Doe",
+            phone_number="+25171295463",
+            physical_address="10 Downing street",
+            occupation="Farmer",
         )
         response = self.client.post(
-            reverse("accounts:index"), {"email": email, "password": password}
+            reverse("accounts:index"),
+            {"email": email, "password": password, "captcha": "PASSED"},
         )
+        # breakpoint()
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(response.url, reverse("clubs:index"))
