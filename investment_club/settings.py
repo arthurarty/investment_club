@@ -168,4 +168,4 @@ SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
 if DEBUG:
     SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
     RECAPTCHA_REQUIRED_SCORE = 0
-    ANYMAIL["MAILTRAP_SANDBOX_ID"] = os.environ.get("MAILTRAP_API")
+    ANYMAIL["MAILTRAP_SANDBOX_ID"] = os.environ.get("MAILTRAP_SANDBOX_ID", "0")
