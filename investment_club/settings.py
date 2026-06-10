@@ -156,6 +156,16 @@ RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC_KEY")
 RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
 RECAPTCHA_REQUIRED_SCORE = 0.85
 
+# Mail settings
+ANYMAIL = {
+    "MAILTRAP_API_TOKEN": os.environ.get("MAILTRAP_API"),
+}
+EMAIL_BACKEND = "anymail.backends.mailtrap.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
+
+
 if DEBUG:
     SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
     RECAPTCHA_REQUIRED_SCORE = 0
+    ANYMAIL["MAILTRAP_SANDBOX_ID"] = os.environ.get("MAILTRAP_API")
