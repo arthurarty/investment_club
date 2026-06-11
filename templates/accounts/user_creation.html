@@ -1,0 +1,15 @@
+{% extends 'clubs/dashboard_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ club.name }} — SavingsInc{% endblock %}
+{% block nav_dashboard_active %}active{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>
+            Fill in the form below
+        </h2>
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Submit</button>
+    </div>
+{% endblock %}
