@@ -4,7 +4,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
 
-from accounts.forms.user_creation_form import UserCreationForm
 from clubs.forms.club_creation_form import ClubCreationForm
 from clubs.forms.club_financials_forms import (
     FinancialYearForm,
@@ -106,7 +105,6 @@ class ClubDetailView(LoginRequiredMixin, View):
             "members": members,
             "look_up_form": MemberLookupForm(),
             "financial_year_form": FinancialYearForm(),
-            "use_creation_form": UserCreationForm(),
             "financial_years": financial_years,
             "is_creator_or_admin": creator_or_admin,
         }
