@@ -1,9 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.views import View
 
-from accounts.login_form import LoginForm
+from accounts.forms.login_form import LoginForm
+from accounts.forms.user_creation_form import UserCreationForm
 
 
 class LoginView(View):
@@ -39,3 +41,17 @@ def logout_view(request: HttpRequest):
     """
     logout(request)
     return redirect("accounts:index")
+
+
+class UserCreationView(LoginRequiredMixin, View):
+    """
+    View to create a user
+    """
+
+    def get(self, request):
+        """
+        Render the creation form
+        """
+        return render(
+            request, "accounts/user_creation.html", {"form": UserCreationForm()}
+        )

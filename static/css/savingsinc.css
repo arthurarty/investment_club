@@ -768,6 +768,88 @@ textarea.form-control { resize: vertical; }
   border-color: var(--si-green-600);
 }
 
+/* ── Form card (create/edit pages) ───────────────────── */
+.si-form-card {
+  padding: 32px 36px;
+}
+
+.si-form-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--si-green-700);
+}
+
+.si-form-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 8px 0 0;
+  color: var(--si-text-1);
+}
+
+.si-form-desc {
+  font-size: 13px;
+  color: var(--si-text-3);
+  margin: 4px 0 0;
+}
+
+.si-form-divider {
+  height: 1px;
+  background: var(--si-border);
+  margin: 24px 0 28px;
+}
+
+.si-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+}
+
+.si-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.si-field.full {
+  grid-column: 1 / -1;
+}
+
+.si-field-opt {
+  color: var(--si-text-3);
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.si-field-error {
+  color: var(--si-red);
+  font-size: 11px;
+}
+
+.si-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.si-form-spacer {
+  flex: 1;
+}
+
+.si-form-hint {
+  color: var(--si-text-3);
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .si-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Login page ──────────────────────────────────────── */
 .si-login-wrap {
   min-height: 100vh;

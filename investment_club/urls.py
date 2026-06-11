@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from accounts.custom_admin_form import CustomAdminLoginForm
+from accounts.forms.custom_admin_form import CustomAdminLoginForm
 
 admin.site.login_form = CustomAdminLoginForm
 
