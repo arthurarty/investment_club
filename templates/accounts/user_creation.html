@@ -1,15 +1,112 @@
 {% extends 'clubs/dashboard_base.html' %}
 {% load static %}
 
-{% block page_title %}{{ club.name }} — SavingsInc{% endblock %}
+{% block page_title %}Create User — SavingsInc{% endblock %}
 {% block nav_dashboard_active %}active{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h2>
-            Fill in the form below
-        </h2>
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">Submit</button>
+<div class="si-topbar">
+  <div>
+    <h1 class="si-topbar-title">Create User</h1>
+    <p class="si-topbar-subtitle">
+        Add a new person to the platform so they can be invited to a savings club.
+    </p>
+  </div>
+</div>
+
+<a href="{% url 'clubs:index' %}" class="si-back-link">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  Back to dashboard
+</a>
+
+<div class="si-page-body">
+  <form method="post" class="si-card si-form-card">
+    {% csrf_token %}
+
+    <div class="si-form-eyebrow">User details</div>
+    <h2 class="si-form-title">Fill in the form below</h2>
+    <p class="si-form-desc">All fields marked optional can be added later from the member's profile.</p>
+    <div class="si-form-divider"></div>
+
+    <div class="si-form-grid">
+      <div class="si-field full">
+        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <div class="si-field-error">
+            {{ form.email.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field">
+        <label for="{{ form.first_name.id_for_label }}" class="form-label">First name</label>
+        {{ form.first_name }}
+        {% if form.first_name.errors %}
+            <div class="si-field-error">
+                {{ form.first_name.errors|join:", " }}
+            </div>
+        {% endif %}
+      </div>
+      <div class="si-field">
+        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last name</label>
+        {{ form.last_name }}
+        {% if form.last_name.errors %}
+        <div class="si-field-error">
+            {{ form.last_name.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field">
+        <label for="{{ form.gender.id_for_label }}" class="form-label">
+            Gender <span class="si-field-opt">optional</span>
+        </label>
+        {{ form.gender }}
+        {% if form.gender.errors %}
+        <div class="si-field-error">
+            {{ form.gender.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+      <div class="si-field">
+        <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone number</label>
+        {{ form.phone_number }}
+        {% if form.phone_number.errors %}
+        <div class="si-field-error">
+            {{ form.phone_number.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field">
+        <label for="{{ form.occupation.id_for_label }}" class="form-label">Occupation <span class="si-field-opt">optional</span></label>
+        {{ form.occupation }}
+        {% if form.occupation.errors %}
+        <div class="si-field-error">
+            {{ form.occupation.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field">
+        <label for="{{ form.physical_address.id_for_label }}" class="form-label">Physical address <span class="si-field-opt">optional</span></label>
+        {{ form.physical_address }}
+        {% if form.physical_address.errors %}
+        <div class="si-field-error">
+            {{ form.physical_address.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
     </div>
+
+    <div class="si-form-actions">
+      <button type="submit" class="si-btn si-btn-primary">Submit</button>
+      <a href="{% url 'clubs:index' %}" class="si-btn si-btn-ghost">Cancel</a>
+      <span class="si-form-spacer"></span>
+      <span class="si-form-hint">The user will receive an email to set their password.</span>
+    </div>
+  </form>
+</div>
 {% endblock %}
