@@ -3,7 +3,7 @@ from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.views import View
 
-from accounts.login_form import LoginForm
+from accounts.forms.login_form import LoginForm
 
 
 class LoginView(View):
