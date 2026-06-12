@@ -61,11 +61,11 @@ class PhoneNumberValidationTests(TestCase):
         """
         Given a valid phone number no exception is raised
         """
-        validate_phone_number(4)
+        validate_phone_number("+256700000000")
 
     def test_invalid_phone_number_raises_exception(self):
         """
         An invalid phone number raises an exception
         """
         with self.assertRaises(ValidationError):
-            validate_phone_number(3)
+            validate_phone_number("700000000")
