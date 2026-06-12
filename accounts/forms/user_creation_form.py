@@ -11,7 +11,9 @@ class UserCreationForm(forms.ModelForm):
 
     phone_number = forms.CharField(
         validators=[validate_phone_number],
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "+254712345678"}
+        ),
     )
 
     class Meta:
