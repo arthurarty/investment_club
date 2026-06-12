@@ -1,5 +1,6 @@
 from django import forms
 
+from accounts.form_validators.phone_number_validator import validate_phone_number
 from accounts.models import CustomUser
 
 
@@ -7,6 +8,13 @@ class UserCreationForm(forms.ModelForm):
     """
     Form for user login.
     """
+
+    phone_number = forms.CharField(
+        validators=[validate_phone_number],
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "+254712345678"}
+        ),
+    )
 
     class Meta:
         model = CustomUser
@@ -23,7 +31,6 @@ class UserCreationForm(forms.ModelForm):
             "email": forms.EmailInput(attrs={"class": "form-control"}),
             "first_name": forms.TextInput(attrs={"class": "form-control"}),
             "last_name": forms.TextInput(attrs={"class": "form-control"}),
-            "phone_number": forms.TextInput(attrs={"class": "form-control"}),
             "gender": forms.Select(attrs={"class": "form-control"}),
             "occupation": forms.TextInput(attrs={"class": "form-control"}),
             "physical_address": forms.TextInput(attrs={"class": "form-control"}),

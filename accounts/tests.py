@@ -1,8 +1,10 @@
 from http import HTTPStatus
 
+from django.core.exceptions import ValidationError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from accounts.form_validators.phone_number_validator import validate_phone_number
 from accounts.models import CustomUser as User
 
 
@@ -52,3 +54,18 @@ class LoginViewTestCase(TestCase):
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(response.url, reverse("clubs:index"))
+
+
+class PhoneNumberValidationTests(TestCase):
+    def test_valid_phone_number(self):
+        """
+        Given a valid phone number no exception is raised
+        """
+        validate_phone_number("+256700000000")
+
+    def test_invalid_phone_number_raises_exception(self):
+        """
+        An invalid phone number raises an exception
+        """
+        with self.assertRaises(ValidationError):
+            validate_phone_number("700000000")
