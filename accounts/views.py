@@ -7,6 +7,7 @@ from django.views import View
 from accounts.forms.login_form import LoginForm
 from accounts.forms.user_creation_form import UserCreationForm
 from accounts.models import CustomUser
+from clubs.forms.club_membership_form import MemberLookupForm
 
 
 class LoginView(View):
@@ -69,5 +70,10 @@ class UserCreationView(LoginRequiredMixin, View):
                 "accounts/user_creation.html",
                 {"form": user_creation_form},
             )
-        CustomUser.objects.create_user(**user_creation_form.cleaned_data)
-        return redirect("clubs:index")
+        created_user = CustomUser.objects.create_user(**user_creation_form.cleaned_data)
+        context = {
+            "look_up_form": MemberLookupForm(),
+            "email": created_user.email,
+            "member": created_user,
+        }
+        return render(request, "clubs/member_lookup.html", context)
