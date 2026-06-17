@@ -2,6 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
 
+from accounts.forms.user_creation_form import UserCreationForm
+from accounts.models import CustomUser
 from accounts.models import CustomUser as User
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club, ClubMember
@@ -18,7 +20,6 @@ class MemberLookUpView(LoginRequiredMixin, View):
         """
         club = Club.objects.get(id=club_id)
         if not club:
-            # Todo: Add message to inform user that the club does not exist.
             return redirect("clubs:index")
         if not ClubMember.objects.filter(
             club=club, user=request.user, is_admin=True
@@ -42,12 +43,40 @@ class MemberLookUpView(LoginRequiredMixin, View):
             }
             return render(request, "clubs/member_lookup.html", context)
         except User.DoesNotExist:
-            form.add_error("email", "No user found with this email address.")
-        context = {
-            "look_up_form": form,
-            "email": email,
-        }
-        return render(request, "clubs/member_lookup.html", context)
+            # form.add_error("email", "No user found with this email address.")
+            # Todo: Add message to inform user that the email was not found and they can create an account
+            context = {
+                "email": email,
+                "look_up_form": form,
+                "form": UserCreationForm(initial={"email": email}),
+            }
+            return render(request, "accounts/user_creation.html", context)
+
+
+class ClubMemberCreate(LoginRequiredMixin, View):
+    """
+    Create a user and add them as a member to a club
+    """
+
+    def post(self, request, club_id: int):
+        club = Club.objects.get(id=club_id)
+        if not club:
+            return redirect("clubs:index")
+        if not ClubMember.objects.filter(
+            club=club, user=request.user, is_admin=True
+        ).exists():
+            # Todo: Add message to inform user that they do not have permission to view this page.
+            return redirect("clubs:detail", club_id=club.id)
+        user_creation_form = UserCreationForm(request.POST)
+        if not user_creation_form.is_valid():
+            return render(
+                request,
+                "accounts/user_creation.html",
+                {"form": user_creation_form},
+            )
+        created_user = CustomUser.objects.create_user(**user_creation_form.cleaned_data)
+        ClubMember.objects.get_or_create(club=club, user=created_user, is_admin=False)
+        return redirect("clubs:detail", club_id=club.id)
 
 
 class ClubMemberView(LoginRequiredMixin, View):
