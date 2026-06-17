@@ -18,7 +18,7 @@ class MemberLookUpView(LoginRequiredMixin, View):
         """
         Handle POST requests to look up a member by email.
         """
-        club = Club.objects.get(id=club_id)
+        club = Club.objects.filter(id=club_id).first()
         if not club:
             return redirect("clubs:index")
         if not ClubMember.objects.filter(
@@ -59,7 +59,7 @@ class ClubMemberCreate(LoginRequiredMixin, View):
     """
 
     def post(self, request, club_id: int):
-        club = Club.objects.get(id=club_id)
+        club = Club.objects.filter(id=club_id).first()
         if not club:
             return redirect("clubs:index")
         if not ClubMember.objects.filter(
@@ -88,7 +88,7 @@ class ClubMemberView(LoginRequiredMixin, View):
         """
         Handle get requests to add a member to a club.
         """
-        club = Club.objects.get(id=club_id)
+        club = Club.objects.filter(id=club_id).first()
         if not club:
             return redirect("clubs:index")
         if not ClubMember.objects.filter(
