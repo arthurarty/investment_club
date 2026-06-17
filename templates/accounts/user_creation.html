@@ -21,7 +21,7 @@
 </a>
 
 <div class="si-page-body">
-  <form method="post" class="si-card si-form-card">
+  <form action="{% url 'clubs:club-member-create' club.id %}" method="POST" class="si-card si-form-card">
     {% csrf_token %}
 
     <div class="si-form-eyebrow">User details</div>
