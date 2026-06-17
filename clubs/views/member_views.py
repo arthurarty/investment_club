@@ -3,7 +3,6 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from accounts.forms.user_creation_form import UserCreationForm
-from accounts.models import CustomUser
 from accounts.models import CustomUser as User
 from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club, ClubMember
@@ -74,7 +73,7 @@ class ClubMemberCreate(LoginRequiredMixin, View):
                 "accounts/user_creation.html",
                 {"form": user_creation_form},
             )
-        created_user = CustomUser.objects.create_user(**user_creation_form.cleaned_data)
+        created_user = User.objects.create_user(**user_creation_form.cleaned_data)
         ClubMember.objects.get_or_create(club=club, user=created_user, is_admin=False)
         return redirect("clubs:detail", club_id=club.id)
 
