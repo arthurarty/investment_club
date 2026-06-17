@@ -48,11 +48,12 @@ class MemberLookUpView(LoginRequiredMixin, View):
                 "email": email,
                 "look_up_form": form,
                 "form": UserCreationForm(initial={"email": email}),
+                "club": club,
             }
             return render(request, "accounts/user_creation.html", context)
 
 
-class ClubMemberCreate(LoginRequiredMixin, View):
+class ClubMemberCreateView(LoginRequiredMixin, View):
     """
     Create a user and add them as a member to a club
     """
