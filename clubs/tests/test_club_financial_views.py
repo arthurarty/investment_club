@@ -6,7 +6,7 @@ from django.urls import reverse
 from accounts.models import CustomUser as User
 from clubs.models import (
     Club,
-    ClubMember,
+    ClubMembership,
     DuePeriod,
     FinancialYear,
     FinancialYearContribution,
@@ -41,11 +41,10 @@ class TestPrepareFinancialYearContext(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        self.club_member = ClubMember.objects.create(
+        self.club_member = ClubMembership.objects.create(
             user=self.user,
             club=self.club,
             is_admin=True,
-            role="admin",
             invited_by=self.user,
         )
         self.participant = FinancialYearParticipant.objects.create(
@@ -95,11 +94,10 @@ class TestClubFinancialYearCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             user=self.user,
             club=self.club,
             is_admin=False,
-            role="chairman",
         )
 
     def test_create_financial_year_success(self):
@@ -174,11 +172,10 @@ class TestClubFinancialYearCreateView(TestCase):
         regular_member = User.objects.create_user(
             email="regular.member@example.com", password="testPass123"
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             user=regular_member,
             club=self.club,
             is_admin=False,
-            role="member",
         )
         self.client.login(email=regular_member.email, password="testPass123")
         url = reverse("clubs:financial-year", args=[self.club.id])
@@ -222,11 +219,10 @@ class TestClubFinancialYearDetailView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        self.club_member = ClubMember.objects.create(
+        self.club_member = ClubMembership.objects.create(
             user=self.user,
             club=self.club,
             is_admin=True,
-            role="admin",
             invited_by=self.user,
         )
         self.participant = FinancialYearParticipant.objects.create(
@@ -293,11 +289,10 @@ class TestFinancialYearDueCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             user=self.user,
             club=self.club,
             is_admin=False,
-            role="chairman",
         )
 
     def test_create_financial_year_due_success(self):
@@ -346,11 +341,10 @@ class TestFinancialYearDueCreateView(TestCase):
         regular_member = User.objects.create_user(
             email="regular.member@example.com", password="testPass123"
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             user=regular_member,
             club=self.club,
             is_admin=False,
-            role="member",
         )
         self.client.login(email=regular_member.email, password="testPass123")
         url = reverse(
@@ -397,11 +391,10 @@ class TestFinancialTransactionCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             user=self.user,
             club=self.club,
             is_admin=False,
-            role="chairman",
         )
 
     def test_create_financial_transaction_success(self):
@@ -482,11 +475,10 @@ class TestFinancialYearParticipantCreateView(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        self.club_member = ClubMember.objects.create(
+        self.club_member = ClubMembership.objects.create(
             user=self.user,
             club=self.club,
             is_admin=True,
-            role="admin",
             invited_by=self.user,
         )
 
@@ -598,11 +590,10 @@ class TestFinancialYearParticipantCreateView(TestCase):
         regular_member = User.objects.create_user(
             email="regular.member@example.com", password="testPass123"
         )
-        other_club_member = ClubMember.objects.create(
+        other_club_member = ClubMembership.objects.create(
             user=regular_member,
             club=self.club,
             is_admin=False,
-            role="member",
         )
         self.client.login(email=regular_member.email, password="testPass123")
         url = reverse(
@@ -640,13 +631,12 @@ class TestFinancialYearParticipantCreateView(TestCase):
             created_by=creator,
             updated_by=creator,
         )
-        member_to_add = ClubMember.objects.create(
+        member_to_add = ClubMembership.objects.create(
             user=User.objects.create_user(
                 email="member@example.com", password="testPass123"
             ),
             club=club,
             is_admin=False,
-            role="member",
         )
         self.client.login(email=creator.email, password="testPass123")
         url = reverse(

@@ -9,7 +9,7 @@ from clubs.forms.club_financials_forms import (
     FinancialYearForm,
 )
 from clubs.forms.club_membership_form import MemberLookupForm
-from clubs.models import Club, ClubMember, FinancialYear
+from clubs.models import Club, ClubMembership, FinancialYear
 from clubs.views.utils import is_club_admin_or_creator
 
 
@@ -69,7 +69,7 @@ class ClubsListView(LoginRequiredMixin, View):
         new_club.created_by = request.user
         new_club.updated_by = request.user
         new_club.save()
-        club_member = ClubMember(user=request.user, club=new_club, is_admin=True)
+        club_member = ClubMembership(user=request.user, club=new_club, is_admin=True)
         club_member.created_by = request.user
         club_member.updated_by = request.user
         club_member.save()

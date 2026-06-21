@@ -97,7 +97,7 @@
                   {% if member.is_admin %}
                     <span class="si-badge si-badge-amber">Admin</span>
                   {% else %}
-                    <span class="si-badge si-badge-gray">{{ member.role }}</span>
+                    <span class="si-badge si-badge-gray">{{ member.get_category_display }}</span>
                   {% endif %}
                 </td>
                 <td>
@@ -107,7 +107,7 @@
                     <span class="si-badge si-badge-gray">Inactive</span>
                   {% endif %}
                 </td>
-                <td><span style="color:var(--si-text-2);font-size:12px;">{{ member.joined_at|date:"M j, Y" }}</span></td>
+                <td><span style="color:var(--si-text-2);font-size:12px;">{{ member.start_date|date:"M j, Y" }}</span></td>
               </tr>
               {% empty %}
               <tr><td colspan="4" style="text-align:center;color:var(--si-text-3);padding:32px;">No members yet.</td></tr>
