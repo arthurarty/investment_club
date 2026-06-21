@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from common.models import BaseTimestampedModel
 
@@ -12,6 +13,27 @@ class ClubStatus(models.TextChoices):
     ACTIVE = "active", "Active"
     INACTIVE = "inactive", "Inactive"
     DISSOLVED = "dissolved", "Dissolved"
+
+
+class MembershipCategory(models.TextChoices):
+    """
+    Enum for all the possible members categories
+    """
+
+    ORDINARY = "ordinary", "Ordinary"
+    COMMITTEE = "committee", "Committee"
+
+
+class MembershipStatus(models.TextChoices):
+    """
+    Enum for all the possible states a member can be in
+    """
+
+    ACTIVE = "active", "Active"
+    SUSPENDED = "suspended", "SUSPENDED"
+    DECEASED = "deceased", "Deceased"
+    DORMANT = "dormant", "Dormant"
+    RESIGNED = "resigned", "Resigned"
 
 
 class DuePeriod(models.TextChoices):
@@ -47,7 +69,7 @@ class Club(BaseTimestampedModel, models.Model):
         return f"{self.pk} - {self.name}"
 
 
-class ClubMember(BaseTimestampedModel, models.Model):
+class ClubMembership(BaseTimestampedModel, models.Model):
     """
     Model representing a member of an investment club.
     """
@@ -58,7 +80,8 @@ class ClubMember(BaseTimestampedModel, models.Model):
         related_name="club_memberships",
     )
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="members")
-    joined_at = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateField(null=True, blank=True)
     is_admin = models.BooleanField(
         default=False
     )  # User has admin privileges in the club
@@ -75,9 +98,14 @@ class ClubMember(BaseTimestampedModel, models.Model):
         blank=True,
         related_name="invitations_sent",
     )
-    role = models.CharField(
-        max_length=150, blank=True, default="member"
-    )  # Role of the member in the club (e.g., Treasurer, Secretary)
+    category = models.CharField(
+        max_length=150,
+        choices=MembershipCategory.choices,
+        default=MembershipCategory.ORDINARY,
+    )
+    status = models.CharField(
+        max_length=20, choices=MembershipStatus.choices, default=MembershipStatus.ACTIVE
+    )
 
     class Meta:
         unique_together = ("user", "club")
@@ -152,7 +180,7 @@ class FinancialYearParticipant(BaseTimestampedModel, models.Model):
         FinancialYear, on_delete=models.CASCADE, related_name="participants"
     )
     club_member = models.ForeignKey(
-        ClubMember, on_delete=models.CASCADE, related_name="financial_years"
+        ClubMembership, on_delete=models.CASCADE, related_name="financial_years"
     )
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
@@ -183,7 +211,7 @@ class IndividualDue(BaseTimestampedModel, models.Model):
         FinancialYear, on_delete=models.CASCADE, related_name="individual_dues"
     )
     club_member = models.ForeignKey(
-        ClubMember, on_delete=models.CASCADE, related_name="individual_dues"
+        ClubMembership, on_delete=models.CASCADE, related_name="individual_dues"
     )
     description = models.CharField(max_length=1000)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -220,7 +248,7 @@ class FinancialTransaction(BaseTimestampedModel, models.Model):
     )  # Money spent
     transaction_date = models.DateField()
     club_member = models.ForeignKey(
-        ClubMember,
+        ClubMembership,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

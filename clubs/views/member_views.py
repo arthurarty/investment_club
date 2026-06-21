@@ -5,7 +5,7 @@ from django.views import View
 from accounts.forms.user_creation_form import UserCreationForm
 from accounts.models import CustomUser as User
 from clubs.forms.club_membership_form import MemberLookupForm
-from clubs.models import Club, ClubMember
+from clubs.models import Club, ClubMembership
 
 
 class MemberLookUpView(LoginRequiredMixin, View):
@@ -20,7 +20,7 @@ class MemberLookUpView(LoginRequiredMixin, View):
         club = Club.objects.filter(id=club_id).first()
         if not club:
             return redirect("clubs:index")
-        if not ClubMember.objects.filter(
+        if not ClubMembership.objects.filter(
             club=club, user=request.user, is_admin=True
         ).exists():
             # Todo: Add message to inform user that they do not have permission to view this page.
@@ -62,7 +62,7 @@ class ClubMemberCreateView(LoginRequiredMixin, View):
         club = Club.objects.filter(id=club_id).first()
         if not club:
             return redirect("clubs:index")
-        if not ClubMember.objects.filter(
+        if not ClubMembership.objects.filter(
             club=club, user=request.user, is_admin=True
         ).exists():
             # Todo: Add message to inform user that they do not have permission to view this page.
@@ -75,7 +75,9 @@ class ClubMemberCreateView(LoginRequiredMixin, View):
                 {"form": user_creation_form},
             )
         created_user = User.objects.create_user(**user_creation_form.cleaned_data)
-        ClubMember.objects.get_or_create(club=club, user=created_user, is_admin=False)
+        ClubMembership.objects.get_or_create(
+            club=club, user=created_user, is_admin=False
+        )
         return redirect("clubs:detail", club_id=club.id)
 
 
@@ -91,7 +93,7 @@ class ClubMemberView(LoginRequiredMixin, View):
         club = Club.objects.filter(id=club_id).first()
         if not club:
             return redirect("clubs:index")
-        if not ClubMember.objects.filter(
+        if not ClubMembership.objects.filter(
             club=club, user=request.user, is_admin=True
         ).exists():
             # Todo: Add message to inform user that they do not have permission to view this page.
@@ -102,5 +104,5 @@ class ClubMemberView(LoginRequiredMixin, View):
         user = User.objects.filter(email=form.cleaned_data["email"]).first()
         if not user:
             return redirect("clubs:detail", club_id=club.id)
-        ClubMember.objects.get_or_create(club=club, user=user, is_admin=False)
+        ClubMembership.objects.get_or_create(club=club, user=user, is_admin=False)
         return redirect("clubs:detail", club_id=club.id)

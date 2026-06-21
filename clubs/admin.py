@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from clubs.models import (
     Club,
-    ClubMember,
+    ClubMembership,
     FinancialTransaction,
     FinancialYear,
     FinancialYearContribution,
@@ -11,7 +11,7 @@ from clubs.models import (
 )
 
 admin.site.register(Club)
-admin.site.register(ClubMember)
+admin.site.register(ClubMembership)
 admin.site.register(FinancialYear)
 admin.site.register(FinancialYearParticipant)
 admin.site.register(FinancialTransaction)

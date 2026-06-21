@@ -9,7 +9,7 @@ from django.views import View
 
 from clubs.models import (
     Club,
-    ClubMember,
+    ClubMembership,
     DuePeriod,
     FinancialTransaction,
     FinancialYear,
@@ -156,7 +156,7 @@ class FinancialReportView(LoginRequiredMixin, View):
 
     def get_participants_transactions(
         self,
-        club_member: ClubMember,
+        club_member: ClubMembership,
         financial_year: FinancialYear,
         selected_month_obj: datetime,
     ):

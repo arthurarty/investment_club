@@ -5,7 +5,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
-from clubs.models import Club, ClubMember
+from clubs.models import Club, ClubMembership
 
 
 class MemberLookUpViewTestCase(TestCase):
@@ -37,7 +37,7 @@ class MemberLookUpViewTestCase(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             club=self.investment_club,
             user=self.user,
             is_admin=True,
@@ -123,7 +123,7 @@ class AddMemberToClubViewTestCase(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        ClubMember.objects.create(
+        ClubMembership.objects.create(
             club=self.investment_club,
             user=self.user,
             is_admin=True,
@@ -181,7 +181,7 @@ class AddMemberToClubViewTestCase(TestCase):
             reverse("clubs:detail", args=[self.investment_club.id]), response.url
         )
         self.assertTrue(
-            ClubMember.objects.filter(
+            ClubMembership.objects.filter(
                 club=self.investment_club, user=self.second_user
             ).exists()
         )
