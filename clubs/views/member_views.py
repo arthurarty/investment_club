@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views import View
 
 from accounts.models import CustomUser as User
@@ -65,7 +68,12 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
             club=club,
             user=created_user,
             defaults={
-                "start_date": club_membership_form.cleaned_data.get("start_date"),
+                "start_date": timezone.make_aware(
+                    datetime.combine(
+                        club_membership_form.cleaned_data.get("start_date"),
+                        datetime.min.time(),
+                    )
+                ),
                 "is_admin": club_membership_form.cleaned_data.get("is_admin"),
                 "is_active": club_membership_form.cleaned_data.get("is_active"),
                 "category": club_membership_form.cleaned_data.get("category"),
