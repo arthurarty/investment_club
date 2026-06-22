@@ -8,51 +8,6 @@ from clubs.forms.club_membership_form import ClubMemberShipForm, MemberLookupFor
 from clubs.models import Club, ClubMembership
 
 
-class MemberLookUpView(LoginRequiredMixin, View):
-    """
-    View to look up and display member details.
-    """
-
-    def post(self, request, club_id: int):
-        """
-        Handle POST requests to look up a member by email.
-        """
-        club = Club.objects.filter(id=club_id).first()
-        if not club:
-            return redirect("clubs:index")
-        if not ClubMembership.objects.filter(
-            club=club, user=request.user, is_admin=True
-        ).exists():
-            # Todo: Add message to inform user that they do not have permission to view this page.
-            return redirect("clubs:detail", club_id=club.id)
-        form = MemberLookupForm(request.POST)
-        if not form.is_valid():
-            context = {
-                "look_up_form": form,
-            }
-            return render(request, "clubs/member_lookup.html", context)
-        email = form.cleaned_data["email"]
-        try:
-            user = User.objects.get(email=email)
-            context = {
-                "look_up_form": form,
-                "member": user,
-                "email": email,
-                "club": club,
-            }
-            return render(request, "clubs/member_lookup.html", context)
-        except User.DoesNotExist:
-            # form.add_error("email", "No user found with this email address.")
-            # Todo: Add message to inform user that the email was not found and they can create an account
-            context = {
-                "email": email,
-                "look_up_form": form,
-                "form": UserCreationForm(initial={"email": email}),
-                "club": club,
-            }
-            return render(request, "accounts/user_creation.html", context)
-
-
 class ClubMemberShipCreateView(LoginRequiredMixin, View):
     """
     Create a user and add them as a member to a club
