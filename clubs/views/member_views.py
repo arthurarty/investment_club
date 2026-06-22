@@ -2,7 +2,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
 
-from accounts.forms.user_creation_form import UserCreationForm
 from accounts.models import CustomUser as User
 from clubs.forms.club_membership_form import ClubMemberShipForm, MemberLookupForm
 from clubs.models import Club, ClubMembership
@@ -12,6 +11,8 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
     """
     Create a user and add them as a member to a club
     """
+
+    template = "clubs/club_membership_form.html"
 
     def get(self, request, club_id: int):
         club = Club.objects.filter(id=club_id).first()
@@ -26,7 +27,7 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
             "form": ClubMemberShipForm(),
             "club": club,
         }
-        return render(request, "clubs/club_membership_form.html", context)
+        return render(request, self.template, context)
 
     def post(self, request, club_id: int):
         club = Club.objects.filter(id=club_id).first()
@@ -37,16 +38,39 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
         ).exists():
             # Todo: Add message to inform user that they do not have permission to view this page.
             return redirect("clubs:detail", club_id=club.id)
-        user_creation_form = UserCreationForm(request.POST)
-        if not user_creation_form.is_valid():
+        club_membership_form = ClubMemberShipForm(request.POST)
+        if not club_membership_form.is_valid():
             return render(
                 request,
-                "accounts/user_creation.html",
-                {"form": user_creation_form},
+                self.template,
+                {"form": club_membership_form},
             )
-        created_user = User.objects.create_user(**user_creation_form.cleaned_data)
+        created_user, created = User.objects.get_or_create(
+            email=club_membership_form.cleaned_data.get("email"),
+            defaults={
+                "first_name": club_membership_form.cleaned_data.get("first_name"),
+                "last_name": club_membership_form.cleaned_data.get("last_name"),
+                "gender": club_membership_form.cleaned_data.get("gender"),
+                "phone_number": club_membership_form.cleaned_data.get("phone_number"),
+                "occupation": club_membership_form.cleaned_data.get("occupation"),
+                "physical_address": club_membership_form.cleaned_data.get(
+                    "physical_address"
+                ),
+            },
+        )
+        if not created:
+            # Todo: notify user that a member is linked to an existing user.
+            print("existing user added as member")
         ClubMembership.objects.get_or_create(
-            club=club, user=created_user, is_admin=False
+            club=club,
+            user=created_user,
+            defaults={
+                "start_date": club_membership_form.cleaned_data.get("start_date"),
+                "is_admin": club_membership_form.cleaned_data.get("is_admin"),
+                "is_active": club_membership_form.cleaned_data.get("is_active"),
+                "category": club_membership_form.cleaned_data.get("category"),
+                "status": club_membership_form.cleaned_data.get("status"),
+            },
         )
         return redirect("clubs:detail", club_id=club.id)
 
