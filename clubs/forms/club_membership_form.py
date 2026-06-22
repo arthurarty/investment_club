@@ -5,20 +5,6 @@ from accounts.models import GenderChoices
 from clubs.models import MembershipCategory, MembershipStatus
 
 
-class MemberLookupForm(forms.Form):
-    """
-    Form to look up a member by email.
-    """
-
-    email = forms.EmailField(
-        required=True,
-        label="",
-        widget=forms.EmailInput(
-            attrs={"class": "form-control", "placeholder": "jane.doe@example.com"}
-        ),
-    )
-
-
 class ClubMemberShipForm(forms.Form):
     """
     Form to input the user's membership details
