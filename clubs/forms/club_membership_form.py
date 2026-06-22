@@ -1,6 +1,6 @@
 from django import forms
 
-from clubs.models import ClubMembership
+from clubs.models import MembershipCategory, MembershipStatus
 
 
 class MemberLookupForm(forms.Form):
@@ -17,20 +17,27 @@ class MemberLookupForm(forms.Form):
     )
 
 
-class ClubMemberShipForm(forms.ModelForm):
+class ClubMemberShipForm(forms.Form):
     """
     Form to input the user's membership details
     """
 
-    class Meta:
-        model = ClubMembership
-        fields = ["start_date", "is_admin", "is_active", "category", "status"]
-        widgets = {
-            "start_date": forms.DateInput(
-                attrs={"type": "date", "class": "form-control"}
-            ),
-            "is_admin": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "category": forms.Select(attrs={"class": "form-select"}),
-            "status": forms.Select(attrs={"class": "form-select"}),
-        }
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})
+    )
+    is_admin = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    is_active = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    category = forms.ChoiceField(
+        choices=MembershipCategory.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    status = forms.ChoiceField(
+        choices=MembershipStatus.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
