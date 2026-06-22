@@ -1,0 +1,93 @@
+{% extends 'clubs/dashboard_base.html' %}
+{% load static %}
+
+{% block page_title %}Add Membership — SavingsInc{% endblock %}
+{% block nav_dashboard_active %}active{% endblock %}
+
+{% block content %}
+<div class="si-topbar">
+  <div>
+    <h1 class="si-topbar-title">Add Membership</h1>
+    <p class="si-topbar-subtitle">Set this member's role, category and status in the club.</p>
+  </div>
+</div>
+
+<a href="{% url 'clubs:detail' club.id %}" class="si-back-link">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+  Back to club
+</a>
+
+<div class="si-page-body">
+  <form action="{% url 'clubs:club-member-create' club.id %}" method="POST" class="si-card si-form-card">
+    {% csrf_token %}
+
+    <div class="si-form-eyebrow">Membership details</div>
+    <h2 class="si-form-title">Fill in the form below</h2>
+    <p class="si-form-desc">These details determine the member's standing and permissions in the club.</p>
+    <div class="si-form-divider"></div>
+
+    <div class="si-form-grid">
+      <div class="si-field">
+        <label for="{{ form.start_date.id_for_label }}" class="form-label">Start date</label>
+        {{ form.start_date }}
+        {% if form.start_date.errors %}
+        <div class="si-field-error">
+            {{ form.start_date.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field">
+        <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+        {{ form.category }}
+        {% if form.category.errors %}
+        <div class="si-field-error">
+            {{ form.category.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field">
+        <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+        {{ form.status }}
+        {% if form.status.errors %}
+        <div class="si-field-error">
+            {{ form.status.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field full">
+        <div class="form-check">
+          {{ form.is_admin }}
+          <label for="{{ form.is_admin.id_for_label }}" class="form-check-label">Admin</label>
+        </div>
+        {% if form.is_admin.errors %}
+        <div class="si-field-error">
+            {{ form.is_admin.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="si-field full">
+        <div class="form-check">
+          {{ form.is_active }}
+          <label for="{{ form.is_active.id_for_label }}" class="form-check-label">Active</label>
+        </div>
+        {% if form.is_active.errors %}
+        <div class="si-field-error">
+            {{ form.is_active.errors|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="si-form-actions">
+      <button type="submit" class="si-btn si-btn-primary">Submit</button>
+      <a href="{% url 'clubs:detail' club.id %}" class="si-btn si-btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

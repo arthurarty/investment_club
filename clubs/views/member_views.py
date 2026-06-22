@@ -4,7 +4,7 @@ from django.views import View
 
 from accounts.forms.user_creation_form import UserCreationForm
 from accounts.models import CustomUser as User
-from clubs.forms.club_membership_form import MemberLookupForm
+from clubs.forms.club_membership_form import ClubMemberShipForm, MemberLookupForm
 from clubs.models import Club, ClubMembership
 
 
@@ -53,10 +53,25 @@ class MemberLookUpView(LoginRequiredMixin, View):
             return render(request, "accounts/user_creation.html", context)
 
 
-class ClubMemberCreateView(LoginRequiredMixin, View):
+class ClubMemberShipCreateView(LoginRequiredMixin, View):
     """
     Create a user and add them as a member to a club
     """
+
+    def get(self, request, club_id: int):
+        club = Club.objects.filter(id=club_id).first()
+        if not club:
+            return redirect("clubs:index")
+        if not ClubMembership.objects.filter(
+            club=club, user=request.user, is_admin=True
+        ).exists():
+            # Todo: Add message to inform user that they do not have permission to view this page.
+            return redirect("clubs:detail", club_id=club.id)
+        context = {
+            "form": ClubMemberShipForm(),
+            "club": club,
+        }
+        return render(request, "clubs/club_membership_form.html", context)
 
     def post(self, request, club_id: int):
         club = Club.objects.filter(id=club_id).first()

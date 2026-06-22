@@ -11,7 +11,7 @@ from clubs.views.club_financial_view import (
 from clubs.views.club_reports_view import FinancialReportView
 from clubs.views.club_views import ClubDetailView, ClubsListView
 from clubs.views.member_views import (
-    ClubMemberCreateView,
+    ClubMemberShipCreateView,
     ClubMemberView,
     MemberLookUpView,
 )
@@ -27,7 +27,7 @@ urlpatterns = [
     path("<int:club_id>/member/", ClubMemberView.as_view(), name="club-member"),
     path(
         "<int:club_id>/member/create",
-        ClubMemberCreateView.as_view(),
+        ClubMemberShipCreateView.as_view(),
         name="club-member-create",
     ),
     path(
