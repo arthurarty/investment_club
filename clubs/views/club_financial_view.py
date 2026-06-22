@@ -11,7 +11,6 @@ from clubs.forms.club_financials_forms import (
     FinancialYearParticipantForm,
     IndividualDueForm,
 )
-from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import (
     Club,
     FinancialTransaction,
@@ -78,7 +77,6 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
             context = {
                 "club": club,
                 "members": members,
-                "look_up_form": MemberLookupForm(),
                 "financial_year_form": form,
             }
             return render(request, "clubs/detail.html", context)

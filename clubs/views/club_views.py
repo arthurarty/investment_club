@@ -8,7 +8,6 @@ from clubs.forms.club_creation_form import ClubCreationForm
 from clubs.forms.club_financials_forms import (
     FinancialYearForm,
 )
-from clubs.forms.club_membership_form import MemberLookupForm
 from clubs.models import Club, ClubMembership, FinancialYear
 from clubs.views.utils import is_club_admin_or_creator
 
@@ -103,7 +102,6 @@ class ClubDetailView(LoginRequiredMixin, View):
         context = {
             "club": club,
             "members": members,
-            "look_up_form": MemberLookupForm(),
             "financial_year_form": FinancialYearForm(),
             "financial_years": financial_years,
             "is_creator_or_admin": creator_or_admin,
