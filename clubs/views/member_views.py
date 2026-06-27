@@ -46,7 +46,7 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
             return render(
                 request,
                 self.template,
-                {"form": club_membership_form},
+                {"form": club_membership_form, "club": club},
             )
         created_user, created = User.objects.get_or_create(
             email=club_membership_form.cleaned_data.get("email"),

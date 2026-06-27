@@ -4,6 +4,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
+from accounts.models import GenderChoices
 from clubs.models import Club, ClubMembership, MembershipCategory, MembershipStatus
 
 
@@ -71,3 +72,61 @@ class ClubMemberShipCreateViewTestCase(TestCase):
             reverse(self.view_name, kwargs={"club_id": self.investment_club.id})
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_post_success_new_user_created(self):
+        """
+        Test successful post that results in a new user being created
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        new_member_email = "newmember@example.com"
+        response = self.client.post(
+            reverse(self.view_name, kwargs={"club_id": self.investment_club.id}),
+            {
+                "email": new_member_email,
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "gender": GenderChoices.FEMALE,
+                "phone_number": "+254712345678",
+                "occupation": "Engineer",
+                "physical_address": "123 Main St",
+                "start_date": "2024-01-15",
+                "category": MembershipCategory.ORDINARY,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertRedirects(
+            response,
+            reverse("clubs:detail", kwargs={"club_id": self.investment_club.id}),
+        )
+        new_user = User.objects.get(email=new_member_email)
+        self.assertTrue(
+            ClubMembership.objects.filter(
+                club=self.investment_club, user=new_user
+            ).exists()
+        )
+
+    def test_post_invalid_phone_number(self):
+        """
+        Test post with an invalid phone number does not create a user
+        or membership and re-renders the form with errors.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        new_member_email = "invalidphone@example.com"
+        response = self.client.post(
+            reverse(self.view_name, kwargs={"club_id": self.investment_club.id}),
+            {
+                "email": new_member_email,
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "gender": GenderChoices.FEMALE,
+                "phone_number": "not-a-number",
+                "occupation": "Engineer",
+                "physical_address": "123 Main St",
+                "start_date": "2024-01-15",
+                "category": MembershipCategory.ORDINARY,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/club_membership_form.html")
+        self.assertFalse(User.objects.filter(email=new_member_email).exists())
