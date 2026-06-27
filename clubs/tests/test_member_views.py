@@ -55,3 +55,19 @@ class ClubMemberShipCreateViewTestCase(TestCase):
         self.assertTemplateUsed(response, "clubs/club_membership_form.html")
         self.assertIn("club", response.context)
         self.assertContains(response, "Fill in the form below")
+
+    def test_get_method_redirect(self):
+        """
+        Test the get request redirects if logged in user is not a member
+        they acting on.
+        """
+        email, password = "jack@testnet.com", "testPass24AG542@$523(*j"
+        User.objects.create_user(
+            email=email,
+            password=password,
+        )
+        self.client.login(email=email, password=password)
+        response = self.client.get(
+            reverse(self.view_name, kwargs={"club_id": self.investment_club.id})
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
