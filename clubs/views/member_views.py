@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -80,4 +81,5 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
                 "status": club_membership_form.cleaned_data.get("status"),
             },
         )
+        messages.success(request, f"{created_user.email} added to club: {club.name}")
         return redirect("clubs:detail", club_id=club.id)
