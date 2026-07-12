@@ -10,12 +10,18 @@ class ClubMemberShipForm(forms.Form):
     Form to input the user's membership details
     """
 
-    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(
+        max_length=254, widget=forms.EmailInput(attrs={"class": "form-control"})
+    )
     first_name = forms.CharField(
-        required=False, widget=forms.TextInput(attrs={"class": "form-control"})
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     last_name = forms.CharField(
-        required=False, widget=forms.TextInput(attrs={"class": "form-control"})
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     gender = forms.ChoiceField(
         choices=GenderChoices.choices,
@@ -26,12 +32,13 @@ class ClubMemberShipForm(forms.Form):
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "+254712345678"}
         ),
+        max_length=15,
     )
     occupation = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control"})
+        max_length=200, widget=forms.TextInput(attrs={"class": "form-control"})
     )
     physical_address = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control"})
+        max_length=200, widget=forms.TextInput(attrs={"class": "form-control"})
     )
     start_date = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})

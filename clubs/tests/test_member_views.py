@@ -212,3 +212,30 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTemplateUsed(response, "clubs/club_membership_form.html")
         self.assertFalse(User.objects.filter(email=new_member_email).exists())
+
+    def test_post_long_phone_number(self):
+        """
+        Test post with lengthy phone number that results in SQL error.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        new_member_email = "invalidphone@example.com"
+        response = self.client.post(
+            reverse(self.view_name, kwargs={"club_id": self.investment_club.id}),
+            {
+                "email": new_member_email,
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "gender": GenderChoices.FEMALE,
+                "phone_number": "+251 778 120 454",
+                "occupation": "Engineer",
+                "physical_address": "123 Main St",
+                "start_date": "2024-01-15",
+                "category": MembershipCategory.ORDINARY,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, "Fill in the form below")
+        self.assertContains(response, "Ensure this value has at most 15 characters")
+        self.assertTemplateUsed(response, "clubs/club_membership_form.html")
+        self.assertFalse(User.objects.filter(email=new_member_email).exists())
