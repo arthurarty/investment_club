@@ -25,7 +25,10 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
         if not ClubMembership.objects.filter(
             club=club, user=request.user, is_admin=True
         ).exists():
-            # Todo: Add message to inform user that they do not have permission to view this page.
+            messages.error(
+                request,
+                message="You do not have permission to perform this action on this club.",
+            )
             return redirect("clubs:detail", club_id=club.id)
         context = {
             "form": ClubMemberShipForm(),
@@ -40,7 +43,10 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
         if not ClubMembership.objects.filter(
             club=club, user=request.user, is_admin=True
         ).exists():
-            # Todo: Add message to inform user that they do not have permission to view this page.
+            messages.error(
+                request,
+                message="You do not have permission to add a new member to this club.",
+            )
             return redirect("clubs:detail", club_id=club.id)
         club_membership_form = ClubMemberShipForm(request.POST)
         if not club_membership_form.is_valid():
