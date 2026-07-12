@@ -63,8 +63,9 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
             },
         )
         if not created:
-            # Todo: notify user that a member is linked to an existing user.
-            print("existing user added as member")
+            messages.info(
+                request, f"Existing member found and added to club: {club.name}"
+            )
         ClubMembership.objects.get_or_create(
             club=club,
             user=created_user,
