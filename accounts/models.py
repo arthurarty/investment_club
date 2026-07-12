@@ -56,7 +56,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     date_of_birth = models.DateField(null=True, blank=True)
     id_number = models.CharField(max_length=20, blank=True)
-    phone_number = models.CharField(max_length=15, blank=False)
+    phone_number = models.CharField(max_length=18, blank=False)
     physical_address = models.CharField(max_length=200, blank=False)
     occupation = models.CharField(max_length=200, blank=False)
     employer = models.CharField(max_length=200, blank=True)

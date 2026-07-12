@@ -213,12 +213,13 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
         self.assertTemplateUsed(response, "clubs/club_membership_form.html")
         self.assertFalse(User.objects.filter(email=new_member_email).exists())
 
-    def test_post_long_phone_number(self):
+    def test_post_phone_number_with_spaces(self):
         """
-        Test post with lengthy phone number that results in SQL error.
+        Test post with a phone number that contains spaces but is valid
+        This should test should pass since that is a valid number
         """
         self.client.login(email=self.test_email, password=self.test_password)
-        new_member_email = "invalidphone@example.com"
+        new_member_email = "phoneNumberSpaces@example.com"
         response = self.client.post(
             reverse(self.view_name, kwargs={"club_id": self.investment_club.id}),
             {
@@ -226,7 +227,7 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
                 "first_name": "Jane",
                 "last_name": "Smith",
                 "gender": GenderChoices.FEMALE,
-                "phone_number": "+251 778 120 454",
+                "phone_number": "+251 77 162 1946",
                 "occupation": "Engineer",
                 "physical_address": "123 Main St",
                 "start_date": "2024-01-15",
@@ -234,8 +235,8 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
                 "status": MembershipStatus.ACTIVE,
             },
         )
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertContains(response, "Fill in the form below")
-        self.assertContains(response, "Ensure this value has at most 15 characters")
-        self.assertTemplateUsed(response, "clubs/club_membership_form.html")
-        self.assertFalse(User.objects.filter(email=new_member_email).exists())
+        self.assertRedirects(
+            response,
+            reverse("clubs:detail", kwargs={"club_id": self.investment_club.id}),
+        )
+        self.assertTrue(User.objects.filter(email=new_member_email).exists())

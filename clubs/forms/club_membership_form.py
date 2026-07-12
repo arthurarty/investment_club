@@ -32,7 +32,7 @@ class ClubMemberShipForm(forms.Form):
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "+254712345678"}
         ),
-        max_length=15,
+        max_length=18,
     )
     occupation = forms.CharField(
         max_length=200, widget=forms.TextInput(attrs={"class": "form-control"})
