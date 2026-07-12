@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from django.contrib import messages
 from django.contrib.messages.storage.base import Message
 from django.test import Client
 from django.urls import reverse
@@ -108,7 +109,7 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
         )
         expected_messages = [
             Message(
-                level=25,
+                level=messages.SUCCESS,
                 message=f"{new_member_email} added to club: {self.investment_club.name}",
             )
         ]
