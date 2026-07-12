@@ -115,6 +115,56 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
         ]
         self.assertMessages(response, expected_messages, ordered=True)
 
+    def test_post_success_existing_user_found(self):
+        """
+        Test successful post with an email for an existing user results in
+        an info message about the existing member being found, in addition
+        to the success message.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        existing_member_email = "existingmember@example.com"
+        User.objects.create_user(
+            email=existing_member_email,
+            first_name="Jane",
+            last_name="Smith",
+        )
+        response = self.client.post(
+            reverse(self.view_name, kwargs={"club_id": self.investment_club.id}),
+            {
+                "email": existing_member_email,
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "gender": GenderChoices.FEMALE,
+                "phone_number": "+254712345678",
+                "occupation": "Engineer",
+                "physical_address": "123 Main St",
+                "start_date": "2024-01-15",
+                "category": MembershipCategory.ORDINARY,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertRedirects(
+            response,
+            reverse("clubs:detail", kwargs={"club_id": self.investment_club.id}),
+        )
+        existing_user = User.objects.get(email=existing_member_email)
+        self.assertTrue(
+            ClubMembership.objects.filter(
+                club=self.investment_club, user=existing_user
+            ).exists()
+        )
+        expected_messages = [
+            Message(
+                level=messages.INFO,
+                message=f"Existing member found and added to club: {self.investment_club.name}",
+            ),
+            Message(
+                level=messages.SUCCESS,
+                message=f"{existing_member_email} added to club: {self.investment_club.name}",
+            ),
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
+
     def test_post_invalid_phone_number(self):
         """
         Test post with an invalid phone number does not create a user
