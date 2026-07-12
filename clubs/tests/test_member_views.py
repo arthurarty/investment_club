@@ -1,14 +1,17 @@
 from http import HTTPStatus
 
-from django.test import Client, TestCase
+from django.contrib import messages
+from django.contrib.messages.storage.base import Message
+from django.test import Client
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
 from accounts.models import GenderChoices
 from clubs.models import Club, ClubMembership, MembershipCategory, MembershipStatus
+from common.message_test_case import MsgTestCase
 
 
-class ClubMemberShipCreateViewTestCase(TestCase):
+class ClubMemberShipCreateViewTestCase(MsgTestCase):
     """
     Test case for the ClubMemberShipCreateView
     """
@@ -104,6 +107,13 @@ class ClubMemberShipCreateViewTestCase(TestCase):
                 club=self.investment_club, user=new_user
             ).exists()
         )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message=f"{new_member_email} added to club: {self.investment_club.name}",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
 
     def test_post_invalid_phone_number(self):
         """

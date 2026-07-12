@@ -970,6 +970,94 @@ textarea.form-control { resize: vertical; }
   justify-content: space-between;
 }
 
+/* ── Toast notifications ─────────────────────────────── */
+.si-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  width: calc(100% - 40px);
+}
+
+.si-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--si-surface);
+  border: 1px solid var(--si-border);
+  border-left: 3px solid var(--si-green-600);
+  border-radius: var(--si-radius-md);
+  box-shadow: var(--si-shadow-lg);
+  padding: 14px 16px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.si-toast-hide {
+  opacity: 0;
+  transform: translateX(12px);
+}
+
+.si-toast-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--si-green-100);
+  color: var(--si-green-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.si-toast-body {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--si-text-1);
+  word-break: break-word;
+}
+
+.si-toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--si-text-3);
+  padding: 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: var(--si-radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+.si-toast-close:hover { color: var(--si-text-1); background: var(--si-surface-2); }
+
+.si-toast-error .si-toast-icon,
+.si-toast-danger .si-toast-icon {
+  background: oklch(0.94 0.04 20);
+  color: var(--si-red);
+}
+.si-toast-error, .si-toast-danger { border-left-color: var(--si-red); }
+
+.si-toast-warning .si-toast-icon {
+  background: oklch(0.96 0.05 85);
+  color: var(--si-amber-dim);
+}
+.si-toast-warning { border-left-color: var(--si-amber); }
+
+.si-toast-info .si-toast-icon,
+.si-toast-debug .si-toast-icon {
+  background: oklch(0.93 0.03 240);
+  color: oklch(0.5 0.15 240);
+}
+.si-toast-info, .si-toast-debug { border-left-color: oklch(0.5 0.15 240); }
+
 /* ── Total row in reports table ──────────────────────── */
 .si-table .total-row td {
   font-weight: 600;
