@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
@@ -86,6 +87,13 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
         new_financial_year.created_by = request.user
         new_financial_year.updated_by = request.user
         new_financial_year.save()
+        messages.success(
+            request,
+            message=(
+                f"Financial year {new_financial_year.start_date} - "
+                f"{new_financial_year.end_date} created successfully."
+            ),
+        )
         return redirect("clubs:detail", club_id=club.id)
 
 
@@ -143,6 +151,10 @@ class FinancialYearDueCreateView(LoginRequiredMixin, View):
         new_due.created_by = request.user
         new_due.updated_by = request.user
         new_due.save()
+        messages.success(
+            request,
+            message=f"Due of {new_due.amount} added for {new_due.due_period}.",
+        )
         return render(
             request,
             "clubs/financial_year_detail.html",
@@ -179,6 +191,10 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
         new_transaction.created_by = request.user
         new_transaction.updated_by = request.user
         new_transaction.save()
+        messages.success(
+            request,
+            message=f"Transaction '{new_transaction.description}' added successfully.",
+        )
         return redirect(
             "clubs:financial-year-detail",
             club_id=club.id,
@@ -215,6 +231,12 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
         new_participant.created_by = request.user
         new_participant.updated_by = request.user
         new_participant.save()
+        messages.success(
+            request,
+            message=(
+                f"{new_participant.club_member.user.email} added as a participant."
+            ),
+        )
         return redirect(
             "clubs:financial-year-detail",
             club_id=club.id,
@@ -250,6 +272,13 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
         new_due.created_by = request.user
         new_due.updated_by = request.user
         new_due.save()
+        messages.success(
+            request,
+            message=(
+                f"Individual due '{new_due.description}' of {new_due.amount} added "
+                f"for {new_due.club_member.user.email}."
+            ),
+        )
         return render(
             request,
             "clubs/financial_year_detail.html",

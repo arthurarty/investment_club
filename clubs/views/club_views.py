@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
@@ -73,6 +74,9 @@ class ClubsListView(LoginRequiredMixin, View):
         club_member.updated_by = request.user
         club_member.save()
         form.save_m2m()  # Save many-to-many relationships if any
+        messages.success(
+            request, message=f"Club: {new_club.name} created successfully."
+        )
         return redirect("clubs:index")
 
 
