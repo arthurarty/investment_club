@@ -1,13 +1,16 @@
 from http import HTTPStatus
 
-from django.test import Client, TestCase
+from django.contrib import messages
+from django.contrib.messages.storage.base import Message
+from django.test import Client
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
 from clubs.models import Club
+from common.message_test_case import MsgTestCase
 
 
-class ClubListViewTestCase(TestCase):
+class ClubListViewTestCase(MsgTestCase):
     """
     Test case for the ClubsListView.
     """
@@ -66,6 +69,13 @@ class ClubListViewTestCase(TestCase):
         self.assertEqual(
             response.url, reverse("clubs:index")
         )  # Redirects to clubs index
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message="Club: New Club created successfully.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
 
     def test_post_invalid_data(self):
         """

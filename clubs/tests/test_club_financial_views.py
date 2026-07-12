@@ -1,5 +1,7 @@
 from http import HTTPStatus
 
+from django.contrib import messages
+from django.contrib.messages.storage.base import Message
 from django.test import TestCase
 from django.urls import reverse
 
@@ -11,8 +13,10 @@ from clubs.models import (
     FinancialYear,
     FinancialYearContribution,
     FinancialYearParticipant,
+    IndividualDue,
 )
 from clubs.views.club_financial_view import prepare_financial_year_context
+from common.message_test_case import MsgTestCase
 
 
 class TestPrepareFinancialYearContext(TestCase):
@@ -75,7 +79,7 @@ class TestPrepareFinancialYearContext(TestCase):
         self.assertEqual(len(context["transactions"]), 0)
 
 
-class TestClubFinancialYearCreateView(TestCase):
+class TestClubFinancialYearCreateView(MsgTestCase):
     """
     Test case for the ClubFinancialYearCreateView.
     """
@@ -118,6 +122,13 @@ class TestClubFinancialYearCreateView(TestCase):
                 club=self.club, start_date="2024-01-01", end_date="2024-12-31"
             ).exists()
         )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message="Financial year 2024-01-01 - 2024-12-31 created successfully.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
 
     def test_create_financial_year_invalid_data(self):
         """
@@ -263,7 +274,7 @@ class TestClubFinancialYearDetailView(TestCase):
         self.assertEqual(response.url, reverse("clubs:index"))
 
 
-class TestFinancialYearDueCreateView(TestCase):
+class TestFinancialYearDueCreateView(MsgTestCase):
     """
     Test case for the FinancialYearDueCreateView.
     """
@@ -316,6 +327,13 @@ class TestFinancialYearDueCreateView(TestCase):
                 amount=50000, due_period=DuePeriod.MONTHLY.value
             ).exists()
         )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message=f"Due of 50000 added for {DuePeriod.MONTHLY.value}.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
 
     def test_create_financial_year_due_invalid_data(self):
         """
@@ -365,7 +383,7 @@ class TestFinancialYearDueCreateView(TestCase):
         )
 
 
-class TestFinancialTransactionCreateView(TestCase):
+class TestFinancialTransactionCreateView(MsgTestCase):
     """
     Test case for the FinancialTransactionCreateView.
     """
@@ -427,6 +445,13 @@ class TestFinancialTransactionCreateView(TestCase):
                 club=self.club, start_date="2023-01-01", end_date="2023-12-31"
             ).exists()
         )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message="Transaction 'Membership fee' added successfully.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
 
     def test_create_financial_transaction_invalid_data(self):
         """
@@ -449,7 +474,7 @@ class TestFinancialTransactionCreateView(TestCase):
         self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
 
 
-class TestFinancialYearParticipantCreateView(TestCase):
+class TestFinancialYearParticipantCreateView(MsgTestCase):
     """
     Test case for the FinancialYearParticipantCreateView.
     """
@@ -519,6 +544,13 @@ class TestFinancialYearParticipantCreateView(TestCase):
                 club_member=self.club_member,
             ).exists()
         )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message=f"{self.user.email} added as a participant.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
 
     def test_create_participant_sets_created_by_and_updated_by(self):
         """
@@ -646,3 +678,72 @@ class TestFinancialYearParticipantCreateView(TestCase):
         response = self.client.post(url, {"club_member": member_to_add.id})
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertTemplateUsed(response, "clubs/403.html")
+
+
+class TestFinancialYearIndividualDueCreateView(MsgTestCase):
+    """
+    Test case for the FinancialYearIndividualDueCreateView.
+    """
+
+    def setUp(self):
+        """
+        Set up test data for clubs, financial years, club members, and users.
+        """
+        self.user = User.objects.create_user(
+            email="jane.doe@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="Investment Club",
+            description="A club for investment enthusiasts.",
+            contact_email=self.user.email,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2023-01-01",
+            end_date="2023-12-31",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.club_member = ClubMembership.objects.create(
+            user=self.user,
+            club=self.club,
+            is_admin=True,
+        )
+
+    def test_create_individual_due_success(self):
+        """
+        Test the creation of a new individual due via POST request.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-individual-due",
+            args=[self.club.id, self.financial_year.id],
+        )
+        data = {
+            "club_member": self.club_member.id,
+            "description": "Late payment fine",
+            "amount": "500.00",
+            "due_date": "2023-06-15",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertTrue(
+            IndividualDue.objects.filter(
+                financial_year=self.financial_year,
+                club_member=self.club_member,
+                description="Late payment fine",
+            ).exists()
+        )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message=(
+                    f"Individual due 'Late payment fine' of 500.00 added "
+                    f"for {self.user.email}."
+                ),
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)

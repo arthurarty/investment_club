@@ -76,6 +76,28 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
+    def test_get_method_redirect_error_message(self):
+        """
+        Test the get request generates an error message when the logged in
+        user does not have permission to act on the club.
+        """
+        email, password = "jack@testnet.com", "testPass24AG542@$523(*j"
+        User.objects.create_user(
+            email=email,
+            password=password,
+        )
+        self.client.login(email=email, password=password)
+        response = self.client.get(
+            reverse(self.view_name, kwargs={"club_id": self.investment_club.id})
+        )
+        expected_messages = [
+            Message(
+                level=messages.ERROR,
+                message="You do not have permission to perform this action on this club.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
+
     def test_post_success_new_user_created(self):
         """
         Test successful post that results in a new user being created
