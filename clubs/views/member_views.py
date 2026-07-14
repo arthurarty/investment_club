@@ -8,7 +8,7 @@ from django.views import View
 
 from accounts.models import CustomUser as User
 from clubs.forms.club_membership_form import ClubMemberShipForm
-from clubs.models import Club, ClubMembership
+from clubs.models import Club, ClubMembership, MembershipStatus
 
 
 class ClubMemberShipCreateView(LoginRequiredMixin, View):
@@ -72,6 +72,8 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
             messages.info(
                 request, f"Existing member found and added to club: {club.name}"
             )
+        status = club_membership_form.cleaned_data.get("status")
+        is_active = status == MembershipStatus.ACTIVE
         ClubMembership.objects.get_or_create(
             club=club,
             user=created_user,
@@ -83,9 +85,9 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
                     )
                 ),
                 "is_admin": club_membership_form.cleaned_data.get("is_admin"),
-                "is_active": club_membership_form.cleaned_data.get("is_active"),
+                "is_active": is_active,
                 "category": club_membership_form.cleaned_data.get("category"),
-                "status": club_membership_form.cleaned_data.get("status"),
+                "status": status,
             },
         )
         messages.success(request, f"{created_user.email} added to club: {club.name}")
