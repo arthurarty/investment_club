@@ -142,19 +142,6 @@
         {% endif %}
       </div>
 
-      <div class="si-field full">
-        <div class="form-check">
-          {{ form.is_active }}
-          <label for="{{ form.is_active.id_for_label }}" class="form-check-label">Active</label>
-        </div>
-        {% if form.is_active.errors %}
-        <div class="si-field-error">
-            {{ form.is_active.errors|join:", " }}
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
     <div class="si-form-actions">
       <button type="submit" class="si-btn si-btn-primary">Submit</button>
       <a href="{% url 'clubs:detail' club.id %}" class="si-btn si-btn-ghost">Cancel</a>
