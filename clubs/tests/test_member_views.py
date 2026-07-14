@@ -40,7 +40,6 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
             user=self.user,
             defaults={
                 "is_admin": True,
-                "is_active": True,
                 "category": MembershipCategory.COMMITTEE,
                 "status": MembershipStatus.ACTIVE,
             },
@@ -124,11 +123,11 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
             reverse("clubs:detail", kwargs={"club_id": self.investment_club.id}),
         )
         new_user = User.objects.get(email=new_member_email)
-        self.assertTrue(
-            ClubMembership.objects.filter(
-                club=self.investment_club, user=new_user
-            ).exists()
-        )
+        club_member = ClubMembership.objects.filter(
+            club=self.investment_club, user=new_user
+        ).first()
+        self.assertTrue(club_member)
+        self.assertTrue(club_member.is_active)
         expected_messages = [
             Message(
                 level=messages.SUCCESS,
