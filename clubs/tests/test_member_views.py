@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.messages.storage.base import Message
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import CustomUser as User
 from accounts.models import GenderChoices
@@ -462,3 +463,236 @@ class ClubMemberShipDetailViewTestCase(MsgTestCase):
         self.assertEqual(len(response.context["participating_years"]), 1)
         self.assertContains(response, "Monthly subscription payment")
         self.assertContains(response, "Late meeting fine")
+
+    def test_get_member_detail_contains_form(self):
+        """
+        Test that GET response contains the membership update form and edit button for admin.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        response = self.client.get(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            )
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn("form", response.context)
+        self.assertIn("membership_form", response.context)
+        self.assertEqual(response.context["form"].instance, self.member)
+        self.assertContains(response, "Edit Member")
+        self.assertContains(response, "Update Membership Details")
+
+    def test_post_update_member_unauthenticated(self):
+        """
+        Test that unauthenticated POST redirects to login.
+        """
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            ),
+            {
+                "start_date": "2024-01-01",
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.ACTIVE,
+                "is_admin": True,
+                "is_active": True,
+                "is_confirmed": True,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertIn(reverse("accounts:index"), response.url)
+
+    def test_post_update_member_success(self):
+        """
+        Test successful POST by club admin updates the ClubMembership model instance.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            ),
+            {
+                "start_date": "2024-02-01",
+                "end_date": "2025-12-31",
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.SUSPENDED,
+                "is_admin": True,
+                "is_active": True,  # Will be set to False by clean() since status is SUSPENDED
+                "is_confirmed": True,
+            },
+        )
+        self.assertRedirects(
+            response,
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            ),
+        )
+        expected_messages = [
+            Message(
+                level=messages.SUCCESS,
+                message=f"Membership details for {self.member.user.email} updated successfully.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
+
+        self.member.refresh_from_db()
+        self.assertEqual(
+            timezone.localtime(self.member.start_date).date(), date(2024, 2, 1)
+        )
+        self.assertEqual(self.member.end_date, date(2025, 12, 31))
+        self.assertEqual(self.member.category, MembershipCategory.COMMITTEE)
+        self.assertEqual(self.member.status, MembershipStatus.SUSPENDED)
+        self.assertTrue(self.member.is_admin)
+        self.assertFalse(self.member.is_active)
+        self.assertTrue(self.member.is_confirmed)
+
+    def test_post_update_member_non_admin_forbidden(self):
+        """
+        Test that non-admin club member cannot update membership details (403 Forbidden).
+        """
+        self.client.login(email="member@example.com", password="memberPassword123")
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            ),
+            {
+                "start_date": "2024-01-01",
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.ACTIVE,
+                "is_admin": True,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
+
+    def test_post_update_member_outsider_forbidden(self):
+        """
+        Test that user who is not a member of the club receives 403 Forbidden on POST.
+        """
+        User.objects.create_user(
+            email="outsider@example.com",
+            password="outsiderPassword123",
+        )
+        self.client.login(email="outsider@example.com", password="outsiderPassword123")
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            ),
+            {
+                "start_date": "2024-01-01",
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertTemplateUsed(response, "clubs/403.html")
+
+    def test_post_update_member_nonexistent_club(self):
+        """
+        Test POST to non-existent club redirects to clubs:index.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": 999999,
+                    "member_id": self.member.id,
+                },
+            ),
+            {
+                "start_date": "2024-01-01",
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertRedirects(response, reverse("clubs:index"))
+
+    def test_post_update_member_nonexistent_member(self):
+        """
+        Test POST to non-existent member redirects to clubs:detail with error message.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": 999999,
+                },
+            ),
+            {
+                "start_date": "2024-01-01",
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertRedirects(
+            response,
+            reverse("clubs:detail", kwargs={"club_id": self.investment_club.id}),
+        )
+        expected_messages = [
+            Message(
+                level=messages.ERROR,
+                message="Member not found in this club.",
+            )
+        ]
+        self.assertMessages(response, expected_messages, ordered=True)
+
+    def test_post_update_member_invalid_dates(self):
+        """
+        Test POST with end_date earlier than start_date fails validation and does not update.
+        """
+        self.client.login(email=self.test_email, password=self.test_password)
+        original_category = self.member.category
+        response = self.client.post(
+            reverse(
+                self.view_name,
+                kwargs={
+                    "club_id": self.investment_club.id,
+                    "member_id": self.member.id,
+                },
+            ),
+            {
+                "start_date": "2024-06-01",
+                "end_date": "2024-01-01",  # Invalid: end_date before start_date
+                "category": MembershipCategory.COMMITTEE,
+                "status": MembershipStatus.ACTIVE,
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/member_detail.html")
+        form = response.context["form"]
+        self.assertFalse(form.is_valid())
+        self.assertIn("end_date", form.errors)
+        self.assertIn(
+            "End date cannot be earlier than start date.", form.errors["end_date"]
+        )
+
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.category, original_category)
