@@ -1,0 +1,448 @@
+{% extends 'clubs/dashboard_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ member.user.first_name }} {{ member.user.last_name }} — {{ club.name }} — SavingsInc{% endblock %}
+{% block nav_dashboard_active %}active{% endblock %}
+
+{% block content %}
+<div class="si-topbar">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:wrap;">
+      <h1 class="si-topbar-title">
+        {% if member.user.first_name or member.user.last_name %}
+          {{ member.user.first_name }} {{ member.user.last_name }}
+        {% else %}
+          {{ member.user.email }}
+        {% endif %}
+      </h1>
+      {% if member.is_admin %}
+        <span class="si-badge si-badge-amber">Admin</span>
+      {% else %}
+        <span class="si-badge si-badge-gray">{{ member.get_category_display }}</span>
+      {% endif %}
+      {% if member.is_active %}
+        <span class="si-badge si-badge-green">Active</span>
+      {% else %}
+        <span class="si-badge si-badge-gray">{{ member.get_status_display }}</span>
+      {% endif %}
+    </div>
+    <p class="si-topbar-subtitle">{{ member.user.email }} &bull; Member of {{ club.name }} since {{ member.start_date|date:"M j, Y" }}</p>
+  </div>
+  <div class="si-topbar-actions">
+    {% if is_creator_or_admin %}
+    <button class="si-btn si-btn-primary si-btn-sm" data-bs-toggle="modal" data-bs-target="#editMemberModal">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      Edit Member
+    </button>
+    {% endif %}
+    <button class="si-btn si-btn-ghost si-btn-sm" onclick="window.print()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
+  </div>
+</div>
+
+<a href="{% url 'clubs:detail' club.id %}" class="si-back-link">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  Back to {{ club.name }}
+</a>
+
+<div class="si-page-body">
+  <!-- Stat cards -->
+  <div class="si-stat-row">
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Total Credits</span>
+        <div class="si-stat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value credit">Ugx {{ total_credit|floatformat:0 }}</div>
+    </div>
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Total Debits</span>
+        <div class="si-stat-icon" style="background:oklch(0.95 0.05 20);color:var(--si-red);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value debit">Ugx {{ total_debit|floatformat:0 }}</div>
+    </div>
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Individual Dues</span>
+        <div class="si-stat-icon" style="background:oklch(0.96 0.05 85);color:var(--si-amber-dim);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value">Ugx {{ total_individual_dues|floatformat:0 }}</div>
+    </div>
+    <div class="si-stat-card">
+      <div class="si-stat-header">
+        <span class="si-stat-label">Financial Years</span>
+        <div class="si-stat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+      </div>
+      <div class="si-stat-value">{{ participating_years|length }}</div>
+    </div>
+  </div>
+
+  <!-- Tabs card -->
+  <div class="si-card" data-si-tabgroup>
+    <div class="si-tabs" data-si-tabs>
+      <button class="si-tab-btn active" data-si-tab="profile">Member Profile</button>
+      <button class="si-tab-btn" data-si-tab="transactions">Transactions ({{ transactions|length }})</button>
+      <button class="si-tab-btn" data-si-tab="individual-dues">Individual Dues ({{ individual_dues|length }})</button>
+      <button class="si-tab-btn" data-si-tab="participating-years">Financial Years ({{ participating_years|length }})</button>
+    </div>
+
+    <div data-si-panes>
+      <!-- Member Profile Pane -->
+      <div class="si-tab-pane active" data-si-pane="profile" style="padding:24px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px;">
+          
+          <!-- Personal Info -->
+          <div style="background:var(--si-surface-2);border:1px solid var(--si-border);border-radius:var(--si-radius-md);padding:20px;">
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--si-text-3);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Personal Information
+            </div>
+            <dl style="display:grid;grid-template-columns:130px 1fr;gap:12px 16px;margin:0;font-size:13px;">
+              <dt style="color:var(--si-text-3);font-weight:500;">Full Name</dt>
+              <dd style="margin:0;font-weight:600;color:var(--si-text-1);">{{ member.user.first_name }} {{ member.user.last_name|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Email</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.email }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Phone Number</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.phone_number|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Gender</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.get_gender_display|default:member.user.gender|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Date of Birth</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.date_of_birth|date:"M j, Y"|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">National ID</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.id_number|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Occupation</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.occupation|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Employer</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.employer|default:"—" }}</dd>
+
+              <dt style="color:var(--si-text-3);font-weight:500;">Physical Address</dt>
+              <dd style="margin:0;color:var(--si-text-1);">{{ member.user.physical_address|default:"—" }}</dd>
+            </dl>
+          </div>
+
+          <!-- Membership & Emergency Contact -->
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Membership Info -->
+            <div style="background:var(--si-surface-2);border:1px solid var(--si-border);border-radius:var(--si-radius-md);padding:20px;">
+              <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--si-text-3);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                  Membership Details
+                </div>
+                {% if is_creator_or_admin %}
+                <button class="si-btn si-btn-ghost si-btn-sm" data-bs-toggle="modal" data-bs-target="#editMemberModal" style="padding:4px 8px;font-size:12px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Edit
+                </button>
+                {% endif %}
+              </div>
+              <dl style="display:grid;grid-template-columns:130px 1fr;gap:12px 16px;margin:0;font-size:13px;">
+                <dt style="color:var(--si-text-3);font-weight:500;">Status</dt>
+                <dd style="margin:0;">
+                  {% if member.status == 'active' %}
+                    <span class="si-badge si-badge-green">Active</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">{{ member.get_status_display }}</span>
+                  {% endif %}
+                </dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">Role / Privilege</dt>
+                <dd style="margin:0;">
+                  {% if member.is_admin %}
+                    <span class="si-badge si-badge-amber">Admin</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">Standard Member</span>
+                  {% endif %}
+                </dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">Category</dt>
+                <dd style="margin:0;color:var(--si-text-1);">{{ member.get_category_display }}</dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">Join Date</dt>
+                <dd style="margin:0;color:var(--si-text-1);">{{ member.start_date|date:"M j, Y" }}</dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">End Date</dt>
+                <dd style="margin:0;color:var(--si-text-1);">{{ member.end_date|date:"M j, Y"|default:"Active (Present)" }}</dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">Confirmed</dt>
+                <dd style="margin:0;color:var(--si-text-1);">
+                  {% if member.is_confirmed %}
+                    <span style="color:var(--si-green-700);font-weight:600;">Yes</span>
+                  {% else %}
+                    <span style="color:var(--si-text-3);">No</span>
+                  {% endif %}
+                </dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">Invited By</dt>
+                <dd style="margin:0;color:var(--si-text-1);">
+                  {% if member.invited_by %}
+                    {{ member.invited_by.first_name }} {{ member.invited_by.last_name }} ({{ member.invited_by.email }})
+                  {% else %}
+                    —
+                  {% endif %}
+                </dd>
+              </dl>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div style="background:var(--si-surface-2);border:1px solid var(--si-border);border-radius:var(--si-radius-md);padding:20px;">
+              <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--si-text-3);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                Emergency Contact
+              </div>
+              <dl style="display:grid;grid-template-columns:130px 1fr;gap:12px 16px;margin:0;font-size:13px;">
+                <dt style="color:var(--si-text-3);font-weight:500;">Contact Name</dt>
+                <dd style="margin:0;color:var(--si-text-1);">{{ member.user.emergency_contact_full_name|default:"—" }}</dd>
+
+                <dt style="color:var(--si-text-3);font-weight:500;">Contact Phone</dt>
+                <dd style="margin:0;color:var(--si-text-1);">{{ member.user.emergency_contact_phone_number|default:"—" }}</dd>
+              </dl>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Transactions Pane -->
+      <div class="si-tab-pane" data-si-pane="transactions">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Financial Year</th>
+                <th>Credit</th>
+                <th>Debit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trans in transactions %}
+              <tr>
+                <td><span class="mono">{{ trans.transaction_date|date:"M j, Y" }}</span></td>
+                <td>{{ trans.description }}</td>
+                <td>
+                  <a href="{% url 'clubs:financial-year-detail' club.id trans.financial_year.id %}" style="color:var(--si-green-700);text-decoration:none;font-weight:500;">
+                    FY {{ trans.financial_year.start_date|date:"Y" }} – {{ trans.financial_year.end_date|date:"Y" }}
+                  </a>
+                </td>
+                <td>
+                  {% if trans.credit %}
+                    <span class="credit">Ugx {{ trans.credit|floatformat:0 }}</span>
+                  {% else %}
+                    <span class="muted">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if trans.debit %}
+                    <span class="debit">Ugx {{ trans.debit|floatformat:0 }}</span>
+                  {% else %}
+                    <span class="muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" style="text-align:center;color:var(--si-text-3);padding:32px;">No transactions recorded for this member.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Individual Dues Pane -->
+      <div class="si-tab-pane" data-si-pane="individual-dues">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Due Date</th>
+                <th>Description</th>
+                <th>Financial Year</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for due in individual_dues %}
+              <tr>
+                <td><span class="mono">{{ due.due_date|date:"M j, Y" }}</span></td>
+                <td>{{ due.description }}</td>
+                <td>
+                  <a href="{% url 'clubs:financial-year-detail' club.id due.financial_year.id %}" style="color:var(--si-green-700);text-decoration:none;font-weight:500;">
+                    FY {{ due.financial_year.start_date|date:"Y" }} – {{ due.financial_year.end_date|date:"Y" }}
+                  </a>
+                </td>
+                <td><span class="mono" style="font-weight:600;">Ugx {{ due.amount|floatformat:0 }}</span></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" style="text-align:center;color:var(--si-text-3);padding:32px;">No individual dues recorded for this member.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Financial Years Pane -->
+      <div class="si-tab-pane" data-si-pane="participating-years">
+        <div class="si-table-wrap">
+          <table class="si-table">
+            <thead>
+              <tr>
+                <th>Financial Year</th>
+                <th>FY Status</th>
+                <th>Participation Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for part in participating_years %}
+              <tr>
+                <td><span class="mono">{{ part.financial_year.start_date }} – {{ part.financial_year.end_date }}</span></td>
+                <td>
+                  {% if part.financial_year.is_active %}
+                    <span class="si-badge si-badge-green">Active</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">Closed</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if part.is_active %}
+                    <span class="si-badge si-badge-green">Active</span>
+                  {% else %}
+                    <span class="si-badge si-badge-gray">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'clubs:financial-year-detail' club.id part.financial_year.id %}" class="si-view-link">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View Year
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" style="text-align:center;color:var(--si-text-3);padding:32px;">No financial year participations recorded for this member.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block after_main %}
+{% if is_creator_or_admin %}
+<!-- Edit Member Details Modal -->
+<div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editMemberModalLabel">Update Membership Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'clubs:club-member-detail' club.id member.id %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger" style="font-size:13px;padding:8px 12px;margin-bottom:16px;">
+            {{ form.non_field_errors|join:", " }}
+          </div>
+          {% endif %}
+          <div class="mb-3">
+            <label for="{{ form.start_date.id_for_label }}" class="form-label" style="font-size:13px;font-weight:500;">Start Date</label>
+            {{ form.start_date }}
+            {% if form.start_date.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.start_date.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.end_date.id_for_label }}" class="form-label" style="font-size:13px;font-weight:500;">End Date</label>
+            {{ form.end_date }}
+            {% if form.end_date.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.end_date.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.category.id_for_label }}" class="form-label" style="font-size:13px;font-weight:500;">Category</label>
+            {{ form.category }}
+            {% if form.category.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.category.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.status.id_for_label }}" class="form-label" style="font-size:13px;font-weight:500;">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.status.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="form-check mb-2">
+            {{ form.is_admin }}
+            <label for="{{ form.is_admin.id_for_label }}" class="form-check-label" style="font-size:13px;">Club Admin</label>
+            {% if form.is_admin.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.is_admin.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="form-check mb-2">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" class="form-check-label" style="font-size:13px;">Active Member</label>
+            {% if form.is_active.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.is_active.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="form-check mb-2">
+            {{ form.is_confirmed }}
+            <label for="{{ form.is_confirmed.id_for_label }}" class="form-check-label" style="font-size:13px;">Confirmed Membership</label>
+            {% if form.is_confirmed.errors %}
+            <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.is_confirmed.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if form.errors %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var editModalEl = document.getElementById('editMemberModal');
+  if (editModalEl) {
+    var editModal = new bootstrap.Modal(editModalEl);
+    editModal.show();
+  }
+});
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}
