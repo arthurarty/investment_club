@@ -1,7 +1,9 @@
 from datetime import datetime
+from http import HTTPStatus
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views import View
@@ -9,6 +11,7 @@ from django.views import View
 from accounts.models import CustomUser as User
 from clubs.forms.club_membership_form import ClubMemberShipForm
 from clubs.models import Club, ClubMembership, MembershipStatus
+from clubs.views.utils import is_club_admin_or_creator
 
 
 class ClubMemberShipCreateView(LoginRequiredMixin, View):
@@ -92,3 +95,69 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
         )
         messages.success(request, f"{created_user.email} added to club: {club.name}")
         return redirect("clubs:detail", club_id=club.id)
+
+
+class ClubMemberDetailView(LoginRequiredMixin, View):
+    """
+    View to display details of a single member within a club.
+    """
+
+    template = "clubs/member_detail.html"
+
+    def get(self, request, club_id: int, member_id: int):
+        """
+        Handle GET requests to display member details.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+        except Club.DoesNotExist:
+            return redirect("clubs:index")
+
+        creator_or_admin = is_club_admin_or_creator(request, club)
+        is_member = club.members.filter(user=request.user).exists()
+        if not creator_or_admin and not is_member:
+            return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+
+        try:
+            member = club.members.select_related("user", "invited_by", "club").get(
+                id=member_id
+            )
+        except ClubMembership.DoesNotExist:
+            messages.error(request, message="Member not found in this club.")
+            return redirect("clubs:detail", club_id=club.id)
+
+        transactions = member.financial_transactions.select_related(
+            "financial_year"
+        ).order_by("-transaction_date")
+        individual_dues = member.individual_dues.select_related(
+            "financial_year"
+        ).order_by("-due_date")
+        participating_years = member.financial_years.select_related(
+            "financial_year"
+        ).order_by("-financial_year__start_date")
+
+        transaction_totals = transactions.aggregate(
+            total_credit=Sum("credit"),
+            total_debit=Sum("debit"),
+        )
+        total_credit = transaction_totals["total_credit"] or 0
+        total_debit = transaction_totals["total_debit"] or 0
+        total_individual_dues = (
+            individual_dues.aggregate(total=Sum("amount"))["total"] or 0
+        )
+
+        context = {
+            "club": club,
+            "member": member,
+            "is_creator_or_admin": creator_or_admin,
+            "transactions": transactions,
+            "individual_dues": individual_dues,
+            "participating_years": participating_years,
+            "total_credit": total_credit,
+            "total_debit": total_debit,
+            "total_individual_dues": total_individual_dues,
+        }
+        return render(request, self.template, context)
+
+
+ClubMemberShipDetailView = ClubMemberDetailView

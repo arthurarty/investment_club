@@ -79,6 +79,7 @@
                 <th>Role</th>
                 <th>Status</th>
                 <th>Joined</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -108,9 +109,15 @@
                   {% endif %}
                 </td>
                 <td><span style="color:var(--si-text-2);font-size:12px;">{{ member.start_date|date:"M j, Y" }}</span></td>
+                <td>
+                  <a href="{% url 'clubs:club-member-detail' club.id member.id %}" class="si-view-link">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="3"/></svg>
+                    View
+                  </a>
+                </td>
               </tr>
               {% empty %}
-              <tr><td colspan="4" style="text-align:center;color:var(--si-text-3);padding:32px;">No members yet.</td></tr>
+              <tr><td colspan="5" style="text-align:center;color:var(--si-text-3);padding:32px;">No members yet.</td></tr>
               {% endfor %}
             </tbody>
           </table>
