@@ -251,9 +251,9 @@ class ClubMemberShipCreateViewTestCase(MsgTestCase):
         self.assertTrue(User.objects.filter(email=new_member_email).exists())
 
 
-class ClubMemberDetailViewTestCase(MsgTestCase):
+class ClubMemberShipDetailViewTestCase(MsgTestCase):
     """
-    Test case for the ClubMemberDetailView
+    Test case for the ClubMemberShipDetailView
     """
 
     test_email = "testuser1@example.com"

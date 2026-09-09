@@ -97,7 +97,7 @@ class ClubMemberShipCreateView(LoginRequiredMixin, View):
         return redirect("clubs:detail", club_id=club.id)
 
 
-class ClubMemberDetailView(LoginRequiredMixin, View):
+class ClubMemberShipDetailView(LoginRequiredMixin, View):
     """
     View to display details of a single member within a club.
     """
@@ -158,6 +158,3 @@ class ClubMemberDetailView(LoginRequiredMixin, View):
             "total_individual_dues": total_individual_dues,
         }
         return render(request, self.template, context)
-
-
-ClubMemberShipDetailView = ClubMemberDetailView
