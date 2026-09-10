@@ -66,7 +66,7 @@ a:hover{color:#0f3f21}
                                                                font-size:19px;
                                                                font-weight:bold;
                                                                color:#0d2a1b;
-                                                               letter-spacing:.2px">SavingsInc</td>
+                                                               letter-spacing:.2px">{{ club.name }}</td>
                                                     <td align="right"
                                                         style="font-family:Arial,Helvetica,sans-serif;
                                                                font-size:11px;
@@ -141,7 +141,11 @@ a:hover{color:#0f3f21}
                                                                mso-line-height-rule:exactly;
                                                                color:#3d463f">
                                                         <p style="margin:0 0 14px 0;">Hi {{ member.user.first_name|default:member.user.email }},</p>
-                                                        <p style="margin:0;">Thanks — your contribution for <strong style="color:#17211b;">{{ contribution_period|date:"F Y" }}</strong> has been recorded. Here is your receipt for the payment.</p>
+                                                        <p style="margin:0;">
+                                                            Thank you for saving. We have recorded your <strong style="color:#17211b;">{{ contribution_period|date:"F Y" }}</strong> to {{ club.name }}.
+                                                            <br />
+                                                            Here is your receipt for the payment.
+                                                        </p>
                                                     </td>
                                                 </tr>
                                                 <!-- Detail rows -->
@@ -157,6 +161,24 @@ a:hover{color:#0f3f21}
                                                                       border:1px solid #ece8e1;
                                                                       border-radius:12px">
                                                             <tbody>
+                                                                <tr>
+                                                                    <td width="46%"
+                                                                        style="padding:16px 20px 14px 20px;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Amount</td>
+                                                                    <td width="54%"
+                                                                        align="right"
+                                                                        style="padding:16px 20px 14px 20px;
+                                                                               font-family:'Courier New',Courier,monospace;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#17211b;
+                                                                               font-weight:bold">{{ amount }}</td>
+                                                                </tr>
                                                                 <tr>
                                                                     <td width="46%"
                                                                         style="padding:16px 20px 14px 20px;
