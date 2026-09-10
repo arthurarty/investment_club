@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
 
+from clubs.emails import send_contribution_email
 from clubs.forms.club_financials_forms import (
     FinancialTransactionForm,
     FinancialYearContributionForm,
@@ -170,6 +171,8 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
     def post(self, request, club_id: int, financial_year_id: int):
         """
         Handle POST requests to create a new financial transaction.
+
+        A payment from a member is recorded as a transaction.
         """
         try:
             club = Club.objects.get(id=club_id)
@@ -195,6 +198,13 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
             request,
             message=f"Transaction '{new_transaction.description}' added successfully.",
         )
+        send_email = False
+        if new_transaction.credit and not new_transaction.debit:
+            send_email = True
+        if not new_transaction.club_member:
+            send_email = False
+        if send_email:
+            send_contribution_email(new_transaction, request=request)
         return redirect(
             "clubs:financial-year-detail",
             club_id=club.id,
