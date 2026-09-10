@@ -1,0 +1,449 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="color-scheme" content="light dark">
+        <meta name="supported-color-schemes" content="light dark">
+        <title>Contribution received — SavingsInc</title>
+        <style>
+@media only screen and (max-width:620px){
+.sc-wrap{width:100%!important}
+.sc-pad{padding-left:24px!important;padding-right:24px!important}
+.sc-amount{font-size:38px!important}
+.sc-stack{display:block!important;width:100%!important}
+.sc-stack-pad{padding:0 0 18px 0!important}
+}
+a{color:#14532b}
+a:hover{color:#0f3f21}
+        </style>
+    </head>
+    <body style="margin:0;padding:0;background-color:#f2efe8;">
+        <span style="display:none;
+                     font-size:1px;
+                     color:#f2efe8;
+                     line-height:1px;
+                     max-height:0;
+                     max-width:0;
+                     opacity:0;
+                     overflow:hidden">
+            Your {{ currency|default:"UGX" }} {{ amount|floatformat:0|intcomma }} {{ contribution_label|default:"monthly contribution" }} to {{ club.name }} was received. Balance now {{ currency|default:"UGX" }} {{ total_savings|floatformat:0|intcomma }}.
+        </span>
+        <table role="presentation"
+               cellpadding="0"
+               cellspacing="0"
+               border="0"
+               width="100%"
+               style="background-color:#f2efe8">
+            <tbody>
+                <tr>
+                    <td align="center" style="padding:32px 12px 44px 12px;">
+                        <table role="presentation"
+                               cellpadding="0"
+                               cellspacing="0"
+                               border="0"
+                               width="600"
+                               class="sc-wrap"
+                               style="width:600px;
+                                      max-width:600px">
+                            <!-- Brand -->
+                            <tbody>
+                                <tr>
+                                    <td class="sc-pad"
+                                        style="padding:0 8px 18px 8px;
+                                               font-family:Arial,Helvetica,sans-serif">
+                                        <table role="presentation"
+                                               cellpadding="0"
+                                               cellspacing="0"
+                                               border="0"
+                                               width="100%">
+                                            <tbody>
+                                                <tr>
+                                                    <td align="left"
+                                                        style="font-family:Georgia,'Times New Roman',serif;
+                                                               font-size:19px;
+                                                               font-weight:bold;
+                                                               color:#0d2a1b;
+                                                               letter-spacing:.2px">{{ club.name }}</td>
+                                                    <td align="right"
+                                                        style="font-family:Arial,Helvetica,sans-serif;
+                                                               font-size:11px;
+                                                               letter-spacing:.14em;
+                                                               text-transform:uppercase;
+                                                               color:#8a8f88">Contribution receipt</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <!-- Card -->
+                                <tr>
+                                    <td style="background-color:#ffffff;
+                                               border:1px solid #ece8e1;
+                                               border-radius:16px">
+                                        <!-- Header band -->
+                                        <table role="presentation"
+                                               cellpadding="0"
+                                               cellspacing="0"
+                                               border="0"
+                                               width="100%"
+                                               style="width:100%">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="sc-pad"
+                                                        style="padding:38px 44px 34px 44px;
+                                                               background-color:#0d2a1b;
+                                                               border-radius:16px 16px 0 0;
+                                                               font-family:Arial,Helvetica,sans-serif">
+                                                        <p style="margin:0 0 14px 0;
+                                                                  font-family:Arial,Helvetica,sans-serif;
+                                                                  font-size:11px;
+                                                                  line-height:16px;
+                                                                  mso-line-height-rule:exactly;
+                                                                  letter-spacing:.16em;
+                                                                  text-transform:uppercase;
+                                                                  color:#7fae90;
+                                                                  font-weight:bold">Payment received</p>
+                                                        <p class="sc-amount"
+                                                           style="margin:0;
+                                                                  font-family:Georgia,'Times New Roman',serif;
+                                                                  font-size:46px;
+                                                                  line-height:52px;
+                                                                  mso-line-height-rule:exactly;
+                                                                  color:#ffffff;
+                                                                  font-weight:normal">{{ currency|default:"UGX" }}&nbsp;{{ amount|floatformat:0|intcomma }}</p>
+                                                        <p style="margin:12px 0 0 0;
+                                                                  font-family:Arial,Helvetica,sans-serif;
+                                                                  font-size:15px;
+                                                                  line-height:23px;
+                                                                  mso-line-height-rule:exactly;
+                                                                  color:#cfe0d4">{{ contribution_label|default:"Monthly contribution" }} to <span style="color:#ffffff;font-weight:bold;">{{ club.name }}</span></p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <!-- Greeting -->
+                                        <table role="presentation"
+                                               cellpadding="0"
+                                               cellspacing="0"
+                                               border="0"
+                                               width="100%"
+                                               style="width:100%">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="sc-pad"
+                                                        style="padding:34px 44px 0 44px;
+                                                               font-family:Arial,Helvetica,sans-serif;
+                                                               font-size:15px;
+                                                               line-height:25px;
+                                                               mso-line-height-rule:exactly;
+                                                               color:#3d463f">
+                                                        <p style="margin:0 0 14px 0;">Hi {{ member.user.first_name|default:member.user.email }},</p>
+                                                        <p style="margin:0;">
+                                                            Thank you for saving. We have recorded your <strong style="color:#17211b;">{{ contribution_period|date:"F Y" }}</strong> to {{ club.name }}.
+                                                            <br />
+                                                            Here is your receipt for the payment.
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                                <!-- Detail rows -->
+                                                <tr>
+                                                    <td class="sc-pad" style="padding:28px 44px 0 44px;">
+                                                        <table role="presentation"
+                                                               cellpadding="0"
+                                                               cellspacing="0"
+                                                               border="0"
+                                                               width="100%"
+                                                               style="width:100%;
+                                                                      background-color:#f8f5f0;
+                                                                      border:1px solid #ece8e1;
+                                                                      border-radius:12px">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td width="46%"
+                                                                        style="padding:16px 20px 14px 20px;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Amount</td>
+                                                                    <td width="54%"
+                                                                        align="right"
+                                                                        style="padding:16px 20px 14px 20px;
+                                                                               font-family:'Courier New',Courier,monospace;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#17211b;
+                                                                               font-weight:bold">{{ currency|default:"UGX" }} {{ amount|floatformat:0|intcomma }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td width="46%"
+                                                                        style="padding:16px 20px 14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Reference</td>
+                                                                    <td width="54%"
+                                                                        align="right"
+                                                                        style="padding:16px 20px 14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:'Courier New',Courier,monospace;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#17211b;
+                                                                               font-weight:bold">{{ reference }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style="padding:14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Date paid</td>
+                                                                    <td align="right"
+                                                                        style="padding:14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:14px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#17211b;
+                                                                               font-weight:bold">{{ transaction.created_at|date:"d M Y, g:i A" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style="padding:14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Method</td>
+                                                                    <td align="right"
+                                                                        style="padding:14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:14px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#17211b;
+                                                                               font-weight:bold">{{ payment_method }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style="padding:14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Financial year</td>
+                                                                    <td align="right"
+                                                                        style="padding:14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:14px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#17211b;
+                                                                               font-weight:bold">{{ financial_year_label }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style="padding:14px 20px 16px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               mso-line-height-rule:exactly;
+                                                                               color:#8a8f88">Status</td>
+                                                                    <td align="right"
+                                                                        style="padding:12px 20px 14px 20px;
+                                                                               border-top:1px solid #ece8e1;
+                                                                               font-family:Arial,Helvetica,sans-serif">
+                                                                        <span style="display:inline-block;
+                                                                                     padding:5px 12px;
+                                                                                     background-color:#dcefe0;
+                                                                                     color:#166534;
+                                                                                     border-radius:999px;
+                                                                                     font-family:Arial,Helvetica,sans-serif;
+                                                                                     font-size:11px;
+                                                                                     line-height:15px;
+                                                                                     mso-line-height-rule:exactly;
+                                                                                     font-weight:bold;
+                                                                                     letter-spacing:.06em;
+                                                                                     text-transform:uppercase">{{ status|default:"Confirmed" }}</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <!-- Balance summary -->
+                                                <tr>
+                                                    <td class="sc-pad" style="padding:22px 44px 0 44px;">
+                                                        <table role="presentation"
+                                                               cellpadding="0"
+                                                               cellspacing="0"
+                                                               border="0"
+                                                               width="100%"
+                                                               style="width:100%">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td width="50%"
+                                                                        class="sc-stack sc-stack-pad"
+                                                                        style="padding:0 8px 0 0"
+                                                                        valign="top">
+                                                                        <table role="presentation"
+                                                                               cellpadding="0"
+                                                                               cellspacing="0"
+                                                                               border="0"
+                                                                               width="100%"
+                                                                               style="width:100%;
+                                                                                      background-color:#dcefe0;
+                                                                                      border-radius:12px">
+                                                                            <tbody>
+                                                                                <tr>
+                                                                                    <td style="padding:18px 20px;font-family:Arial,Helvetica,sans-serif;">
+                                                                                        <p style="margin:0 0 8px 0;
+                                                                                                  font-size:10px;
+                                                                                                  line-height:14px;
+                                                                                                  mso-line-height-rule:exactly;
+                                                                                                  letter-spacing:.12em;
+                                                                                                  text-transform:uppercase;
+                                                                                                  color:#166534;
+                                                                                                  font-weight:bold">Your total savings</p>
+                                                                                        <p style="margin:0;
+                                                                                                  font-family:Georgia,'Times New Roman',serif;
+                                                                                                  font-size:24px;
+                                                                                                  line-height:30px;
+                                                                                                  mso-line-height-rule:exactly;
+                                                                                                  color:#0d2a1b;
+                                                                                                  font-weight:bold">{{ currency|default:"UGX" }} {{ total_savings|floatformat:0|intcomma }}</p>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </td>
+                                                                    <td width="50%"
+                                                                        class="sc-stack sc-stack-pad"
+                                                                        style="padding:0 0 0 8px"
+                                                                        valign="top">
+                                                                        <table role="presentation"
+                                                                               cellpadding="0"
+                                                                               cellspacing="0"
+                                                                               border="0"
+                                                                               width="100%"
+                                                                               style="width:100%;
+                                                                                      background-color:#f8f5f0;
+                                                                                      border:1px solid #ece8e1;
+                                                                                      border-radius:12px">
+                                                                            <tbody>
+                                                                                <tr>
+                                                                                    <td style="padding:17px 20px;font-family:Arial,Helvetica,sans-serif;">
+                                                                                        <p style="margin:0 0 8px 0;
+                                                                                                  font-size:10px;
+                                                                                                  line-height:14px;
+                                                                                                  mso-line-height-rule:exactly;
+                                                                                                  letter-spacing:.12em;
+                                                                                                  text-transform:uppercase;
+                                                                                                  color:#8a8f88;
+                                                                                                  font-weight:bold">{{ period_unit|default:"Months" }} paid · {{ financial_year_label }}</p>
+                                                                                        <p style="margin:0;
+                                                                                                  font-family:Georgia,'Times New Roman',serif;
+                                                                                                  font-size:24px;
+                                                                                                  line-height:30px;
+                                                                                                  mso-line-height-rule:exactly;
+                                                                                                  color:#17211b;
+                                                                                                  font-weight:bold">{{ periods_paid }} <span style="font-family:Arial,Helvetica,sans-serif;
+              font-size:14px;
+              color:#8a8f88;
+              font-weight:normal">of {{ periods_total }}</span></p>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <!-- CTA -->
+                                                {% comment %}
+                                                <tr>
+                                                    <td class="sc-pad" align="left" style="padding:30px 44px 0 44px;">
+                                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td align="center"
+                                                                        bgcolor="#14532b"
+                                                                        style="background-color:#14532b;
+                                                                               border-radius:12px">
+                                                                        <a href="{{ contributions_url }}"
+                                                                           style="display:block;
+                                                                                  padding:14px 30px;
+                                                                                  font-family:Arial,Helvetica,sans-serif;
+                                                                                  font-size:15px;
+                                                                                  line-height:20px;
+                                                                                  mso-line-height-rule:exactly;
+                                                                                  font-weight:bold;
+                                                                                  color:#ffffff;
+                                                                                  text-decoration:none;
+                                                                                  border-radius:12px">View my contributions</a>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                {% endcomment %}
+                                                <tr>
+                                                    <td class="sc-pad"
+                                                        style="padding:24px 44px 38px 44px;
+                                                               font-family:Arial,Helvetica,sans-serif;
+                                                               font-size:13px;
+                                                               line-height:21px;
+                                                               mso-line-height-rule:exactly;
+                                                               color:#8a8f88;
+                                                               border-top:0">
+                                                        <p style="margin:0;">Didn't make this payment? <a href="{{ support_url }}"
+    style="color:#14532b;
+           font-weight:bold;
+           text-decoration:underline">Contact your club admin</a> right away.</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <!-- Footer -->
+                                <tr>
+                                    <td class="sc-pad"
+                                        style="padding:26px 8px 0 8px;
+                                               font-family:Arial,Helvetica,sans-serif;
+                                               font-size:12px;
+                                               line-height:20px;
+                                               mso-line-height-rule:exactly;
+                                               color:#6f7369">
+                                        <p style="margin:0 0 6px 0;">You're receiving this because you are a member of {{ club.name }} on SavingsInc.</p>
+                                        <p style="margin:0 0 14px 0;">SavingsInc · Plot 12 Kimathi Avenue, Kampala, Uganda</p>
+                                        <p style="margin:0;"><a href="{{ notification_settings_url }}"
+   style="color:#14532b;
+          text-decoration:underline">Notification settings</a> &nbsp;·&nbsp; <a href="{{ unsubscribe_url }}"
+    style="color:#14532b;
+           text-decoration:underline">Unsubscribe</a></p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>
