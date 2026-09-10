@@ -177,7 +177,7 @@ a:hover{color:#0f3f21}
                                                                                line-height:19px;
                                                                                mso-line-height-rule:exactly;
                                                                                color:#17211b;
-                                                                               font-weight:bold">{{ amount }}</td>
+                                                                               font-weight:bold">{{ currency|default:"UGX" }} {{ amount|floatformat:0|intcomma }}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td width="46%"
