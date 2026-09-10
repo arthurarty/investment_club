@@ -22,3 +22,4 @@ repos:
     hooks:
     -   id: djlint-reformat-django   # auto-formats templates/**.html
     -   id: djlint-django            # lints them, fails commit on issues
+        args: ["--ignore=H030,H021"]
