@@ -1,4 +1,7 @@
+import dataclasses
+import datetime
 import logging
+from dataclasses import dataclass
 from decimal import Decimal
 
 from django.conf import settings
@@ -8,9 +11,36 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import strip_tags
 
-from clubs.models import DuePeriod, FinancialTransaction
+from clubs.models import Club, ClubMembership, DuePeriod, FinancialTransaction
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ContributionEmailContext:
+    """
+    Template context for templates/clubs/emails/contribution_email.html.
+    """
+
+    club: Club
+    currency: str
+    amount: Decimal | None
+    contribution_label: str
+    total_savings: Decimal
+    member: ClubMembership
+    contribution_period: datetime.date
+    reference: str
+    transaction: FinancialTransaction
+    payment_method: str
+    financial_year_label: str
+    status: str
+    period_unit: str
+    periods_paid: int
+    periods_total: int
+    contributions_url: str
+    support_url: str
+    notification_settings_url: str
+    unsubscribe_url: str
 
 
 def send_contribution_email(transaction: FinancialTransaction, request=None) -> bool:
@@ -90,30 +120,32 @@ def send_contribution_email(transaction: FinancialTransaction, request=None) -> 
         unsubscribe_url = member_detail_path
         support_url = f"mailto:{club.contact_email}" if club.contact_email else "#"
 
-    context = {
-        "club": club,
-        "currency": "UGX",
-        "amount": transaction.credit,
-        "contribution_label": "Monthly contribution",
-        "total_savings": total_savings,
-        "member": member,
-        "contribution_period": transaction.transaction_date,
-        "reference": f"TXN-{transaction.id}",
-        "transaction": transaction,
-        "payment_method": "Bank Transfer / Cash",
-        "financial_year_label": financial_year_label,
-        "status": "Confirmed",
-        "period_unit": period_unit,
-        "periods_paid": periods_paid,
-        "periods_total": periods_total,
-        "contributions_url": contributions_url,
-        "support_url": support_url,
-        "notification_settings_url": notification_settings_url,
-        "unsubscribe_url": unsubscribe_url,
-    }
+    context = ContributionEmailContext(
+        club=club,
+        currency="UGX",
+        amount=transaction.credit,
+        contribution_label="Monthly contribution",
+        total_savings=total_savings,
+        member=member,
+        contribution_period=transaction.transaction_date,
+        reference=f"TXN-{transaction.id}",
+        transaction=transaction,
+        payment_method="Bank Transfer / Cash",
+        financial_year_label=financial_year_label,
+        status="Confirmed",
+        period_unit=period_unit,
+        periods_paid=periods_paid,
+        periods_total=periods_total,
+        contributions_url=contributions_url,
+        support_url=support_url,
+        notification_settings_url=notification_settings_url,
+        unsubscribe_url=unsubscribe_url,
+    )
 
     try:
-        html_content = render_to_string("clubs/emails/contribution_email.html", context)
+        html_content = render_to_string(
+            "clubs/emails/contribution_email.html", dataclasses.asdict(context)
+        )
         text_content = strip_tags(html_content)
         subject = f"Contribution receipt — {club.name}"
         from_email = settings.DEFAULT_FROM_EMAIL
