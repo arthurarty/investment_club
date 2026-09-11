@@ -33,7 +33,6 @@ class ContributionEmailContext:
     transaction: FinancialTransaction
     payment_method: str
     financial_year_label: str
-    status: str
     period_unit: str
     periods_paid: int
     periods_total: int
@@ -132,7 +131,6 @@ def send_contribution_email(transaction: FinancialTransaction, request=None) -> 
         transaction=transaction,
         payment_method="Bank Transfer / Cash",
         financial_year_label=financial_year_label,
-        status="Confirmed",
         period_unit=period_unit,
         periods_paid=periods_paid,
         periods_total=periods_total,
