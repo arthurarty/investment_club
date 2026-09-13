@@ -48,9 +48,9 @@ def prepare_financial_year_context(
         "dues": dues,
         "transactions": transactions,
         "financial_contribution_form": FinancialYearContributionForm(),
-        "financial_transaction_form": FinancialTransactionForm(),
-        "participant_form": FinancialYearParticipantForm(),
-        "individual_due_form": IndividualDueForm(),
+        "financial_transaction_form": FinancialTransactionForm(club=club),
+        "participant_form": FinancialYearParticipantForm(club=club),
+        "individual_due_form": IndividualDueForm(club=club),
         "individual_dues": individual_dues,
         "is_club_admin": is_club_admin,
     }
@@ -182,7 +182,7 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
-        form = FinancialTransactionForm(request.POST)
+        form = FinancialTransactionForm(request.POST, club=club)
         if not form.is_valid():
             return render(
                 request,
@@ -229,7 +229,7 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
-        form = FinancialYearParticipantForm(request.POST)
+        form = FinancialYearParticipantForm(request.POST, club=club)
         if not form.is_valid():
             return render(
                 request,
@@ -270,7 +270,7 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
-        form = IndividualDueForm(request.POST)
+        form = IndividualDueForm(request.POST, club=club)
         if not form.is_valid():
             return render(
                 request,

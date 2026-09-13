@@ -1,6 +1,7 @@
 from django import forms
 
 from clubs.models import (
+    ClubMembership,
     FinancialTransaction,
     FinancialYear,
     FinancialYearContribution,
@@ -43,7 +44,21 @@ class FinancialYearContributionForm(forms.ModelForm):
         }
 
 
-class FinancialYearParticipantForm(forms.ModelForm):
+class ClubMemberFilterFormMixin:
+    """
+    Mixin for forms with a `club_member` field, scoping its choices to the
+    active members of a given club instead of every club's membership.
+    """
+
+    def __init__(self, *args, club=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if club is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                club=club, is_active=True
+            ).select_related("user")
+
+
+class FinancialYearParticipantForm(ClubMemberFilterFormMixin, forms.ModelForm):
     """
     Form for adding a participant to a Financial Year.
     """
@@ -56,7 +71,7 @@ class FinancialYearParticipantForm(forms.ModelForm):
         }
 
 
-class FinancialTransactionForm(forms.ModelForm):
+class FinancialTransactionForm(ClubMemberFilterFormMixin, forms.ModelForm):
     """
     Form for recording a financial transaction for a Financial Year.
     """
@@ -83,7 +98,7 @@ class FinancialTransactionForm(forms.ModelForm):
         }
 
 
-class IndividualDueForm(forms.ModelForm):
+class IndividualDueForm(ClubMemberFilterFormMixin, forms.ModelForm):
     """
     Form for creating an IndividualDue for a Financial Year.
     """
