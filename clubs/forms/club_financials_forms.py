@@ -44,21 +44,7 @@ class FinancialYearContributionForm(forms.ModelForm):
         }
 
 
-class ClubMemberFilterFormMixin:
-    """
-    Mixin for forms with a `club_member` field, scoping its choices to the
-    active members of a given club instead of every club's membership.
-    """
-
-    def __init__(self, *args, club=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        if club is not None:
-            self.fields["club_member"].queryset = ClubMembership.objects.filter(
-                club=club, is_active=True
-            ).select_related("user")
-
-
-class FinancialYearParticipantForm(ClubMemberFilterFormMixin, forms.ModelForm):
+class FinancialYearParticipantForm(forms.ModelForm):
     """
     Form for adding a participant to a Financial Year.
     """
@@ -70,8 +56,15 @@ class FinancialYearParticipantForm(ClubMemberFilterFormMixin, forms.ModelForm):
             "club_member": forms.Select(attrs={"class": "form-select"}),
         }
 
+    def __init__(self, *args, club=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if club is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                club=club, is_active=True
+            ).select_related("user")
 
-class FinancialTransactionForm(ClubMemberFilterFormMixin, forms.ModelForm):
+
+class FinancialTransactionForm(forms.ModelForm):
     """
     Form for recording a financial transaction for a Financial Year.
     """
@@ -97,8 +90,16 @@ class FinancialTransactionForm(ClubMemberFilterFormMixin, forms.ModelForm):
             "debit": "Debit (money paid out)",
         }
 
+    def __init__(self, *args, financial_year: FinancialYear = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if financial_year is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                financial_years__financial_year=financial_year,
+                financial_years__is_active=True,
+            ).select_related("user")
 
-class IndividualDueForm(ClubMemberFilterFormMixin, forms.ModelForm):
+
+class IndividualDueForm(forms.ModelForm):
     """
     Form for creating an IndividualDue for a Financial Year.
     """
@@ -116,3 +117,10 @@ class IndividualDueForm(ClubMemberFilterFormMixin, forms.ModelForm):
                 attrs={"type": "date", "class": "form-control"}
             ),
         }
+
+    def __init__(self, *args, club=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if club is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                club=club, is_active=True
+            ).select_related("user")

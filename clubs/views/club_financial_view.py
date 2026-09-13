@@ -48,7 +48,9 @@ def prepare_financial_year_context(
         "dues": dues,
         "transactions": transactions,
         "financial_contribution_form": FinancialYearContributionForm(),
-        "financial_transaction_form": FinancialTransactionForm(club=club),
+        "financial_transaction_form": FinancialTransactionForm(
+            financial_year=financial_year
+        ),
         "participant_form": FinancialYearParticipantForm(club=club),
         "individual_due_form": IndividualDueForm(club=club),
         "individual_dues": individual_dues,
@@ -182,7 +184,7 @@ class FinancialTransactionCreateView(LoginRequiredMixin, View):
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
-        form = FinancialTransactionForm(request.POST, club=club)
+        form = FinancialTransactionForm(request.POST, financial_year=financial_year)
         if not form.is_valid():
             return render(
                 request,
