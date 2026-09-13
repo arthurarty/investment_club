@@ -1,6 +1,7 @@
 from django import forms
 
 from clubs.models import (
+    ClubMembership,
     FinancialTransaction,
     FinancialYear,
     FinancialYearContribution,
@@ -55,6 +56,13 @@ class FinancialYearParticipantForm(forms.ModelForm):
             "club_member": forms.Select(attrs={"class": "form-select"}),
         }
 
+    def __init__(self, *args, club=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if club is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                club=club, is_active=True
+            ).select_related("user")
+
 
 class FinancialTransactionForm(forms.ModelForm):
     """
@@ -82,6 +90,14 @@ class FinancialTransactionForm(forms.ModelForm):
             "debit": "Debit (money paid out)",
         }
 
+    def __init__(self, *args, financial_year: FinancialYear = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if financial_year is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                financial_years__financial_year=financial_year,
+                financial_years__is_active=True,
+            ).select_related("user")
+
 
 class IndividualDueForm(forms.ModelForm):
     """
@@ -101,3 +117,10 @@ class IndividualDueForm(forms.ModelForm):
                 attrs={"type": "date", "class": "form-control"}
             ),
         }
+
+    def __init__(self, *args, club=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if club is not None:
+            self.fields["club_member"].queryset = ClubMembership.objects.filter(
+                club=club, is_active=True
+            ).select_related("user")
