@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from http import HTTPStatus
+from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import QuerySet
 from django.shortcuts import redirect, render
 from django.views import View
 
@@ -23,6 +26,31 @@ from clubs.models import (
 from clubs.views.utils import is_club_admin_or_creator
 
 
+@dataclass
+class FinancialYearContext:
+    """
+    Context data for a financial year detail view.
+    """
+
+    club: Club
+    financial_year: FinancialYear
+    participants: QuerySet
+    dues: QuerySet
+    transactions: QuerySet
+    financial_contribution_form: FinancialYearContributionForm
+    financial_transaction_form: FinancialTransactionForm
+    participant_form: FinancialYearParticipantForm
+    individual_due_form: IndividualDueForm
+    individual_dues: QuerySet
+    is_club_admin: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert to a plain dict suitable for a Django template context.
+        """
+        return vars(self)
+
+
 def prepare_financial_year_context(
     club: Club, financial_year, is_club_admin: bool = True
 ) -> dict:
@@ -41,22 +69,22 @@ def prepare_financial_year_context(
         .select_related("club_member__user")
     )
     individual_dues = financial_year.individual_dues.select_related("club_member__user")
-    context = {
-        "club": club,
-        "financial_year": financial_year,
-        "participants": participants,
-        "dues": dues,
-        "transactions": transactions,
-        "financial_contribution_form": FinancialYearContributionForm(),
-        "financial_transaction_form": FinancialTransactionForm(
+    context = FinancialYearContext(
+        club=club,
+        financial_year=financial_year,
+        participants=participants,
+        dues=dues,
+        transactions=transactions,
+        financial_contribution_form=FinancialYearContributionForm(),
+        financial_transaction_form=FinancialTransactionForm(
             financial_year=financial_year
         ),
-        "participant_form": FinancialYearParticipantForm(club=club),
-        "individual_due_form": IndividualDueForm(club=club),
-        "individual_dues": individual_dues,
-        "is_club_admin": is_club_admin,
-    }
-    return context
+        participant_form=FinancialYearParticipantForm(club=club),
+        individual_due_form=IndividualDueForm(club=club),
+        individual_dues=individual_dues,
+        is_club_admin=is_club_admin,
+    )
+    return context.to_dict()
 
 
 class ClubFinancialYearCreateView(LoginRequiredMixin, View):
