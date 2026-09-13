@@ -593,6 +593,12 @@ body {
 }
 .si-btn-ghost:hover { background: var(--si-surface-2); color: var(--si-text-1); text-decoration: none; }
 
+.si-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .si-btn-danger {
   background: var(--si-red);
   color: #fff;

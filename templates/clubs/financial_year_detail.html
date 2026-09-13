@@ -1,343 +1,500 @@
-{% extends 'clubs/dashboard_base.html' %}
+{% extends "clubs/dashboard_base.html" %}
 {% load static %}
-
 {% block page_title %}{{ club.name }} — Financial Year — SavingsInc{% endblock %}
 {% block nav_dashboard_active %}active{% endblock %}
-{% block reports_url %}{% url 'clubs:financial-reports' club.id financial_year.id %}{% endblock %}
-
-{% block content %}
-<div class="si-topbar">
-  <div>
-    <h1 class="si-topbar-title">{{ club.name }}</h1>
-    <p class="si-topbar-subtitle">Financial Year: {{ financial_year.start_date }} – {{ financial_year.end_date }}</p>
-  </div>
-  <div class="si-topbar-actions">
-    <button class="si-btn si-btn-ghost si-btn-sm">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>
-      Share
-    </button>
-    <button class="si-btn si-btn-ghost si-btn-sm">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
-      Export
-    </button>
-  </div>
-</div>
-
-<a href="{% url 'clubs:detail' club.id %}" class="si-back-link">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-  Back to {{ club.name }}
-</a>
-
-<div class="si-page-body">
-  <!-- Stat cards -->
-  <div class="si-stat-row">
-    <div class="si-stat-card">
-      <div class="si-stat-header">
-        <span class="si-stat-label">Transactions</span>
-        <div class="si-stat-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/></svg>
-        </div>
-      </div>
-      <div class="si-stat-value">{{ transactions|length }}</div>
-    </div>
-    <div class="si-stat-card">
-      <div class="si-stat-header">
-        <span class="si-stat-label">Participants</span>
-        <div class="si-stat-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        </div>
-      </div>
-      <div class="si-stat-value">{{ participants|length }}</div>
-    </div>
-    <div class="si-stat-card">
-      <div class="si-stat-header">
-        <span class="si-stat-label">Status</span>
-        <div class="si-stat-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2m-4-6h8"/></svg>
-        </div>
-      </div>
-      <div class="si-stat-value" style="font-size:14px;margin-top:14px;">
-        {% if financial_year.is_active %}
-          <span class="si-badge si-badge-green">Active</span>
-        {% else %}
-          <span class="si-badge si-badge-gray">Closed</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Tabs card -->
-  <div class="si-card" data-si-tabgroup>
-    <div class="si-tabs" data-si-tabs>
-      <button class="si-tab-btn active" data-si-tab="transactions">Transactions</button>
-      <button class="si-tab-btn" data-si-tab="dues">Dues</button>
-      <button class="si-tab-btn" data-si-tab="participants">Participants</button>
-      <button class="si-tab-btn" data-si-tab="individual-dues">Individual Dues</button>
-    </div>
-
-    <div data-si-panes>
-      <!-- Transactions -->
-      <div class="si-tab-pane active" data-si-pane="transactions">
-        <div class="si-table-wrap">
-          <table class="si-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Credit</th>
-                <th>Debit</th>
-                <th>Member</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for trans in transactions %}
-              <tr>
-                <td><span class="mono">{{ trans.transaction_date }}</span></td>
-                <td>{{ trans.description }}</td>
-                <td>
-                  {% if trans.credit %}
-                    <span class="credit">Ugx {{ trans.credit|floatformat:0 }}</span>
-                  {% else %}
-                    <span class="muted">—</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if trans.debit %}
-                    <span class="debit">Ugx {{ trans.debit|floatformat:0 }}</span>
-                  {% else %}
-                    <span class="muted">—</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if trans.club_member %}
-                  <div class="si-member-cell">
-                    <div class="si-avatar sm">{{ trans.club_member.user.first_name|slice:":1"|upper }}{{ trans.club_member.user.last_name|slice:":1"|upper }}</div>
-                    <span style="font-size:12px;color:var(--si-text-2);">{{ trans.club_member.user.first_name }} {{ trans.club_member.user.last_name }}</span>
-                  </div>
-                  {% else %}<span class="muted">—</span>{% endif %}
-                </td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="5" style="text-align:center;color:var(--si-text-3);padding:32px;">No transactions recorded yet.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Dues -->
-      <div class="si-tab-pane" data-si-pane="dues">
-        <div class="si-table-wrap">
-          <table class="si-table">
-            <thead>
-              <tr>
-                <th>Amount</th>
-                <th>Frequency</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for due in dues %}
-              <tr>
-                <td><span class="mono">Ugx {{ due.amount|floatformat:0 }}</span></td>
-                <td>
-                  {% if due.due_period == "MONTHLY" %}
-                    <span class="si-badge si-badge-green">Monthly</span>
-                  {% elif due.due_period == "QUARTERLY" %}
-                    <span class="si-badge si-badge-amber">Quarterly</span>
-                  {% else %}
-                    <span class="si-badge si-badge-gray">{{ due.due_period }}</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="2" style="text-align:center;color:var(--si-text-3);padding:32px;">No dues defined yet.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Participants -->
-      <div class="si-tab-pane" data-si-pane="participants">
-        <div class="si-table-wrap">
-          <table class="si-table">
-            <thead>
-              <tr>
-                <th>Member</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for participant in participants %}
-              <tr>
-                <td>
-                  <div class="si-member-cell">
-                    <div class="si-avatar">{{ participant.club_member.user.first_name|slice:":1"|upper }}{{ participant.club_member.user.last_name|slice:":1"|upper }}</div>
-                    <div>
-                      <div class="si-member-name">{{ participant.club_member.user.first_name }} {{ participant.club_member.user.last_name }}</div>
-                      <div class="si-member-email">{{ participant.club_member.user.email }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  {% if participant.is_active %}
-                    <span class="si-badge si-badge-green">Active</span>
-                  {% else %}
-                    <span class="si-badge si-badge-gray">Inactive</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="2" style="text-align:center;color:var(--si-text-3);padding:32px;">No participants added yet.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Individual Dues -->
-      <div class="si-tab-pane" data-si-pane="individual-dues">
-        <div class="si-table-wrap">
-          <table class="si-table">
-            <thead>
-              <tr>
-                <th>Member</th>
-                <th>Amount</th>
-                <th>Due date</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for due in individual_dues %}
-              <tr>
-                <td>
-                  <div class="si-member-cell">
-                    <div class="si-avatar sm">{{ due.club_member.user.first_name|slice:":1"|upper }}{{ due.club_member.user.last_name|slice:":1"|upper }}</div>
-                    <span style="font-size:12px;">{{ due.club_member.user.first_name }} {{ due.club_member.user.last_name }}</span>
-                  </div>
-                </td>
-                <td><span class="mono">Ugx {{ due.amount|floatformat:0 }}</span></td>
-                <td><span class="mono" style="font-size:12px;">{{ due.due_date }}</span></td>
-                <td style="color:var(--si-text-2);">{{ due.description }}</td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="4">
-                <div class="si-empty">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;opacity:0.3;"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2m-4-6h8"/></svg>
-                  <div>No individual dues recorded yet.</div>
-                </div>
-              </td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {% if is_club_admin %}
-  <div class="si-action-bar">
-    <button class="si-btn si-btn-primary" data-bs-toggle="modal" data-bs-target="#addTransactionFormModal">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Record transaction
-    </button>
-    <button class="si-btn si-btn-secondary" data-bs-toggle="modal" data-bs-target="#clubDueFormModal">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add due
-    </button>
-    <button class="si-btn si-btn-ghost" data-bs-toggle="modal" data-bs-target="#fyParticipantFormModal">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      Add participant
-    </button>
-    <button class="si-btn si-btn-ghost" data-bs-toggle="modal" data-bs-target="#individualDueForm">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add individual due
-    </button>
-  </div>
-  {% endif %}
-</div>
+{% block reports_url %}
+    {% url 'clubs:financial-reports' club.id financial_year.id %}
 {% endblock %}
-
+{% block content %}
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">{{ club.name }}</h1>
+            <p class="si-topbar-subtitle">Financial Year: {{ financial_year.start_date }} – {{ financial_year.end_date }}</p>
+        </div>
+        <div class="si-topbar-actions">
+            <button type="button" class="si-btn si-btn-ghost si-btn-sm">
+                <svg width="13"
+                     height="13"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                    <path d="M16 6l-4-4-4 4M12 2v13" />
+                </svg>
+                Share
+            </button>
+            <button type="button" class="si-btn si-btn-ghost si-btn-sm">
+                <svg width="13"
+                     height="13"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <path d="M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+    <a href="{% url 'clubs:detail' club.id %}" class="si-back-link">
+        <svg width="12"
+             height="12"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to {{ club.name }}
+    </a>
+    <div class="si-page-body">
+        <!-- Stat cards -->
+        <div class="si-stat-row">
+            <div class="si-stat-card">
+                <div class="si-stat-header">
+                    <span class="si-stat-label">Transactions</span>
+                    <div class="si-stat-icon">
+                        <svg width="15"
+                             height="15"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M23 6l-9.5 9.5-5-5L1 18" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="si-stat-value">{{ transactions|length }}</div>
+            </div>
+            <div class="si-stat-card">
+                <div class="si-stat-header">
+                    <span class="si-stat-label">Participants</span>
+                    <div class="si-stat-icon">
+                        <svg width="15"
+                             height="15"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="si-stat-value">{{ participants|length }}</div>
+            </div>
+            <div class="si-stat-card">
+                <div class="si-stat-header">
+                    <span class="si-stat-label">Status</span>
+                    <div class="si-stat-icon">
+                        <svg width="15"
+                             height="15"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v2m0 8v2m-4-6h8" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="si-stat-value" style="font-size:14px;margin-top:14px;">
+                    {% if financial_year.is_active %}
+                        <span class="si-badge si-badge-green">Active</span>
+                    {% else %}
+                        <span class="si-badge si-badge-gray">Closed</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Tabs card -->
+        <div class="si-card" data-si-tabgroup>
+            <div class="si-tabs" data-si-tabs>
+                <button type="button" class="si-tab-btn active" data-si-tab="transactions">Transactions</button>
+                <button type="button" class="si-tab-btn" data-si-tab="dues">Dues</button>
+                <button type="button" class="si-tab-btn" data-si-tab="participants">Participants</button>
+                <button type="button" class="si-tab-btn" data-si-tab="individual-dues">Individual Dues</button>
+            </div>
+            <div data-si-panes>
+                <!-- Transactions -->
+                <div class="si-tab-pane active" data-si-pane="transactions">
+                    <div class="si-table-wrap">
+                        <table class="si-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Credit</th>
+                                    <th>Debit</th>
+                                    <th>Member</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in transactions %}
+                                    <tr>
+                                        <td><span class="mono">{{ trans.transaction_date }}</span></td>
+                                        <td>{{ trans.description }}</td>
+                                        <td>
+                                            {% if trans.credit %}
+                                                <span class="credit">Ugx {{ trans.credit|floatformat:0 }}</span>
+                                            {% else %}
+                                                <span class="muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if trans.debit %}
+                                                <span class="debit">Ugx {{ trans.debit|floatformat:0 }}</span>
+                                            {% else %}
+                                                <span class="muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if trans.club_member %}
+                                                <div class="si-member-cell">
+                                                    <div class="si-avatar sm">{{ trans.club_member.user.first_name|slice:":1"|upper }}{{ trans.club_member.user.last_name|slice:":1"|upper }}</div>
+                                                    <span style="font-size:12px;color:var(--si-text-2);">{{ trans.club_member.user.first_name }} {{ trans.club_member.user.last_name }}</span>
+                                                </div>
+                                {% else %}<span class="muted">—</span>{% endif %}
+                                    </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5"
+                                            style="text-align:center;
+                                                   color:var(--si-text-3);
+                                                   padding:32px">
+                                            No transactions recorded yet. {% if participants|length < 1 %}To get started, add a participant and a due.{% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Dues -->
+                <div class="si-tab-pane" data-si-pane="dues">
+                    <div class="si-table-wrap">
+                        <table class="si-table">
+                            <thead>
+                                <tr>
+                                    <th>Amount</th>
+                                    <th>Frequency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for due in dues %}
+                                    <tr>
+                                        <td><span class="mono">Ugx {{ due.amount|floatformat:0 }}</span></td>
+                                        <td>
+                                            {% if due.due_period == "MONTHLY" %}
+                                                <span class="si-badge si-badge-green">Monthly</span>
+                                            {% elif due.due_period == "QUARTERLY" %}
+                                                <span class="si-badge si-badge-amber">Quarterly</span>
+                                            {% else %}
+                                                <span class="si-badge si-badge-gray">{{ due.due_period }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2"
+                                            style="text-align:center;
+                                                   color:var(--si-text-3);
+                                                   padding:32px">No dues defined yet.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Participants -->
+                <div class="si-tab-pane" data-si-pane="participants">
+                    <div class="si-table-wrap">
+                        <table class="si-table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for participant in participants %}
+                                    <tr>
+                                        <td>
+                                            <div class="si-member-cell">
+                                                <div class="si-avatar">{{ participant.club_member.user.first_name|slice:":1"|upper }}{{ participant.club_member.user.last_name|slice:":1"|upper }}</div>
+                                                <div>
+                                                    <div class="si-member-name">{{ participant.club_member.user.first_name }} {{ participant.club_member.user.last_name }}</div>
+                                                    <div class="si-member-email">{{ participant.club_member.user.email }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if participant.is_active %}
+                                                <span class="si-badge si-badge-green">Active</span>
+                                            {% else %}
+                                                <span class="si-badge si-badge-gray">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2"
+                                            style="text-align:center;
+                                                   color:var(--si-text-3);
+                                                   padding:32px">
+                                            No participants added yet. Start by adding members to the club, then add them as participants to this financial year.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Individual Dues -->
+                <div class="si-tab-pane" data-si-pane="individual-dues">
+                    <div class="si-table-wrap">
+                        <table class="si-table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Amount</th>
+                                    <th>Due date</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for due in individual_dues %}
+                                    <tr>
+                                        <td>
+                                            <div class="si-member-cell">
+                                                <div class="si-avatar sm">{{ due.club_member.user.first_name|slice:":1"|upper }}{{ due.club_member.user.last_name|slice:":1"|upper }}</div>
+                                                <span style="font-size:12px;">{{ due.club_member.user.first_name }} {{ due.club_member.user.last_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="mono">Ugx {{ due.amount|floatformat:0 }}</span></td>
+                                        <td><span class="mono" style="font-size:12px;">{{ due.due_date }}</span></td>
+                                        <td style="color:var(--si-text-2);">{{ due.description }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="si-empty">
+                                                <svg width="32"
+                                                     height="32"
+                                                     viewBox="0 0 24 24"
+                                                     fill="none"
+                                                     stroke="currentColor"
+                                                     stroke-width="1.5"
+                                                     stroke-linecap="round"
+                                                     stroke-linejoin="round"
+                                                     style="margin-bottom:10px;
+                                                            opacity:0.3">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <path d="M12 6v2m0 8v2m-4-6h8" />
+                                                </svg>
+                                                <div>No individual dues recorded yet.</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if is_club_admin %}
+            <div class="si-action-bar">
+                <button type="button"
+                        class="si-btn si-btn-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addTransactionFormModal"
+                        {% if participants|length < 1 %} disabled title="Add a participant before recording a transaction" {% endif %}>
+                    <svg width="14"
+                         height="14"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Record transaction
+                </button>
+                <button type="button"
+                        class="si-btn si-btn-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#clubDueFormModal">
+                    <svg width="14"
+                         height="14"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add due
+                </button>
+                <button type="button"
+                        class="si-btn si-btn-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#fyParticipantFormModal">
+                    <svg width="14"
+                         height="14"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                    </svg>
+                    Add participant
+                </button>
+                <button type="button"
+                        class="si-btn si-btn-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#individualDueForm">
+                    <svg width="14"
+                         height="14"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add individual due
+                </button>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
 {% block after_main %}
-{% if is_club_admin %}
-<!-- Record Transaction Modal -->
-<div class="modal fade" id="addTransactionFormModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Record transaction</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form action="{% url 'clubs:financial-transaction' club.id financial_year.id %}" method="POST">
-        {% csrf_token %}
-        <div class="modal-body">{{ financial_transaction_form.as_p }}</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Add transaction</button>
+    {% if is_club_admin %}
+        <!-- Record Transaction Modal -->
+        <div class="modal fade"
+             id="addTransactionFormModal"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Record transaction</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-transaction' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ financial_transaction_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add transaction</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add Due Modal -->
-<div class="modal fade" id="clubDueFormModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add new due</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form action="{% url 'clubs:financial-year-due' club.id financial_year.id %}" method="POST">
-        {% csrf_token %}
-        <div class="modal-body">{{ financial_contribution_form.as_p }}</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Add due</button>
+        <!-- Add Due Modal -->
+        <div class="modal fade"
+             id="clubDueFormModal"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add new due</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-year-due' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ financial_contribution_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add due</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add Participant Modal -->
-<div class="modal fade" id="fyParticipantFormModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add participant</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form action="{% url 'clubs:financial-year-participant' club.id financial_year.id %}" method="POST">
-        {% csrf_token %}
-        <div class="modal-body">{{ participant_form.as_p }}</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Add</button>
+        <!-- Add Participant Modal -->
+        <div class="modal fade"
+             id="fyParticipantFormModal"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add participant</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-year-participant' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ participant_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add Individual Due Modal -->
-<div class="modal fade" id="individualDueForm" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add individual due</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form action="{% url 'clubs:financial-year-individual-due' club.id financial_year.id %}" method="POST">
-        {% csrf_token %}
-        <div class="modal-body">{{ individual_due_form.as_p }}</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Create</button>
+        <!-- Add Individual Due Modal -->
+        <div class="modal fade"
+             id="individualDueForm"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add individual due</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-year-individual-due' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ individual_due_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Create</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% endif %}
+    {% endif %}
 {% endblock %}
