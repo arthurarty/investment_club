@@ -75,10 +75,10 @@ class FinancialTransactionForm(forms.ModelForm):
         widgets = {
             "club_member": forms.Select(attrs={"class": "form-select"}),
             "credit": forms.NumberInput(
-                attrs={"step": "10000.00", "class": "form-control"}
+                attrs={"step": "10.00", "class": "form-control"}
             ),
             "debit": forms.NumberInput(
-                attrs={"step": "10000.00", "class": "form-control"}
+                attrs={"step": "10.00", "class": "form-control"}
             ),
             "transaction_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
