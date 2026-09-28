@@ -139,7 +139,6 @@ def send_contribution_email(transaction: FinancialTransaction, request=None) -> 
         notification_settings_url=notification_settings_url,
         unsubscribe_url=unsubscribe_url,
     )
-
     try:
         html_content = render_to_string(
             "clubs/emails/contribution_email.html", dataclasses.asdict(context)
