@@ -1,48 +1,64 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SavingsInc — Sign in</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="{% static 'css/savingsinc.css' %}" rel="stylesheet">
-</head>
-<body>
-<div class="si-login-wrap">
-  <div class="si-login-box">
-
-    <div class="si-login-header">
-      <div class="si-login-logo-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v2m0 8v2m-4-6h8"/>
-        </svg>
-      </div>
-      <h1 class="si-login-title">SavingsInc</h1>
-      <p class="si-login-subtitle">Sign in to manage your savings clubs</p>
-    </div>
-
-    <div class="si-login-card">
-      <form action="{% url 'accounts:index' %}" method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="email" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" autocomplete="email">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SavingsInc — Sign in</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+              rel="stylesheet">
+        <link href="{% static 'css/savingsinc.css' %}" rel="stylesheet">
+    </head>
+    <body>
+        <div class="si-login-wrap">
+            <div class="si-login-box">
+                <div class="si-login-header">
+                    <div class="si-login-logo-icon">
+                        <svg width="22"
+                             height="22"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v2m0 8v2m-4-6h8" />
+                        </svg>
+                    </div>
+                    <h1 class="si-login-title">SavingsInc</h1>
+                    <p class="si-login-subtitle">Sign in to manage your savings clubs</p>
+                </div>
+                <div class="si-login-card">
+                    <form action="{% url 'accounts:index' %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email"
+                                   class="form-control"
+                                   id="email"
+                                   name="email"
+                                   placeholder="you@example.com"
+                                   autocomplete="email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   placeholder="••••••••"
+                                   autocomplete="current-password">
+                        </div>
+                        <div class="si-captcha-wrap">{{ form.captcha }}</div>
+                        <button type="submit"
+                                class="si-btn si-btn-primary si-btn-lg w-100 justify-content-center">Sign in</button>
+                    </form>
+                    <a href="#" class="si-forgot-link">Forgot password?</a>
+                </div>
+                <p class="si-login-footer">© 2026 SavingSoftInc</p>
+            </div>
         </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div class="si-captcha-wrap">{{ form.captcha }}</div>
-        <button type="submit" class="si-btn si-btn-primary si-btn-lg w-100 justify-content-center">Sign in</button>
-      </form>
-      <a href="#" class="si-forgot-link">Forgot password?</a>
-    </div>
-
-    <p class="si-login-footer">© 2026 SavingSoftInc</p>
-  </div>
-</div>
-</body>
+    </body>
 </html>

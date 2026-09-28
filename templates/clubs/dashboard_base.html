@@ -1,116 +1,199 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{% block page_title %}SavingsInc{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- Bootstrap CSS (for forms and modal/tab JS) -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-<!-- SavingsInc design overrides -->
-<link href="{% static 'css/savingsinc.css' %}" rel="stylesheet">
-</head>
-<body>
-{% if messages %}
-<div class="si-toast-container" id="siToastContainer">
-  {% for message in messages %}
-  <div class="si-toast si-toast-{{ message.tags|default:'info' }}" role="alert">
-    <div class="si-toast-icon">
-      {% if message.tags == 'success' %}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      {% elif message.tags == 'error' or message.tags == 'danger' %}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      {% elif message.tags == 'warning' %}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-      {% else %}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-      {% endif %}
-    </div>
-    <div class="si-toast-body">{{ message }}</div>
-    <button type="button" class="si-toast-close" aria-label="Dismiss notification" onclick="this.closest('.si-toast').remove()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-<div class="si-layout">
-
-  <!-- Sidebar -->
-  <aside class="si-sidebar">
-    <div class="si-sidebar-logo">
-      <div class="si-sidebar-logo-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v2m0 8v2m-4-6h8"/>
-        </svg>
-      </div>
-      <span class="si-sidebar-logo-text">SavingsInc</span>
-    </div>
-
-    <hr class="si-sidebar-divider">
-
-    <nav class="si-sidebar-nav">
-      <span class="si-nav-section-label">Navigation</span>
-      <div class="si-nav-items">
-        <a href="{% url 'clubs:index' %}" class="si-nav-item {% block nav_dashboard_active %}{% endblock %}">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-            <path d="M9 22V12h6v10"/>
-          </svg>
-          Dashboard
-        </a>
-        <a href="{% block reports_url %}#{% endblock %}" class="si-nav-item {% block nav_reports_active %}{% endblock %}">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 20V10M12 20V4M6 20v-6"/>
-          </svg>
-          Reports
-        </a>
-      </div>
-    </nav>
-
-    <div class="si-sidebar-bottom">
-      <div class="si-nav-items">
-        <a href="#" class="si-nav-item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-          </svg>
-          Settings
-        </a>
-        <a href="{% url 'accounts:logout' %}" class="si-nav-item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-            <path d="M16 17l5-5-5-5M21 12H9"/>
-          </svg>
-          Sign out
-        </a>
-      </div>
-
-      <div class="si-user-card">
-        <div class="si-user-avatar">{{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}</div>
-        <div style="overflow:hidden;">
-          <div class="si-user-name">{{ request.user.first_name }} {{ request.user.last_name }}</div>
-          <div class="si-user-role">{{ request.user.email }}</div>
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>{% block page_title %}SavingsInc{% endblock %}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+              rel="stylesheet">
+        <!-- Bootstrap CSS (for forms and modal/tab JS) -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+              rel="stylesheet"
+              integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr"
+              crossorigin="anonymous">
+        <!-- SavingsInc design overrides -->
+        <link href="{% static 'css/savingsinc.css' %}" rel="stylesheet">
+    </head>
+    <body>
+        {% if messages %}
+            <div class="si-toast-container" id="siToastContainer">
+                {% for message in messages %}
+                    <div class="si-toast si-toast-{{ message.tags|default:'info' }}"
+                         role="alert">
+                        <div class="si-toast-icon">
+                            {% if message.tags == "success" %}
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2.5"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            {% elif message.tags == "error" or message.tags == "danger" %}
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2.5"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            {% elif message.tags == "warning" %}
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2.5"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                </svg>
+                            {% else %}
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2.5"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="si-toast-body">{{ message }}</div>
+                        <button type="button"
+                                class="si-toast-close"
+                                aria-label="Dismiss notification"
+                                onclick="this.closest('.si-toast').remove()">
+                            <svg width="13"
+                                 height="13"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="si-layout">
+            <!-- Sidebar -->
+            <aside class="si-sidebar">
+                <div class="si-sidebar-logo">
+                    <div class="si-sidebar-logo-icon">
+                        <svg width="16"
+                             height="16"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v2m0 8v2m-4-6h8" />
+                        </svg>
+                    </div>
+                    <span class="si-sidebar-logo-text">SavingsInc</span>
+                </div>
+                <hr class="si-sidebar-divider">
+                <nav class="si-sidebar-nav">
+                    <span class="si-nav-section-label">Navigation</span>
+                    <div class="si-nav-items">
+                        <a href="{% url 'clubs:index' %}"
+                           class="si-nav-item {% block nav_dashboard_active %}{% endblock %}">
+                            <svg width="15"
+                                 height="15"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                <path d="M9 22V12h6v10" />
+                            </svg>
+                            Dashboard
+                        </a>
+                        <a href="{% block reports_url %}#{% endblock %}"
+                           class="si-nav-item {% block nav_reports_active %}{% endblock %}">
+                            <svg width="15"
+                                 height="15"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M18 20V10M12 20V4M6 20v-6" />
+                            </svg>
+                            Reports
+                        </a>
+                    </div>
+                </nav>
+                <div class="si-sidebar-bottom">
+                    <div class="si-nav-items">
+                        <a href="#" class="si-nav-item">
+                            <svg width="15"
+                                 height="15"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3" />
+                                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                            </svg>
+                            Settings
+                        </a>
+                        <a href="{% url 'accounts:logout' %}" class="si-nav-item">
+                            <svg width="15"
+                                 height="15"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                                <path d="M16 17l5-5-5-5M21 12H9" />
+                            </svg>
+                            Sign out
+                        </a>
+                    </div>
+                    <div class="si-user-card">
+                        <div class="si-user-avatar">{{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}</div>
+                        <div style="overflow:hidden;">
+                            <div class="si-user-name">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+                            <div class="si-user-role">{{ request.user.email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <!-- Main content -->
+            <main class="si-main">
+                {% block content %}{% endblock %}
+            </main>
         </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main content -->
-  <main class="si-main">
-    {% block content %}{% endblock %}
-  </main>
-</div>
-
-{% block after_main %}{% endblock %}
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-
-<!-- SavingsInc toast notifications -->
-<script>
+        {% block after_main %}{% endblock %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+                crossorigin="anonymous"></script>
+        <!-- SavingsInc toast notifications -->
+        <script>
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.si-toast').forEach(function(toast) {
     setTimeout(function() {
@@ -119,10 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 6000);
   });
 });
-</script>
-
-<!-- SavingsInc tab switcher -->
-<script>
+        </script>
+        <!-- SavingsInc tab switcher -->
+        <script>
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-si-tabs]').forEach(function(tabsEl) {
     var btns = tabsEl.querySelectorAll('.si-tab-btn');
@@ -142,6 +224,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
-</script>
-</body>
+        </script>
+    </body>
 </html>
