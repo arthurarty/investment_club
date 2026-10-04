@@ -5,7 +5,7 @@ Monthly report email. Design only; nothing sends this yet.
 Expected context:
   club, financial_year, report_month (date), recipient_first_name,
   currency (default "UGX"),
-  paid, due, ytd_paid, is_fully_paid                (recipient's figures),
+  paid, due, financial_year_paid_to_date, is_fully_paid                (recipient's figures),
   other_members_count, others_paid,
   club_collected, club_due, collected_pct, remaining_pct,
   fully_paid_count, member_count,
@@ -197,7 +197,7 @@ a:hover{color:#0f3f21}
                                                                                font-size:13px;
                                                                                line-height:19px;
                                                                                color:#2f5a3d">
-                                                                        Due this month
+                                                                        Total due so far (FY)
                                                                         <br>
                                                                         <strong style="font-size:15px;color:#0d2a1b;">{{ cur }} {{ due|floatformat:0|intcomma }}</strong>
                                                                     </td>
@@ -209,7 +209,7 @@ a:hover{color:#0f3f21}
                                                                                color:#2f5a3d">
                                                                         Your total so far (FY)
                                                                         <br>
-                                                                        <strong style="font-size:15px;color:#0d2a1b;">{{ cur }} {{ ytd_paid|floatformat:0|intcomma }}</strong>
+                                                                        <strong style="font-size:15px;color:#0d2a1b;">{{ cur }} {{ financial_year_paid_to_date|floatformat:0|intcomma }}</strong>
                                                                     </td>
                                                                 </tr>
                                                             </table>
