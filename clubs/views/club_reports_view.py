@@ -1,9 +1,10 @@
 from calendar import monthrange
+from dataclasses import dataclass, fields
 from datetime import date, datetime
 from http import HTTPStatus
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum
+from django.db.models import QuerySet, Sum
 from django.shortcuts import redirect, render
 from django.views import View
 
@@ -32,6 +33,48 @@ MONTH_CHOICES = [
     (11, "November"),
     (12, "December"),
 ]
+
+
+@dataclass
+class ParticipantDue:
+    """
+    A participant's due, credits and debits up to the selected month.
+    """
+
+    user_id: int
+    first_name: str
+    last_name: str
+    due: float
+    total_credit: float
+    total_debit: float
+
+
+@dataclass
+class FinancialReportContext:
+    """
+    Template context for the financial report page.
+    """
+
+    club: Club
+    financial_year: FinancialYear
+    financial_transactions: QuerySet[FinancialTransaction]
+    selected_month: datetime
+    month_choices: list[tuple[int, str]]
+    year_choices: list[tuple[int, int]]
+    sum_credit: float
+    sum_debit: float
+    participant_dues: list[ParticipantDue]
+    member_options: list[ParticipantDue]
+    selected_member: str
+    active_tab: str
+    sum_due: float
+    sum_paid: float
+    total_members: int
+
+    def to_dict(self) -> dict:
+        # Shallow on purpose: dataclasses.asdict would deep-copy model
+        # instances and turn ParticipantDue objects back into dicts.
+        return {f.name: getattr(self, f.name) for f in fields(self)}
 
 
 def compute_monthly_due(dues, no_of_months: int) -> float:
@@ -121,7 +164,7 @@ class FinancialReportView(LoginRequiredMixin, View):
         selected_month_obj: datetime,
         selected_month: int,
         selected_year: int,
-    ) -> list[dict]:
+    ) -> list[ParticipantDue]:
         """
         Build the list of participant dues with credits and debits for each participant.
         """
@@ -144,13 +187,14 @@ class FinancialReportView(LoginRequiredMixin, View):
                 participant.club_member, financial_year, selected_month_obj
             )
             participant_dues.append(
-                {
-                    "first_name": participant.club_member.user.first_name,
-                    "last_name": participant.club_member.user.last_name,
-                    "due": participant_due,
-                    "total_credit": transaction_sums["total_credit"] or 0,
-                    "total_debit": transaction_sums["total_debit"] or 0,
-                }
+                ParticipantDue(
+                    user_id=participant.club_member.user_id,
+                    first_name=participant.club_member.user.first_name,
+                    last_name=participant.club_member.user.last_name,
+                    due=participant_due,
+                    total_credit=transaction_sums["total_credit"] or 0,
+                    total_debit=transaction_sums["total_debit"] or 0,
+                )
             )
         return participant_dues
 
@@ -218,16 +262,34 @@ class FinancialReportView(LoginRequiredMixin, View):
             selected_month,
             selected_year,
         )
+        member_options = participant_dues
+        selected_member = request.GET.get("member", "")
+        if selected_member.isdigit():
+            participant_dues = [
+                p for p in participant_dues if p.user_id == int(selected_member)
+            ]
+        else:
+            selected_member = ""
         year_choices = [(y, y) for y in fy_years]
-        context = {
-            "club": club,
-            "financial_year": financial_year,
-            "financial_transactions": financial_transactions,
-            "selected_month": selected_month_obj,
-            "month_choices": MONTH_CHOICES,
-            "year_choices": year_choices,
-            "sum_credit": cash_flow_totals["total_credit"] or 0,
-            "sum_debit": cash_flow_totals["total_debit"] or 0,
-            "participant_dues": participant_dues,
-        }
-        return render(request, "clubs/financial_reports.html", context)
+        context = FinancialReportContext(
+            club=club,
+            financial_year=financial_year,
+            financial_transactions=financial_transactions,
+            selected_month=selected_month_obj,
+            month_choices=MONTH_CHOICES,
+            year_choices=year_choices,
+            sum_credit=cash_flow_totals["total_credit"] or 0,
+            sum_debit=cash_flow_totals["total_debit"] or 0,
+            participant_dues=participant_dues,
+            member_options=member_options,
+            selected_member=selected_member,
+            active_tab=(
+                "monthly"
+                if selected_member or request.GET.get("tab") == "monthly"
+                else "cashflow"
+            ),
+            sum_due=sum(p.due for p in member_options),
+            sum_paid=sum(p.total_credit for p in member_options),
+            total_members=len(member_options),
+        )
+        return render(request, "clubs/financial_reports.html", context.to_dict())
