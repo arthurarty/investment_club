@@ -41,6 +41,12 @@
                 </svg>
                 Export
             </button>
+            {% if is_club_admin %}
+                <button type="button"
+                        class="si-btn si-btn-ghost si-btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#sendMonthlyReportModal">Email {{ selected_month|date:"F Y" }} report</button>
+            {% endif %}
             <!-- Month/year picker -->
             <div class="dropdown">
                 <button class="si-btn si-btn-ghost si-btn-sm dropdown-toggle"
@@ -273,4 +279,39 @@
         })();
     </script>
 {% endblock %}
-{% block after_main %}{% endblock %}
+{% block after_main %}
+    {% if is_club_admin %}
+        <!-- Confirm Monthly Report Email Modal -->
+        <div class="modal fade"
+             id="sendMonthlyReportModal"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Send monthly report</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:send-monthly-report' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="month" value="{{ selected_month.month }}">
+                        <input type="hidden" name="year" value="{{ selected_month.year }}">
+                        <div class="modal-body">
+                            <p class="mb-0">
+                                This will email the {{ selected_month|date:"F Y" }} report to every participant of this financial year. Do you want to continue?
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Send emails</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

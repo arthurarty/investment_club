@@ -1,14 +1,17 @@
 from datetime import date
 
-from django.test import TestCase
+from django.core import mail
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
 from clubs.models import (
     Club,
     ClubMembership,
+    FinancialTransaction,
     FinancialYear,
     FinancialYearParticipant,
+    IndividualDue,
 )
 from clubs.views.club_reports_view import FinancialReportView
 
@@ -203,3 +206,168 @@ class TestMemberFilter(TestCase):
     def test_invalid_filter_is_ignored(self):
         response = self.client.get(self.url, {"member": "abc"})
         self.assertEqual(len(response.context["participant_dues"]), 2)
+
+
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    DEFAULT_FROM_EMAIL="noreply@example.com",
+)
+class TestSendMonthlyReportEmails(TestCase):
+    """
+    Test sending the monthly report to every participant.
+    """
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin@example.com", password="x", first_name="Ada"
+        )
+        self.other = User.objects.create_user(
+            email="bob@example.com", password="x", first_name="Bob"
+        )
+        self.club = Club.objects.create(
+            name="Finance Club",
+            description="d",
+            contact_email="c@example.com",
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        self.fy = FinancialYear.objects.create(
+            club=self.club,
+            start_date=date(2023, 1, 1),
+            end_date=date(2023, 12, 31),
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        self.members = {}
+        for u, is_admin in ((self.admin, True), (self.other, False)):
+            m = ClubMembership.objects.create(
+                user=u, club=self.club, is_admin=is_admin, invited_by=self.admin
+            )
+            self.members[u] = m
+            FinancialYearParticipant.objects.create(
+                club_member=m,
+                financial_year=self.fy,
+                created_by=self.admin,
+                updated_by=self.admin,
+            )
+        FinancialTransaction.objects.create(
+            financial_year=self.fy,
+            description="Dues",
+            credit=500,
+            transaction_date=date(2023, 3, 5),
+            club_member=self.members[self.admin],
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        FinancialTransaction.objects.create(
+            financial_year=self.fy,
+            description="Refreshments",
+            debit=120,
+            transaction_date=date(2023, 3, 6),
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        self.url = reverse("clubs:send-monthly-report", args=[self.club.id, self.fy.id])
+
+    def test_sends_one_email_per_participant(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(self.url, {"month": 3, "year": 2023})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(
+            sorted(m.to[0] for m in mail.outbox),
+            ["admin@example.com", "bob@example.com"],
+        )
+        body = next(
+            m for m in mail.outbox if m.to == ["admin@example.com"]
+        ).alternatives[0][0]
+        self.assertIn("Hi Ada", body)
+        self.assertIn("March 2023 report", body)
+        self.assertIn("Refreshments", body)
+        self.assertIn("UGX 380", body)  # 500 collected - 120 spent
+
+    def test_month_and_year_are_required(self):
+        self.client.force_login(self.admin)
+        for data in (
+            {},
+            {"month": 3},
+            {"year": 2023},
+            {"month": 13, "year": 2023},
+            {"month": "abc", "year": 2023},
+            {"month": 3, "year": 2030},
+        ):
+            with self.subTest(data=data):
+                response = self.client.post(self.url, data)
+                self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_send_button_only_shown_to_admins(self):
+        reports_url = reverse(
+            "clubs:financial-reports", args=[self.club.id, self.fy.id]
+        )
+        self.client.force_login(self.admin)
+        self.assertContains(self.client.get(reports_url), "sendMonthlyReportModal")
+        self.client.force_login(self.other)
+        self.assertNotContains(self.client.get(reports_url), "sendMonthlyReportModal")
+
+    def test_non_admin_cannot_send(self):
+        self.client.force_login(self.other)
+        self.client.post(self.url, {"month": 3, "year": 2023})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+
+class TestIndividualDuesAcrossCalendarYears(TestCase):
+    """
+    Individual dues count towards every later month of a financial year, even
+    when the financial year spans two calendar years.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(email="a@example.com", password="x")
+        self.club = Club.objects.create(
+            name="Finance Club",
+            description="d",
+            contact_email="c@example.com",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.fy = FinancialYear.objects.create(
+            club=self.club,
+            start_date=date(2023, 10, 1),
+            end_date=date(2024, 9, 30),
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        member = ClubMembership.objects.create(
+            user=self.user, club=self.club, is_admin=True, invited_by=self.user
+        )
+        FinancialYearParticipant.objects.create(
+            club_member=member,
+            financial_year=self.fy,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        IndividualDue.objects.create(
+            financial_year=self.fy,
+            club_member=member,
+            description="Fine",
+            amount=100,
+            due_date=date(2023, 11, 5),
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.client.force_login(self.user)
+
+    def test_report_includes_due_from_previous_calendar_year(self):
+        url = reverse("clubs:financial-reports", args=[self.club.id, self.fy.id])
+        response = self.client.get(url, {"month": 2, "year": 2024})
+        self.assertEqual(response.context["participant_dues"][0].due, 100)
+
+    def test_report_excludes_due_after_selected_month(self):
+        url = reverse("clubs:financial-reports", args=[self.club.id, self.fy.id])
+        response = self.client.get(url, {"month": 10, "year": 2023})
+        self.assertEqual(response.context["participant_dues"][0].due, 0)

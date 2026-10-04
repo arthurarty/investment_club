@@ -1,0 +1,519 @@
+{% load humanize %}
+{% comment %}
+Monthly report email. Design only; nothing sends this yet.
+
+Expected context:
+  club, financial_year, report_month (date), recipient_first_name,
+  currency (default "UGX"),
+  paid, due, financial_year_paid_to_date, is_fully_paid                (recipient's figures),
+  other_members_count, others_paid,
+  club_collected, club_due, collected_pct, remaining_pct,
+  fully_paid_count, member_count,
+  expenses (list of {description, date_label, amount}), total_expenses,
+  net_added, report_url, settings_url, unsubscribe_url
+{% endcomment %}
+{% with cur=currency|default:"UGX" %}
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
+            <title>{{ report_month|date:"F Y" }} report — {{ club.name }}</title>
+            <style>
+@media only screen and (max-width:620px){
+.sc-wrap{width:100%!important}
+.sc-pad{padding-left:22px!important;padding-right:22px!important}
+.sc-hero{font-size:30px!important;line-height:36px!important}
+.sc-stack{display:block!important;width:100%!important}
+.sc-stack-pad{padding:0 0 12px 0!important}
+}
+a{color:#14532b}
+a:hover{color:#0f3f21}
+            </style>
+        </head>
+        <body style="margin:0;padding:0;background-color:#f2efe8;">
+            <span style="display:none;
+                         font-size:1px;
+                         color:#f2efe8;
+                         line-height:1px;
+                         max-height:0;
+                         max-width:0;
+                         opacity:0;
+                         overflow:hidden">{{ report_month|date:"F Y" }}: you paid {{ cur }} {{ paid|floatformat:0|intcomma }}. The club collected {{ cur }} {{ club_collected|floatformat:0|intcomma }} and spent {{ cur }} {{ total_expenses|floatformat:0|intcomma }}.</span>
+            <table role="presentation"
+                   cellpadding="0"
+                   cellspacing="0"
+                   border="0"
+                   width="100%"
+                   style="background-color:#f2efe8">
+                <tr>
+                    <td align="center" style="padding:32px 12px 44px 12px;">
+                        <table role="presentation"
+                               cellpadding="0"
+                               cellspacing="0"
+                               border="0"
+                               width="600"
+                               class="sc-wrap"
+                               style="width:600px;
+                                      max-width:600px">
+                            <!-- Brand -->
+                            <tr>
+                                <td class="sc-pad" style="padding:0 8px 18px 8px;">
+                                    <table role="presentation"
+                                           cellpadding="0"
+                                           cellspacing="0"
+                                           border="0"
+                                           width="100%">
+                                        <tr>
+                                            <td align="left"
+                                                style="font-family:Georgia,'Times New Roman',serif;
+                                                       font-size:19px;
+                                                       font-weight:bold;
+                                                       color:#0d2a1b">SavingsInc</td>
+                                            <td align="right"
+                                                style="font-family:Arial,Helvetica,sans-serif;
+                                                       font-size:11px;
+                                                       letter-spacing:.14em;
+                                                       text-transform:uppercase;
+                                                       color:#6f7369">Monthly report</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#ffffff;
+                                           border:1px solid #ece8e1;
+                                           border-radius:16px">
+                                    <table role="presentation"
+                                           cellpadding="0"
+                                           cellspacing="0"
+                                           border="0"
+                                           width="100%"
+                                           style="width:100%">
+                                        <!-- Header -->
+                                        <tr>
+                                            <td class="sc-pad"
+                                                style="padding:36px 44px 32px 44px;
+                                                       background-color:#0d2a1b;
+                                                       border-radius:16px 16px 0 0">
+                                                <p style="margin:0 0 12px 0;
+                                                          font-family:Arial,Helvetica,sans-serif;
+                                                          font-size:11px;
+                                                          line-height:16px;
+                                                          mso-line-height-rule:exactly;
+                                                          letter-spacing:.16em;
+                                                          text-transform:uppercase;
+                                                          color:#8fc0a0;
+                                                          font-weight:bold">{{ club.name }} · FY {{ financial_year.start_date.year }}</p>
+                                                <p class="sc-hero"
+                                                   style="margin:0;
+                                                          font-family:Georgia,'Times New Roman',serif;
+                                                          font-size:38px;
+                                                          line-height:44px;
+                                                          mso-line-height-rule:exactly;
+                                                          color:#ffffff">{{ report_month|date:"F Y" }} report</p>
+                                                <p style="margin:12px 0 0 0;
+                                                          font-family:Arial,Helvetica,sans-serif;
+                                                          font-size:15px;
+                                                          line-height:23px;
+                                                          mso-line-height-rule:exactly;
+                                                          color:#cfe0d4">Hi {{ recipient_first_name }}, here's how you and the club did this month.</p>
+                                            </td>
+                                        </tr>
+                                        <!-- Section 1: You -->
+                                        <tr>
+                                            <td class="sc-pad" style="padding:34px 44px 0 44px;">
+                                                <p style="margin:0 0 14px 0;
+                                                          font-family:Arial,Helvetica,sans-serif;
+                                                          font-size:11px;
+                                                          line-height:16px;
+                                                          letter-spacing:.14em;
+                                                          text-transform:uppercase;
+                                                          color:#166534;
+                                                          font-weight:bold">1 &nbsp;Your contributions</p>
+                                                <table role="presentation"
+                                                       cellpadding="0"
+                                                       cellspacing="0"
+                                                       border="0"
+                                                       width="100%"
+                                                       style="width:100%;
+                                                              background-color:#dcefe0;
+                                                              border-radius:12px">
+                                                    <tr>
+                                                        <td style="padding:22px 24px 20px 24px;">
+                                                            <table role="presentation"
+                                                                   cellpadding="0"
+                                                                   cellspacing="0"
+                                                                   border="0"
+                                                                   width="100%">
+                                                                <tr>
+                                                                    <td valign="bottom" style="font-family:Arial,Helvetica,sans-serif;">
+                                                                        <p style="margin:0 0 4px 0;
+                                                                                  font-size:13px;
+                                                                                  line-height:18px;
+                                                                                  color:#2f5a3d">Paid this month</p>
+                                                                        <p style="margin:0;
+                                                                                  font-family:Georgia,'Times New Roman',serif;
+                                                                                  font-size:30px;
+                                                                                  line-height:36px;
+                                                                                  mso-line-height-rule:exactly;
+                                                                                  color:#0d2a1b;
+                                                                                  font-weight:bold">{{ cur }} {{ paid|floatformat:0|intcomma }}</p>
+                                                                    </td>
+                                                                    <td align="right"
+                                                                        valign="bottom"
+                                                                        style="font-family:Arial,Helvetica,sans-serif;
+                                                                               padding-bottom:6px">
+                                                                        {% if is_fully_paid %}<span style="display:inline-block;
+             padding:5px 12px;
+             background-color:#14532b;
+             color:#ffffff;
+             border-radius:999px;
+             font-size:11px;
+             line-height:15px;
+             font-weight:bold;
+             letter-spacing:.06em;
+             text-transform:uppercase">Fully paid</span>{% endif %}
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:0 24px 20px 24px;">
+                                                            <table role="presentation"
+                                                                   cellpadding="0"
+                                                                   cellspacing="0"
+                                                                   border="0"
+                                                                   width="100%"
+                                                                   style="border-top:1px solid #bcdcc4">
+                                                                <tr>
+                                                                    <td width="50%"
+                                                                        style="padding-top:14px;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               color:#2f5a3d">
+                                                                        Total due so far (FY)
+                                                                        <br>
+                                                                        <strong style="font-size:15px;color:#0d2a1b;">{{ cur }} {{ due|floatformat:0|intcomma }}</strong>
+                                                                    </td>
+                                                                    <td width="50%"
+                                                                        style="padding-top:14px;
+                                                                               font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               color:#2f5a3d">
+                                                                        Your total so far (FY)
+                                                                        <br>
+                                                                        <strong style="font-size:15px;color:#0d2a1b;">{{ cur }} {{ financial_year_paid_to_date|floatformat:0|intcomma }}</strong>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <!-- Section 2: Club -->
+                                        <tr>
+                                            <td class="sc-pad" style="padding:34px 44px 0 44px;">
+                                                <p style="margin:0 0 14px 0;
+                                                          font-family:Arial,Helvetica,sans-serif;
+                                                          font-size:11px;
+                                                          line-height:16px;
+                                                          letter-spacing:.14em;
+                                                          text-transform:uppercase;
+                                                          color:#166534;
+                                                          font-weight:bold">2 &nbsp;Club contributions</p>
+                                                <table role="presentation"
+                                                       cellpadding="0"
+                                                       cellspacing="0"
+                                                       border="0"
+                                                       width="100%"
+                                                       style="width:100%;
+                                                              border:1px solid #ece8e1;
+                                                              border-radius:12px;
+                                                              background-color:#f8f5f0">
+                                                    <tr>
+                                                        <td style="padding:16px 20px 14px 20px;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:14px;
+                                                                   line-height:20px;
+                                                                   color:#3d463f">You</td>
+                                                        <td align="right"
+                                                            style="padding:16px 20px 14px 20px;
+                                                                   font-family:'Courier New',Courier,monospace;
+                                                                   font-size:14px;
+                                                                   line-height:20px;
+                                                                   color:#17211b">{{ paid|floatformat:0|intcomma }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:14px 20px;
+                                                                   border-top:1px solid #ece8e1;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:14px;
+                                                                   line-height:20px;
+                                                                   color:#3d463f">Other members <span style="color:#6f7369;font-size:13px;">({{ other_members_count }})</span></td>
+                                                        <td align="right"
+                                                            style="padding:14px 20px;
+                                                                   border-top:1px solid #ece8e1;
+                                                                   font-family:'Courier New',Courier,monospace;
+                                                                   font-size:14px;
+                                                                   line-height:20px;
+                                                                   color:#17211b">{{ others_paid|floatformat:0|intcomma }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:16px 20px;
+                                                                   border-top:1px solid #cfe3d4;
+                                                                   background-color:#f1f7f2;
+                                                                   border-radius:0 0 0 12px;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:14px;
+                                                                   line-height:20px;
+                                                                   color:#0d2a1b;
+                                                                   font-weight:bold">Club total collected</td>
+                                                        <td align="right"
+                                                            style="padding:16px 20px;
+                                                                   border-top:1px solid #cfe3d4;
+                                                                   background-color:#f1f7f2;
+                                                                   border-radius:0 0 12px 0;
+                                                                   font-family:'Courier New',Courier,monospace;
+                                                                   font-size:15px;
+                                                                   line-height:20px;
+                                                                   color:#14532b;
+                                                                   font-weight:bold">{{ cur }} {{ club_collected|floatformat:0|intcomma }}</td>
+                                                    </tr>
+                                                </table>
+                                                <!-- Progress -->
+                                                <table role="presentation"
+                                                       cellpadding="0"
+                                                       cellspacing="0"
+                                                       border="0"
+                                                       width="100%"
+                                                       style="width:100%;
+                                                              margin-top:16px">
+                                                    <tr>
+                                                        <td style="font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:13px;
+                                                                   line-height:19px;
+                                                                   color:#3d463f;
+                                                                   padding-bottom:8px">Collected <strong style="color:#17211b;">{{ collected_pct }}%</strong> of {{ cur }} {{ club_due|floatformat:0|intcomma }} due · {{ fully_paid_count }} of {{ member_count }} members fully paid</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <table role="presentation"
+                                                                   cellpadding="0"
+                                                                   cellspacing="0"
+                                                                   border="0"
+                                                                   width="100%"
+                                                                   style="width:100%;
+                                                                          background-color:#ece8e1;
+                                                                          border-radius:999px">
+                                                                <tr>
+                                                                    <td width="{{ collected_pct }}%"
+                                                                        height="8"
+                                                                        style="height:8px;
+                                                                               line-height:8px;
+                                                                               font-size:0;
+                                                                               background-color:#14532b;
+                                                                               border-radius:999px">&nbsp;</td>
+                                                                    <td width="{{ remaining_pct }}%"
+                                                                        height="8"
+                                                                        style="height:8px;
+                                                                               line-height:8px;
+                                                                               font-size:0">&nbsp;</td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <!-- Section 3: Expenses -->
+                                        <tr>
+                                            <td class="sc-pad" style="padding:34px 44px 0 44px;">
+                                                <p style="margin:0 0 14px 0;
+                                                          font-family:Arial,Helvetica,sans-serif;
+                                                          font-size:11px;
+                                                          line-height:16px;
+                                                          letter-spacing:.14em;
+                                                          text-transform:uppercase;
+                                                          color:#166534;
+                                                          font-weight:bold">3 &nbsp;Club expenses</p>
+                                                <table role="presentation"
+                                                       cellpadding="0"
+                                                       cellspacing="0"
+                                                       border="0"
+                                                       width="100%"
+                                                       style="width:100%">
+                                                    <tr>
+                                                        <td style="padding:0 0 12px 0;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:11px;
+                                                                   letter-spacing:.08em;
+                                                                   text-transform:uppercase;
+                                                                   color:#6f7369;
+                                                                   border-bottom:1px solid #ece8e1">Item</td>
+                                                        <td style="padding:0 0 12px 0;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:11px;
+                                                                   letter-spacing:.08em;
+                                                                   text-transform:uppercase;
+                                                                   color:#6f7369;
+                                                                   border-bottom:1px solid #ece8e1">Date</td>
+                                                        <td align="right"
+                                                            style="padding:0 0 12px 0;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:11px;
+                                                                   letter-spacing:.08em;
+                                                                   text-transform:uppercase;
+                                                                   color:#6f7369;
+                                                                   border-bottom:1px solid #ece8e1">{{ cur }}</td>
+                                                    </tr>
+                                                    {% for expense in expenses %}
+                                                        <tr>
+                                                            <td style="padding:13px 0;
+                                                                       border-bottom:1px solid {% if forloop.last %}#ece8e1{% else %}#f0ece5{% endif %};
+                                                                       font-family:Arial,Helvetica,sans-serif;
+                                                                       font-size:14px;
+                                                                       line-height:20px;
+                                                                       color:#17211b">{{ expense.description }}</td>
+                                                            <td style="padding:13px 0;
+                                                                       border-bottom:1px solid {% if forloop.last %}#ece8e1{% else %}#f0ece5{% endif %};
+                                                                       font-family:Arial,Helvetica,sans-serif;
+                                                                       font-size:13px;
+                                                                       line-height:20px;
+                                                                       color:#6f7369">{{ expense.date_label }}</td>
+                                                            <td align="right"
+                                                                style="padding:13px 0;
+                                                                       border-bottom:1px solid {% if forloop.last %}#ece8e1{% else %}#f0ece5{% endif %};
+                                                                       font-family:'Courier New',Courier,monospace;
+                                                                       font-size:14px;
+                                                                       line-height:20px;
+                                                                       color:#17211b">{{ expense.amount|floatformat:0|intcomma }}</td>
+                                                        </tr>
+                                                    {% empty %}
+                                                        <tr>
+                                                            <td colspan="3"
+                                                                style="padding:13px 0;
+                                                                       border-bottom:1px solid #ece8e1;
+                                                                       font-family:Arial,Helvetica,sans-serif;
+                                                                       font-size:14px;
+                                                                       line-height:20px;
+                                                                       color:#6f7369">No expenses this month.</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    <tr>
+                                                        <td colspan="2"
+                                                            style="padding:15px 0 0 0;
+                                                                   font-family:Arial,Helvetica,sans-serif;
+                                                                   font-size:14px;
+                                                                   line-height:20px;
+                                                                   color:#17211b;
+                                                                   font-weight:bold">Total expenses</td>
+                                                        <td align="right"
+                                                            style="padding:15px 0 0 0;
+                                                                   font-family:'Courier New',Courier,monospace;
+                                                                   font-size:15px;
+                                                                   line-height:20px;
+                                                                   color:#9a3412;
+                                                                   font-weight:bold">{{ total_expenses|floatformat:0|intcomma }}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <!-- Net summary -->
+                                        <tr>
+                                            <td class="sc-pad" style="padding:28px 44px 0 44px;">
+                                                <table role="presentation"
+                                                       cellpadding="0"
+                                                       cellspacing="0"
+                                                       border="0"
+                                                       width="100%"
+                                                       style="width:100%;
+                                                              background-color:#0d2a1b;
+                                                              border-radius:12px">
+                                                    <tr>
+                                                        <td style="padding:20px 24px;">
+                                                            <table role="presentation"
+                                                                   cellpadding="0"
+                                                                   cellspacing="0"
+                                                                   border="0"
+                                                                   width="100%">
+                                                                <tr>
+                                                                    <td style="font-family:Arial,Helvetica,sans-serif;
+                                                                               font-size:13px;
+                                                                               line-height:19px;
+                                                                               color:#cfe0d4">
+                                                                        Net added to club funds
+                                                                        <br>
+                                                                        <span style="font-size:12px;color:#8fc0a0;">{{ club_collected|floatformat:0|intcomma }} collected − {{ total_expenses|floatformat:0|intcomma }} spent</span>
+                                                                    </td>
+                                                                    <td align="right"
+                                                                        style="font-family:Georgia,'Times New Roman',serif;
+                                                                               font-size:24px;
+                                                                               line-height:30px;
+                                                                               color:#ffffff;
+                                                                               font-weight:bold;
+                                                                               white-space:nowrap">{{ cur }} {{ net_added|floatformat:0|intcomma }}</td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <!-- CTA -->
+                                        <tr>
+                                            <td class="sc-pad" style="padding:30px 44px 38px 44px;">
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                    <tr>
+                                                        <td align="center"
+                                                            bgcolor="#14532b"
+                                                            style="background-color:#14532b;
+                                                                   border-radius:12px">
+                                                            <a href="{{ report_url }}"
+                                                               style="display:block;
+                                                                      padding:14px 30px;
+                                                                      font-family:Arial,Helvetica,sans-serif;
+                                                                      font-size:15px;
+                                                                      line-height:20px;
+                                                                      font-weight:bold;
+                                                                      color:#ffffff;
+                                                                      text-decoration:none;
+                                                                      border-radius:12px">View full report</a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <!-- Footer -->
+                            <tr>
+                                <td class="sc-pad"
+                                    style="padding:26px 8px 0 8px;
+                                           font-family:Arial,Helvetica,sans-serif;
+                                           font-size:12px;
+                                           line-height:20px;
+                                           color:#6f7369">
+                                    <p style="margin:0 0 6px 0;">You're receiving this monthly report as a member of {{ club.name }} on SavingsInc.</p>
+                                    <p style="margin:0;"><a href="{{ settings_url }}"
+   style="color:#14532b;
+          text-decoration:underline">Notification settings</a> &nbsp;·&nbsp; <a href="{{ unsubscribe_url }}"
+    style="color:#14532b;
+           text-decoration:underline">Unsubscribe</a></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+    </html>
+{% endwith %}
