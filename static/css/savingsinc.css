@@ -1070,3 +1070,61 @@ textarea.form-control { resize: vertical; }
   border-top: 2px solid var(--si-border);
   border-bottom: none;
 }
+
+/* ── Monthly report: tab-bar member filter + club total ── */
+.si-tabs { align-items: center; }
+.si-tab-filter {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.si-tab-filter[hidden], .si-tab-filter-clear[hidden] { display: none; }
+.si-tab-filter label { font-size: 12px; color: var(--si-text-3); margin: 0; }
+.si-tab-filter select {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--si-text-1);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  min-width: 170px;
+  cursor: pointer;
+}
+.si-tab-filter select:focus {
+  outline: none;
+  border-color: var(--si-green-700);
+  box-shadow: 0 0 0 3px oklch(0.35 0.12 155 / 0.12);
+}
+.si-tab-filter-clear {
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--si-green-700);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 4px;
+}
+.si-table tfoot .si-club-total td {
+  background: var(--si-green-50);
+  border-top: 1px solid var(--si-green-100);
+  border-bottom: none;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.si-total-label { display: flex; align-items: center; gap: 11px; font-weight: 700; }
+.si-total-count { font-weight: 400; font-size: 12px; color: var(--si-text-3); }
+.si-total-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--si-green-700);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
