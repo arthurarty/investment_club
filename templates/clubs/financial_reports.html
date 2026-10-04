@@ -63,6 +63,8 @@
                 <div class="dropdown-menu dropdown-menu-end" style="min-width:260px;">
                     <form action="{% url 'clubs:financial-reports' club.id financial_year.id %}"
                           method="get">
+                        {% if active_tab == "monthly" %}<input type="hidden" name="tab" value="monthly">{% endif %}
+                        {% if selected_member %}<input type="hidden" name="member" value="{{ selected_member }}">{% endif %}
                         <label class="form-label"
                                style="font-size:12px;
                                       margin-bottom:6px;
@@ -106,12 +108,40 @@
     <div class="si-page-body">
         <div class="si-card" data-si-tabgroup>
             <div class="si-tabs" data-si-tabs>
-                <button type="button" class="si-tab-btn active" data-si-tab="cashflow">Cash Flow Statement</button>
-                <button type="button" class="si-tab-btn" data-si-tab="monthly">Monthly Report</button>
+                <button type="button"
+                        class="si-tab-btn {% if active_tab != 'monthly' %}active{% endif %}"
+                        data-si-tab="cashflow">Cash Flow Statement</button>
+                <button type="button"
+                        class="si-tab-btn {% if active_tab == 'monthly' %}active{% endif %}"
+                        data-si-tab="monthly">Monthly Report</button>
+                <form class="si-tab-filter"
+                      id="member-filter-wrap"
+                      method="get"
+                      action="{% url 'clubs:financial-reports' club.id financial_year.id %}"
+                      {% if not selected_member and active_tab != 'monthly' %}hidden{% endif %}>
+                    <input type="hidden" name="month" value="{{ selected_month.month }}">
+                    <input type="hidden" name="year" value="{{ selected_month.year }}">
+                    <input type="hidden" name="tab" value="monthly">
+                    <label for="member-filter">Member</label>
+                    <select id="member-filter" name="member" onchange="this.form.submit()">
+                        <option value="">All members</option>
+                        {% for p in member_options %}
+                            <option value="{{ p.user_id }}"
+                                    {% if selected_member == p.user_id|stringformat:"s" %}selected{% endif %}>
+                                {{ p.first_name }} {{ p.last_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if selected_member %}
+                        <a class="si-tab-filter-clear"
+                           href="{% url 'clubs:financial-reports' club.id financial_year.id %}?month={{ selected_month.month }}&year={{ selected_month.year }}&tab=monthly">Clear</a>
+                    {% endif %}
+                </form>
             </div>
             <div data-si-panes>
                 <!-- Cash Flow Statement -->
-                <div class="si-tab-pane active" data-si-pane="cashflow">
+                <div class="si-tab-pane {% if active_tab != 'monthly' %}active{% endif %}"
+                     data-si-pane="cashflow">
                     <div class="si-table-wrap">
                         <table class="si-table">
                             <thead>
@@ -173,7 +203,8 @@
                     </div>
                 </div>
                 <!-- Monthly Report -->
-                <div class="si-tab-pane" data-si-pane="monthly">
+                <div class="si-tab-pane {% if active_tab == 'monthly' %}active{% endif %}"
+                     data-si-pane="monthly">
                     <div class="si-table-wrap">
                         <table class="si-table">
                             <thead>
@@ -206,11 +237,40 @@
                                     </tr>
                                 {% endfor %}
                             </tbody>
+                            {% if participant_dues %}
+                                <tfoot>
+                                    <tr class="si-club-total">
+                                        <td>
+                                            <div class="si-total-label">
+                                                <span class="si-total-icon">Σ</span>
+                                                Club total
+                                                <span class="si-total-count">all {{ total_members }} member{{ total_members|pluralize }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="mono">{{ sum_due|floatformat:1|intcomma }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="credit mono">{{ sum_paid|floatformat:1|intcomma }}</span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            {% endif %}
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+        (function () {
+            var wrap = document.getElementById('member-filter-wrap');
+            document.querySelectorAll('[data-si-tab]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    wrap.hidden = btn.dataset.siTab !== 'monthly';
+                });
+            });
+        })();
+    </script>
 {% endblock %}
 {% block after_main %}{% endblock %}
