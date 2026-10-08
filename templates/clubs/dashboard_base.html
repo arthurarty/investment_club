@@ -109,6 +109,44 @@
                     <span class="si-sidebar-logo-text">SavingsInc</span>
                 </div>
                 <hr class="si-sidebar-divider">
+                {% if sidebar_current_club %}
+                    <div class="si-switch">
+                        <span class="si-nav-section-label">Current club</span>
+                        <button class="si-switch-btn"
+                                type="button"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="si-switch-badge">{{ sidebar_current_club.name|slice:":1"|upper }}</span>
+                            <span class="si-switch-meta">
+                                <span class="si-switch-name" title="{{ sidebar_current_club.name }}">{{ sidebar_current_club.name }}</span>
+                                <span class="si-switch-sub">{{ sidebar_current_club_member_count }} member{{ sidebar_current_club_member_count|pluralize }}</span>
+                            </span>
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+                        <div class="si-switch-menu" role="menu">
+                            {% for c in sidebar_clubs %}
+                                <a class="si-switch-opt {% if c.id == sidebar_current_club.id %}current{% endif %}"
+                                   href="{% url 'clubs:detail' c.id %}"
+                                   role="menuitem">
+                                    <span class="si-switch-badge">{{ c.name|slice:":1"|upper }}</span>
+                                    <span class="si-switch-opt-name">{{ c.name }}</span>
+                                    {% if c.id == sidebar_current_club.id %}<span class="si-switch-check">✓</span>{% endif %}
+                                </a>
+                            {% endfor %}
+                            <a class="si-switch-opt si-switch-opt-all"
+                               href="{% url 'clubs:index' %}">View all clubs</a>
+                        </div>
+                    </div>
+                {% endif %}
                 <nav class="si-sidebar-nav">
                     <span class="si-nav-section-label">Navigation</span>
                     <div class="si-nav-items">
@@ -200,6 +238,24 @@ document.addEventListener('DOMContentLoaded', function() {
       toast.classList.add('si-toast-hide');
       toast.addEventListener('transitionend', function() { toast.remove(); });
     }, 6000);
+  });
+});
+        </script>
+        <!-- SavingsInc club switcher -->
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var wrap = document.querySelector('.si-switch');
+  if (!wrap) return;
+  var btn = wrap.querySelector('.si-switch-btn');
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    btn.setAttribute('aria-expanded', wrap.classList.toggle('open'));
+  });
+  document.addEventListener('click', function(e) {
+    if (!wrap.contains(e.target)) {
+      wrap.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
   });
 });
         </script>

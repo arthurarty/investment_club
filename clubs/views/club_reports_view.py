@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils.html import strip_tags
 from django.views import View
 
+from clubs.context_processors import CURRENT_CLUB_SESSION_KEY
 from clubs.models import (
     Club,
     ClubMembership,
@@ -26,6 +27,7 @@ from clubs.models import (
     FinancialYearParticipant,
     IndividualDue,
 )
+from clubs.views.utils import is_club_admin_or_creator
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +122,21 @@ class MonthlyReportEmailContext:
 
     def to_dict(self) -> dict:
         return {f.name: getattr(self, f.name) for f in fields(self)}
+
+
+@dataclass
+class MonthlyFigures:
+    """
+    Per-member amounts (keyed by club member id) for one monthly report.
+    """
+
+    paid_in_month: dict[int, Decimal]
+    paid_to_date: dict[int, Decimal]
+    due_by_member: dict[int, Decimal]
+
+    def is_fully_paid(self, member_id: int) -> bool:
+        due = self.due_by_member[member_id]
+        return due > 0 and self.paid_to_date.get(member_id, Decimal("0")) >= due
 
 
 def get_month_end(month_date: date | datetime) -> date:
@@ -401,10 +418,7 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
         if not financial_year:
             return redirect("clubs:detail", club_id=club.id)
 
-        reports_url = reverse(
-            "clubs:financial-reports",
-            kwargs={"club_id": club.id, "financial_year_id": financial_year.id},
-        )
+        reports_url = self.reports_path(club, financial_year)
         report_month = self.parse_report_month(
             request.POST.get("month"), request.POST.get("year"), financial_year
         )
@@ -446,6 +460,13 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
             )
         return redirect(reports_url)
 
+    @staticmethod
+    def reports_path(club: Club, financial_year: FinancialYear) -> str:
+        return reverse(
+            "clubs:financial-reports",
+            kwargs={"club_id": club.id, "financial_year_id": financial_year.id},
+        )
+
     def build_contexts(
         self,
         request,
@@ -457,21 +478,50 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
         """
         Build a (recipient email, context) pair per participant for the month.
         """
-        month_end = get_month_end(report_month)
         month_transactions = FinancialTransaction.objects.filter(
             financial_year=financial_year,
             transaction_date__year=report_month.year,
             transaction_date__month=report_month.month,
         )
-        zero = Decimal("0")
-
-        paid_in_month = self.totals_by_member(month_transactions, "credit")
-        paid_to_date = self.totals_by_member(
-            FinancialTransaction.objects.filter(
-                financial_year=financial_year, transaction_date__lte=month_end
+        figures = MonthlyFigures(
+            paid_in_month=self.totals_by_member(month_transactions, "credit"),
+            paid_to_date=self.totals_by_member(
+                FinancialTransaction.objects.filter(
+                    financial_year=financial_year,
+                    transaction_date__lte=get_month_end(report_month),
+                ),
+                "credit",
             ),
-            "credit",
+            due_by_member=self.compute_due_by_member(
+                financial_year, participants, report_month
+            ),
         )
+        club_fields = self.build_club_fields(
+            request,
+            club,
+            financial_year,
+            participants,
+            report_month,
+            month_transactions,
+            figures,
+        )
+        built = (
+            self.build_participant_context(request, participant, club_fields, figures)
+            for participant in participants
+        )
+        return [item for item in built if item]
+
+    def compute_due_by_member(
+        self,
+        financial_year: FinancialYear,
+        participants: list[FinancialYearParticipant],
+        report_month: date,
+    ) -> dict[int, Decimal]:
+        """
+        Total due per member from the start of the financial year to the end of
+        the month.
+        """
+        zero = Decimal("0")
         no_of_months = FinancialReportView().get_no_of_months(
             report_month, financial_year
         )
@@ -481,50 +531,52 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
             ).aggregate(total=Sum("amount"))["total"]
             or zero
         )
-        individual_due = {
-            row["club_member"]: row["total"]
-            for row in IndividualDue.objects.filter(
-                financial_year=financial_year, due_date__lte=month_end
-            )
-            .values("club_member")
-            .annotate(total=Sum("amount"))
-        }
-        # Total due from the start of the financial year to the end of the month.
-        due_by_member = {
+        individual_due = self.totals_by_member(
+            IndividualDue.objects.filter(
+                financial_year=financial_year,
+                due_date__lte=get_month_end(report_month),
+            ),
+            "amount",
+        )
+        return {
             p.club_member_id: monthly_due * no_of_months
             + individual_due.get(p.club_member_id, zero)
             for p in participants
         }
 
+    def build_club_fields(
+        self,
+        request,
+        club: Club,
+        financial_year: FinancialYear,
+        participants: list[FinancialYearParticipant],
+        report_month: date,
+        month_transactions,
+        figures: "MonthlyFigures",
+    ) -> dict:
+        """
+        Club-wide fields shared by every participant's email context.
+        """
+        zero = Decimal("0")
         club_collected = (
             month_transactions.aggregate(total=Sum("credit"))["total"] or zero
         )
         club_collected_to_date = sum(
-            (paid_to_date.get(p.club_member_id, zero) for p in participants), zero
+            (figures.paid_to_date.get(p.club_member_id, zero) for p in participants),
+            zero,
         )
-        club_due = sum(due_by_member.values(), zero)
-        fully_paid_count = sum(
-            1
-            for p in participants
-            if due_by_member[p.club_member_id] > 0
-            and paid_to_date.get(p.club_member_id, zero)
-            >= due_by_member[p.club_member_id]
-        )
-        expenses, total_expenses = self.compute_expenses(month_transactions)
+        club_due = sum(figures.due_by_member.values(), zero)
         collected_pct = (
             min(100, round(club_collected_to_date / club_due * 100))
             if club_due > 0
             else 0
         )
+        expenses, total_expenses = self.compute_expenses(month_transactions)
         report_url = request.build_absolute_uri(
-            reverse(
-                "clubs:financial-reports",
-                kwargs={"club_id": club.id, "financial_year_id": financial_year.id},
-            )
+            self.reports_path(club, financial_year)
             + f"?month={report_month.month}&year={report_month.year}"
         )
-
-        club_fields = {
+        return {
             "club": club,
             "financial_year": financial_year,
             "report_month": report_month,
@@ -533,28 +585,15 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
             "club_due": club_due,
             "collected_pct": collected_pct,
             "remaining_pct": 100 - collected_pct,
-            "fully_paid_count": fully_paid_count,
+            "fully_paid_count": sum(
+                figures.is_fully_paid(p.club_member_id) for p in participants
+            ),
             "member_count": len(participants),
             "expenses": expenses,
             "total_expenses": total_expenses,
             "net_added": club_collected - total_expenses,
             "report_url": report_url,
         }
-
-        contexts = []
-        for participant in participants:
-            member = participant.club_member
-            built = self.build_participant_context(
-                request,
-                participant,
-                club_fields,
-                paid=paid_in_month.get(member.id, zero),
-                due=due_by_member[member.id],
-                financial_year_paid_to_date=paid_to_date.get(member.id, zero),
-            )
-            if built:
-                contexts.append(built)
-        return contexts
 
     @staticmethod
     def totals_by_member(queryset, field: str) -> dict[int, Decimal]:
@@ -587,9 +626,7 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
         request,
         participant: FinancialYearParticipant,
         club_fields: dict,
-        paid: Decimal,
-        due: Decimal,
-        financial_year_paid_to_date: Decimal,
+        figures: "MonthlyFigures",
     ) -> tuple[str, MonthlyReportEmailContext] | None:
         """
         Build the (recipient email, context) pair for one participant, or None
@@ -600,20 +637,21 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
         if not user.email:
             logger.warning("Skipping monthly report for member %s: no email", member.id)
             return None
-        club = club_fields["club"]
+        zero = Decimal("0")
+        paid = figures.paid_in_month.get(member.id, zero)
         member_url = request.build_absolute_uri(
             reverse(
                 "clubs:club-member-detail",
-                kwargs={"club_id": club.id, "member_id": member.id},
+                kwargs={"club_id": club_fields["club"].id, "member_id": member.id},
             )
         )
         context = MonthlyReportEmailContext(
             **club_fields,
             recipient_first_name=user.first_name or user.email,
             paid=paid,
-            due=due,
-            financial_year_paid_to_date=financial_year_paid_to_date,
-            is_fully_paid=due > 0 and financial_year_paid_to_date >= due,
+            due=figures.due_by_member[member.id],
+            financial_year_paid_to_date=figures.paid_to_date.get(member.id, zero),
+            is_fully_paid=figures.is_fully_paid(member.id),
             other_members_count=club_fields["member_count"] - 1,
             others_paid=club_fields["club_collected"] - paid,
             settings_url=member_url,
@@ -645,3 +683,28 @@ class SendMonthlyReportEmailsView(LoginRequiredMixin, View):
                 context.club.id,
             )
             return False
+
+
+class FinancialReportListView(LoginRequiredMixin, View):
+    def get(self, request):
+        try:
+            club_id = request.session.get(CURRENT_CLUB_SESSION_KEY)
+            if club_id is None:
+                messages.error(
+                    request,
+                    "Please select an investment club first to view its reports.",
+                )
+                return render(request, "clubs/financial_year_list.html")
+            club = Club.objects.get(id=club_id)
+            is_club_admin = is_club_admin_or_creator(request, club)
+            is_member = club.members.filter(user=request.user).exists()
+            if not is_club_admin and not is_member:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+            financial_years = list(club.financial_years.order_by("-start_date")[:25])
+        except Club.DoesNotExist:
+            return redirect("clubs:index")
+        return render(
+            request,
+            "clubs/financial_year_list.html",
+            {"club": club, "financial_years": financial_years},
+        )

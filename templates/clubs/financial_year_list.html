@@ -1,0 +1,117 @@
+{% extends "clubs/dashboard_base.html" %}
+{% load static %}
+{% block page_title %}Reports{% if club %} — {{ club.name }}{% endif %} — SavingsInc{% endblock %}
+{% block nav_reports_active %}active{% endblock %}
+{% block reports_url %}
+    {% url 'clubs:financial-year-report-list' %}
+{% endblock %}
+{% block content %}
+    <style>
+        .si-fy-row { cursor: pointer; }
+        .si-fy-icon {
+            width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+            background: var(--si-green-100); color: var(--si-green-700);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .si-fy-act { text-align: right; }
+    </style>
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">Reports</h1>
+            <p class="si-topbar-subtitle">Choose a financial year to view its contributions and expenses report.</p>
+        </div>
+    </div>
+    <div class="si-page-body">
+        <div class="si-card">
+            {% if financial_years %}
+                <div class="si-table-wrap">
+                    <table class="si-table">
+                        <thead>
+                            <tr>
+                                <th>Financial year</th>
+                                <th>Start date</th>
+                                <th>End date</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fy in financial_years %}
+                                <tr class="si-fy-row">
+                                    <td>
+                                        <div class="si-member-cell">
+                                            <div class="si-fy-icon">
+                                                <svg width="17"
+                                                     height="17"
+                                                     viewBox="0 0 24 24"
+                                                     fill="none"
+                                                     stroke="currentColor"
+                                                     stroke-width="1.8"
+                                                     stroke-linecap="round"
+                                                     stroke-linejoin="round">
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                                                    <path d="M16 2v4M8 2v4M3 10h18" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="si-member-name">FY {{ fy.start_date|date:"Y" }}</div>
+                                                <div class="si-member-email">{% if fy.is_active %}Current year{% else %}Closed{% endif %}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ fy.start_date|date:"M j, Y" }}</td>
+                                    <td>{{ fy.end_date|date:"M j, Y" }}</td>
+                                    <td>
+                                        {% if fy.is_active %}
+                                            <span class="si-badge si-badge-green">ACTIVE</span>
+                                        {% else %}
+                                            <span class="si-badge si-badge-gray">CLOSED</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="si-fy-act">
+                                        <a class="si-view-link"
+                                           href="{% url 'clubs:financial-reports' club.id fy.id %}">
+                                            View report
+                                            <svg width="14"
+                                                 height="14"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M5 12h14M12 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="si-total-label"
+                     style="padding:14px 16px;
+                            border-top:1px solid var(--si-border)">
+                    Showing the {{ financial_years|length }} most recent financial year{{ financial_years|length|pluralize }}
+                </div>
+            {% else %}
+                <div class="si-empty">
+                    Ensure to select a club first. Head over the dashboard for that.
+                    <div style="margin-top:12px">
+                        <a href="{% url 'clubs:index' %}" class="si-btn si-btn-primary">Go to dashboard</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+{% block after_main %}
+    <script>
+        document.querySelectorAll('.si-fy-row').forEach(function (r) {
+            r.addEventListener('click', function (e) {
+                if (e.target.closest('a')) return;
+                r.querySelector('.si-view-link').click();
+            });
+        });
+    </script>
+{% endblock %}

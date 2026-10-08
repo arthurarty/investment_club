@@ -104,6 +104,131 @@ body {
   margin: 0;
 }
 
+/* ── Club switcher ───────────────────────────────────── */
+.si-switch {
+  position: relative;
+  padding-top: 12px;
+}
+
+.si-switch-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--si-radius-md);
+  color: #fff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.si-switch-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.si-switch-btn > svg {
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.45);
+  transition: transform 0.15s;
+}
+
+.si-switch.open .si-switch-btn > svg { transform: rotate(180deg); }
+
+.si-switch-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--si-green-100);
+  color: var(--si-green-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.si-switch-meta { flex: 1; min-width: 0; }
+
+.si-switch-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.si-switch-sub {
+  display: block;
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.si-switch-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--si-green-800);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--si-radius-md);
+  box-shadow: var(--si-shadow-lg);
+  z-index: 10;
+}
+
+.si-switch.open .si-switch-menu { display: flex; }
+
+.si-switch-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: var(--si-radius-sm);
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.si-switch-opt:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  text-decoration: none;
+}
+
+.si-switch-opt.current { color: #fff; font-weight: 600; }
+
+.si-switch-opt-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.si-switch-opt .si-switch-badge { width: 22px; height: 22px; font-size: 10px; border-radius: 6px; }
+.si-switch-check { color: var(--si-green-400); }
+
+.si-switch-opt-all {
+  margin-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0 0 var(--si-radius-sm) var(--si-radius-sm);
+  padding-top: 9px;
+  color: rgba(255,255,255,0.55);
+}
+
 .si-sidebar-nav {
   flex: 1;
   padding-top: 12px;
