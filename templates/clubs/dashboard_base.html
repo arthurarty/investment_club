@@ -110,16 +110,16 @@
                 </div>
                 <hr class="si-sidebar-divider">
                 {% if sidebar_current_club %}
-                    <div class="si-club-switch">
+                    <div class="si-switch">
                         <span class="si-nav-section-label">Current club</span>
-                        <button class="si-club-btn"
+                        <button class="si-switch-btn"
                                 type="button"
                                 aria-haspopup="true"
                                 aria-expanded="false">
-                            <span class="si-club-badge">{{ sidebar_current_club.name|slice:":1"|upper }}</span>
-                            <span class="si-club-meta">
-                                <span class="si-club-name" title="{{ sidebar_current_club.name }}">{{ sidebar_current_club.name }}</span>
-                                <span class="si-club-sub">{{ sidebar_current_club_member_count }} member{{ sidebar_current_club_member_count|pluralize }}</span>
+                            <span class="si-switch-badge">{{ sidebar_current_club.name|slice:":1"|upper }}</span>
+                            <span class="si-switch-meta">
+                                <span class="si-switch-name" title="{{ sidebar_current_club.name }}">{{ sidebar_current_club.name }}</span>
+                                <span class="si-switch-sub">{{ sidebar_current_club_member_count }} member{{ sidebar_current_club_member_count|pluralize }}</span>
                             </span>
                             <svg width="16"
                                  height="16"
@@ -132,17 +132,18 @@
                                 <path d="M6 9l6 6 6-6" />
                             </svg>
                         </button>
-                        <div class="si-club-menu" role="menu">
+                        <div class="si-switch-menu" role="menu">
                             {% for c in sidebar_clubs %}
-                                <a class="si-club-opt {% if c.id == sidebar_current_club.id %}current{% endif %}"
+                                <a class="si-switch-opt {% if c.id == sidebar_current_club.id %}current{% endif %}"
                                    href="{% url 'clubs:detail' c.id %}"
                                    role="menuitem">
-                                    <span class="si-club-badge">{{ c.name|slice:":1"|upper }}</span>
-                                    <span class="si-club-opt-name">{{ c.name }}</span>
-                                    {% if c.id == sidebar_current_club.id %}<span class="si-club-check">✓</span>{% endif %}
+                                    <span class="si-switch-badge">{{ c.name|slice:":1"|upper }}</span>
+                                    <span class="si-switch-opt-name">{{ c.name }}</span>
+                                    {% if c.id == sidebar_current_club.id %}<span class="si-switch-check">✓</span>{% endif %}
                                 </a>
                             {% endfor %}
-                            <a class="si-club-opt si-club-opt-all" href="{% url 'clubs:index' %}">View all clubs</a>
+                            <a class="si-switch-opt si-switch-opt-all"
+                               href="{% url 'clubs:index' %}">View all clubs</a>
                         </div>
                     </div>
                 {% endif %}
@@ -243,9 +244,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- SavingsInc club switcher -->
         <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var wrap = document.querySelector('.si-club-switch');
+  var wrap = document.querySelector('.si-switch');
   if (!wrap) return;
-  var btn = wrap.querySelector('.si-club-btn');
+  var btn = wrap.querySelector('.si-switch-btn');
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     btn.setAttribute('aria-expanded', wrap.classList.toggle('open'));
