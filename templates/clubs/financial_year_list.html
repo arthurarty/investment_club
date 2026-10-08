@@ -1,0 +1,38 @@
+{% extends "clubs/dashboard_base.html" %}
+{% load static %}
+{% block page_title %}{{ club.name }} — Financial Years — SavingsInc{% endblock %}
+{% block nav_dashboard_active %}active{% endblock %}
+{% block content %}
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">{{ club.name }}</h1>
+            <p class="si-topbar-subtitle">Financial Years (most recent 25)</p>
+        </div>
+    </div>
+    {% if financial_years %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Start date</th>
+                    <th>End date</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fy in financial_years %}
+                    <tr>
+                        <td>{{ fy.start_date }}</td>
+                        <td>{{ fy.end_date }}</td>
+                        <td>{% if fy.is_active %}Active{% else %}Closed{% endif %}</td>
+                        <td>
+                            <a href="{% url 'clubs:financial-year-detail' club.id fy.id %}">View</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No financial years have been created for this club yet.</p>
+    {% endif %}
+{% endblock %}
