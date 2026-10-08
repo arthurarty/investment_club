@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
 
+from clubs.context_processors import CURRENT_CLUB_SESSION_KEY
 from clubs.forms.club_creation_form import ClubCreationForm
 from clubs.forms.club_financials_forms import (
     FinancialYearForm,
@@ -99,6 +100,7 @@ class ClubDetailView(LoginRequiredMixin, View):
         if not creator_or_admin and not is_member:
             return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
 
+        request.session[CURRENT_CLUB_SESSION_KEY] = club.id
         members = club.members.select_related("user").all()[:25]
         financial_years = FinancialYear.objects.filter(club=club).order_by(
             "-start_date"
