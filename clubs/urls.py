@@ -6,10 +6,10 @@ from clubs.views.club_financial_view import (
     FinancialTransactionCreateView,
     FinancialYearDueCreateView,
     FinancialYearIndividualDueCreateView,
-    FinancialYearListView,
     FinancialYearParticipantCreateView,
 )
 from clubs.views.club_reports_view import (
+    FinancialReportListView,
     FinancialReportView,
     SendMonthlyReportEmailsView,
 )
@@ -33,11 +33,6 @@ urlpatterns = [
         "<int:club_id>/member/<int:member_id>/",
         ClubMemberShipDetailView.as_view(),
         name="club-member-detail",
-    ),
-    path(
-        "financial-years/",
-        FinancialYearListView.as_view(),
-        name="financial-year-list",
     ),
     path(
         "<int:club_id>/financial-year/",
@@ -68,6 +63,11 @@ urlpatterns = [
         "<int:club_id>/financial-year/<int:financial_year_id>/participant/",
         FinancialYearParticipantCreateView.as_view(),
         name="financial-year-participant",
+    ),
+    path(
+        "reports/",
+        FinancialReportListView.as_view(),
+        name="financial-year-list",
     ),
     path(
         "<int:club_id>/financial-year/<int:financial_year_id>/reports/",

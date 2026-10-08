@@ -8,7 +8,6 @@ from django.db.models import QuerySet
 from django.shortcuts import redirect, render
 from django.views import View
 
-from clubs.context_processors import CURRENT_CLUB_SESSION_KEY
 from clubs.emails import send_contribution_email
 from clubs.forms.club_financials_forms import (
     FinancialTransactionForm,
@@ -324,23 +323,4 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
             request,
             "clubs/financial_year_detail.html",
             prepare_financial_year_context(club, financial_year, allowed),
-        )
-
-
-class FinancialYearListView(LoginRequiredMixin, View):
-    def get(self, request):
-        try:
-            club_id = request.session.get(CURRENT_CLUB_SESSION_KEY)
-            club = Club.objects.get(id=club_id)
-            is_club_admin = is_club_admin_or_creator(request, club)
-            is_member = club.members.filter(user=request.user).exists()
-            if not is_club_admin and not is_member:
-                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
-            financial_years = list(club.financial_years.order_by("-start_date")[:25])
-        except Club.DoesNotExist:
-            return redirect("clubs:index")
-        return render(
-            request,
-            "clubs/financial_year_list.html",
-            {"club": club, "financial_years": financial_years},
         )

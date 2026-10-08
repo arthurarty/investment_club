@@ -2,6 +2,9 @@
 {% load static %}
 {% block page_title %}Savings Clubs — SavingsInc{% endblock %}
 {% block nav_dashboard_active %}active{% endblock %}
+{% block reports_url %}
+    {% url 'clubs:financial-year-list' %}
+{% endblock %}
 {% block content %}
     <div class="si-topbar">
         <div>
