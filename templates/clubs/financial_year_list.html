@@ -1,6 +1,6 @@
 {% extends "clubs/dashboard_base.html" %}
 {% load static %}
-{% block page_title %}Reports — {{ club.name }} — SavingsInc{% endblock %}
+{% block page_title %}Reports{% if club %} — {{ club.name }}{% endif %} — SavingsInc{% endblock %}
 {% block nav_reports_active %}active{% endblock %}
 {% block reports_url %}
     {% url 'clubs:financial-year-report-list' %}
@@ -95,7 +95,12 @@
                     Showing the {{ financial_years|length }} most recent financial year{{ financial_years|length|pluralize }}
                 </div>
             {% else %}
-                <div class="si-empty">No financial years have been created for this club yet.</div>
+                <div class="si-empty">
+                    Ensure to select a club first. Head over the dashboard for that.
+                    <div style="margin-top:12px">
+                        <a href="{% url 'clubs:index' %}" class="si-btn si-btn-primary">Go to dashboard</a>
+                    </div>
+                </div>
             {% endif %}
         </div>
     </div>

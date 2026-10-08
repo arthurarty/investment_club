@@ -689,6 +689,12 @@ class FinancialReportListView(LoginRequiredMixin, View):
     def get(self, request):
         try:
             club_id = request.session.get(CURRENT_CLUB_SESSION_KEY)
+            if club_id is None:
+                messages.error(
+                    request,
+                    "Please select an investment club first to view its reports.",
+                )
+                return render(request, "clubs/financial_year_list.html")
             club = Club.objects.get(id=club_id)
             is_club_admin = is_club_admin_or_creator(request, club)
             is_member = club.members.filter(user=request.user).exists()
