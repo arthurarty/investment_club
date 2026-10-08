@@ -4,7 +4,7 @@
 {% block page_title %}Reports — {{ club.name }} — SavingsInc{% endblock %}
 {% block nav_reports_active %}active{% endblock %}
 {% block reports_url %}
-    {% url 'clubs:financial-reports' club.id financial_year.id %}
+    {% url 'clubs:financial-year-list' %}
 {% endblock %}
 {% block content %}
     <div class="si-topbar">
