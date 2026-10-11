@@ -1240,7 +1240,7 @@ textarea.form-control { resize: vertical; }
   padding-bottom: 14px;
 }
 /* Monthly report: "this month" columns */
-.si-table th.si-col-month, .si-table td.si-col-month { background: var(--si-green-50); }
+.si-table th.si-col-month, .si-table td.si-col-month { background: #fbfaf6; }
 .si-table th.si-col-month { color: var(--si-green-700); }
 .si-table th.si-col-sep, .si-table td.si-col-sep { border-left: 1px solid var(--si-border); }
 .si-table .si-unpaid { color: var(--si-text-3); }
