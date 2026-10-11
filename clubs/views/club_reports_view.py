@@ -59,6 +59,8 @@ class ParticipantDue:
     due: float
     total_credit: float
     total_debit: float
+    month_due: float = 0
+    month_paid: float = 0
 
 
 @dataclass
@@ -81,6 +83,8 @@ class FinancialReportContext:
     active_tab: str
     sum_due: float
     sum_paid: float
+    sum_month_due: float
+    sum_month_paid: float
     total_members: int
     is_club_admin: bool
 
@@ -160,14 +164,33 @@ def compute_monthly_due(dues, no_of_months: int) -> float:
     return total_due * no_of_months
 
 
-def calculate_monthly_due_for_participant(
+def calculate_due_for_selected_month(
+    dues,
+    participant: FinancialYearParticipant,
+    selected_month_obj: datetime,
+) -> float:
+    """
+    Calculate what falls due for the participant in the selected month only:
+    the monthly contributions plus individual dues dated within that month.
+    """
+    monthly_dues = compute_monthly_due(dues, 1)
+    individual_dues = IndividualDue.objects.filter(
+        financial_year=participant.financial_year,
+        club_member=participant.club_member,
+        due_date__year=selected_month_obj.year,
+        due_date__month=selected_month_obj.month,
+    ).aggregate(total_individual_due=Sum("amount"))
+    return monthly_dues + (individual_dues["total_individual_due"] or 0)
+
+
+def calculate_cumulative_due_up_to_selected_month(
     dues,
     participant: FinancialYearParticipant,
     no_of_months: int,
     selected_month_obj: datetime,
 ) -> float:
     """
-    Calculate the due for given participant.
+    Calculate the due for given participant, includes all months upto current month.
     """
     monthly_dues = compute_monthly_due(dues, no_of_months)
     individual_dues = IndividualDue.objects.filter(
@@ -253,7 +276,7 @@ class FinancialReportView(LoginRequiredMixin, View):
         ).select_related("club_member__user")
         participant_dues = []
         for participant in participants:
-            participant_due = calculate_monthly_due_for_participant(
+            participant_due = calculate_cumulative_due_up_to_selected_month(
                 applicable_dues, participant, no_of_months, selected_month_obj
             )
             transaction_sums = self.get_participants_transactions(
@@ -267,6 +290,16 @@ class FinancialReportView(LoginRequiredMixin, View):
                     due=participant_due,
                     total_credit=transaction_sums["total_credit"] or 0,
                     total_debit=transaction_sums["total_debit"] or 0,
+                    month_due=calculate_due_for_selected_month(
+                        applicable_dues, participant, selected_month_obj
+                    ),
+                    month_paid=FinancialTransaction.objects.filter(
+                        financial_year=financial_year,
+                        club_member=participant.club_member,
+                        transaction_date__year=selected_year,
+                        transaction_date__month=selected_month,
+                    ).aggregate(total=Sum("credit"))["total"]
+                    or 0,
                 )
             )
         return participant_dues
@@ -362,6 +395,8 @@ class FinancialReportView(LoginRequiredMixin, View):
             ),
             sum_due=sum(p.due for p in member_options),
             sum_paid=sum(p.total_credit for p in member_options),
+            sum_month_due=sum(p.month_due for p in member_options),
+            sum_month_paid=sum(p.month_paid for p in member_options),
             total_members=len(member_options),
             is_club_admin=club.members.filter(
                 user=request.user, is_admin=True
