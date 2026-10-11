@@ -216,7 +216,9 @@
                             <thead>
                                 <tr>
                                     <th>Member</th>
-                                    <th>Total Due</th>
+                                    <th class="si-col-month si-col-sep">Due this month</th>
+                                    <th class="si-col-month">Paid this month</th>
+                                    <th class="si-col-sep">Total Due</th>
                                     <th>Total Paid</th>
                                 </tr>
                             </thead>
@@ -231,12 +233,20 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><span class="mono">{{ participant_due.due|floatformat:1|intcomma }}</span></td>
+                                        <td class="si-col-month si-col-sep">
+                                            <span class="mono">{{ participant_due.month_due|floatformat:1|intcomma }}</span>
+                                        </td>
+                                        <td class="si-col-month">
+                                            <span class="mono {% if participant_due.month_paid %}credit{% else %}si-unpaid{% endif %}">{{ participant_due.month_paid|floatformat:1|intcomma }}</span>
+                                        </td>
+                                        <td class="si-col-sep">
+                                            <span class="mono">{{ participant_due.due|floatformat:1|intcomma }}</span>
+                                        </td>
                                         <td><span class="credit mono">{{ participant_due.total_credit|floatformat:1|intcomma }}</span></td>
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="3"
+                                        <td colspan="5"
                                             style="text-align:center;
                                                    color:var(--si-text-3);
                                                    padding:32px">No participant data for this period.</td>
@@ -253,7 +263,13 @@
                                                 <span class="si-total-count">all {{ total_members }} member{{ total_members|pluralize }}</span>
                                             </div>
                                         </td>
+                                        <td class="si-col-sep">
+                                            <span class="mono">{{ sum_month_due|floatformat:1|intcomma }}</span>
+                                        </td>
                                         <td>
+                                            <span class="credit mono">{{ sum_month_paid|floatformat:1|intcomma }}</span>
+                                        </td>
+                                        <td class="si-col-sep">
                                             <span class="mono">{{ sum_due|floatformat:1|intcomma }}</span>
                                         </td>
                                         <td>

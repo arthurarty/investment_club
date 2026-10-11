@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from django.core import mail
 from django.test import TestCase, override_settings
@@ -10,10 +10,15 @@ from clubs.models import (
     ClubMembership,
     FinancialTransaction,
     FinancialYear,
+    FinancialYearContribution,
     FinancialYearParticipant,
     IndividualDue,
 )
-from clubs.views.club_reports_view import FinancialReportView
+from clubs.views.club_reports_view import (
+    FinancialReportView,
+    calculate_cumulative_due_up_to_selected_month,
+    calculate_due_for_selected_month,
+)
 
 
 class TestGetNoOfMonths(TestCase):
@@ -371,3 +376,106 @@ class TestIndividualDuesAcrossCalendarYears(TestCase):
         url = reverse("clubs:financial-reports", args=[self.club.id, self.fy.id])
         response = self.client.get(url, {"month": 10, "year": 2023})
         self.assertEqual(response.context["participant_dues"][0].due, 0)
+
+
+class TestParticipantDueCalculations(TestCase):
+    """
+    Tests for calculate_due_for_selected_month and
+    calculate_cumulative_due_up_to_selected_month.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(email="a@example.com", password="x")
+        self.other_user = User.objects.create_user(email="b@example.com", password="x")
+        self.club = Club.objects.create(
+            name="Finance Club",
+            description="d",
+            contact_email="c@example.com",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.fy = FinancialYear.objects.create(
+            club=self.club,
+            start_date=date(2023, 10, 1),
+            end_date=date(2024, 9, 30),
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        FinancialYearContribution.objects.create(
+            financial_year=self.fy,
+            amount=50,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.member = ClubMembership.objects.create(
+            user=self.user, club=self.club, invited_by=self.user
+        )
+        other_member = ClubMembership.objects.create(
+            user=self.other_user, club=self.club, invited_by=self.user
+        )
+        self.participant = FinancialYearParticipant.objects.create(
+            club_member=self.member,
+            financial_year=self.fy,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.dues = self.fy.contributions.all()
+        self._add_due(self.member, 100, date(2023, 11, 5))
+        self._add_due(self.member, 30, date(2023, 11, 28))
+        self._add_due(self.member, 20, date(2024, 1, 10))
+        self._add_due(other_member, 999, date(2023, 11, 10))
+
+    def _add_due(self, member, amount, due_date):
+        IndividualDue.objects.create(
+            financial_year=self.fy,
+            club_member=member,
+            description="Fine",
+            amount=amount,
+            due_date=due_date,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+    def test_selected_month_includes_only_that_months_individual_dues(self):
+        due = calculate_due_for_selected_month(
+            self.dues, self.participant, datetime(2023, 11, 1)
+        )
+        self.assertEqual(due, 50 + 100 + 30)
+
+    def test_selected_month_without_individual_dues_is_monthly_contribution(self):
+        due = calculate_due_for_selected_month(
+            self.dues, self.participant, datetime(2023, 12, 1)
+        )
+        self.assertEqual(due, 50)
+
+    def test_selected_month_matches_month_in_other_year_only_by_year(self):
+        due = calculate_due_for_selected_month(
+            self.dues, self.participant, datetime(2024, 11, 1)
+        )
+        self.assertEqual(due, 50)
+
+    def test_cumulative_includes_earlier_individual_dues(self):
+        due = calculate_cumulative_due_up_to_selected_month(
+            self.dues, self.participant, 4, datetime(2024, 1, 1)
+        )
+        self.assertEqual(due, 50 * 4 + 100 + 30 + 20)
+
+    def test_cumulative_includes_due_on_last_day_of_selected_month(self):
+        due = calculate_cumulative_due_up_to_selected_month(
+            self.dues, self.participant, 2, datetime(2023, 11, 1)
+        )
+        self.assertEqual(due, 50 * 2 + 100 + 30)
+
+    def test_cumulative_excludes_later_individual_dues(self):
+        due = calculate_cumulative_due_up_to_selected_month(
+            self.dues, self.participant, 1, datetime(2023, 10, 1)
+        )
+        self.assertEqual(due, 50)
+
+    def test_no_contributions_gives_only_individual_dues(self):
+        due = calculate_due_for_selected_month(
+            FinancialYearContribution.objects.none(),
+            self.participant,
+            datetime(2023, 11, 1),
+        )
+        self.assertEqual(due, 130)
