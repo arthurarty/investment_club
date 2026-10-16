@@ -124,7 +124,7 @@
                       id="member-filter-wrap"
                       method="get"
                       action="{% url 'clubs:financial-reports' club.id financial_year.id %}"
-                      {% if not selected_member and active_tab != 'monthly' %}hidden{% endif %}>
+                      {% if not selected_member and active_tab != 'monthly' %} hidden {% endif %}>
                     <input type="hidden" name="month" value="{{ selected_month.month }}">
                     <input type="hidden" name="year" value="{{ selected_month.year }}">
                     <input type="hidden" name="tab" value="monthly">
@@ -169,23 +169,25 @@
                                                     <div class="si-avatar sm">{{ trans.club_member.user.first_name|slice:":1"|upper }}{{ trans.club_member.user.last_name|slice:":1"|upper }}</div>
                                                     <span style="font-size:12px;color:var(--si-text-2);">{{ trans.club_member.user.first_name }} {{ trans.club_member.user.last_name }}</span>
                                                 </div>
-                                {% else %}<span style="color:var(--si-text-3);">—</span>{% endif %}
-                                    </td>
-                                    <td style="color:var(--si-text-2);">{{ trans.description }}</td>
-                                    <td>
-                                        {% if trans.credit %}
-                                            <span class="credit mono">{{ trans.credit|floatformat:1|intcomma }}</span>
-                                        {% else %}
-                                            <span style="color:var(--si-text-3);">—</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if trans.debit %}
-                                            <span class="debit mono">{{ trans.debit|floatformat:1|intcomma }}</span>
-                                        {% else %}
-                                            <span style="color:var(--si-text-3);">—</span>
-                                        {% endif %}
-                                    </td>
+                                            {% else %}
+                                                <span style="color:var(--si-text-3);">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="color:var(--si-text-2);">{{ trans.description }}</td>
+                                        <td>
+                                            {% if trans.credit %}
+                                                <span class="credit mono">{{ trans.credit|floatformat:1|intcomma }}</span>
+                                            {% else %}
+                                                <span style="color:var(--si-text-3);">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if trans.debit %}
+                                                <span class="debit mono">{{ trans.debit|floatformat:1|intcomma }}</span>
+                                            {% else %}
+                                                <span style="color:var(--si-text-3);">—</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -220,6 +222,7 @@
                                     <th class="si-col-month">Paid this month</th>
                                     <th class="si-col-sep">Total Due</th>
                                     <th>Total Paid</th>
+                                    <th>Outstanding</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -243,6 +246,7 @@
                                             <span class="mono">{{ participant_due.due|floatformat:1|intcomma }}</span>
                                         </td>
                                         <td><span class="credit mono">{{ participant_due.total_credit|floatformat:1|intcomma }}</span></td>
+                                        <td><span class="mono">{{ participant_due.total_outstanding|floatformat:1|intcomma }}</span></td>
                                     </tr>
                                 {% empty %}
                                     <tr>
