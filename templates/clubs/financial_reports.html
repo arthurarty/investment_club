@@ -246,7 +246,7 @@
                                             <span class="mono">{{ participant_due.due|floatformat:1|intcomma }}</span>
                                         </td>
                                         <td><span class="credit mono">{{ participant_due.total_credit|floatformat:1|intcomma }}</span></td>
-                                        <td><span class="mono">{{ participant_due.total_outstanding|floatformat:1|intcomma }}</span></td>
+                                        <td><span class="debit mono">{{ participant_due.total_outstanding|floatformat:1|intcomma }}</span></td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -278,6 +278,9 @@
                                         </td>
                                         <td>
                                             <span class="credit mono">{{ sum_paid|floatformat:1|intcomma }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="debit mono">{{ sum_outstanding|floatformat:1|intcomma }}</span>
                                         </td>
                                     </tr>
                                 </tfoot>
