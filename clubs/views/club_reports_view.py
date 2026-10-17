@@ -59,6 +59,7 @@ class ParticipantDue:
     due: float
     total_credit: float
     total_debit: float
+    total_outstanding: float
     month_due: float = 0
     month_paid: float = 0
 
@@ -75,12 +76,13 @@ class FinancialReportContext:
     selected_month: datetime
     month_choices: list[tuple[int, str]]
     year_choices: list[tuple[int, int]]
-    sum_credit: float
-    sum_debit: float
     participant_dues: list[ParticipantDue]
     member_options: list[ParticipantDue]
     selected_member: str
     active_tab: str
+    sum_credit: float
+    sum_debit: float
+    sum_outstanding: float
     sum_due: float
     sum_paid: float
     sum_month_due: float
@@ -282,14 +284,17 @@ class FinancialReportView(LoginRequiredMixin, View):
             transaction_sums = self.get_participants_transactions(
                 participant.club_member, financial_year, selected_month_obj
             )
+            total_credit = transaction_sums["total_credit"] or 0
+            total_debit = transaction_sums["total_debit"] or 0
+            total_outstanding = participant_due - total_credit
             participant_dues.append(
                 ParticipantDue(
                     user_id=participant.club_member.user_id,
                     first_name=participant.club_member.user.first_name,
                     last_name=participant.club_member.user.last_name,
                     due=participant_due,
-                    total_credit=transaction_sums["total_credit"] or 0,
-                    total_debit=transaction_sums["total_debit"] or 0,
+                    total_credit=total_credit,
+                    total_debit=total_debit,
                     month_due=calculate_due_for_selected_month(
                         applicable_dues, participant, selected_month_obj
                     ),
@@ -300,6 +305,7 @@ class FinancialReportView(LoginRequiredMixin, View):
                         transaction_date__month=selected_month,
                     ).aggregate(total=Sum("credit"))["total"]
                     or 0,
+                    total_outstanding=total_outstanding,
                 )
             )
         return participant_dues
@@ -376,6 +382,8 @@ class FinancialReportView(LoginRequiredMixin, View):
         else:
             selected_member = ""
         year_choices = [(y, y) for y in fy_years]
+        sum_paid = sum(p.total_credit for p in member_options)
+        sum_due = sum(p.due for p in member_options)
         context = FinancialReportContext(
             club=club,
             financial_year=financial_year,
@@ -393,10 +401,11 @@ class FinancialReportView(LoginRequiredMixin, View):
                 if selected_member or request.GET.get("tab") == "monthly"
                 else "cashflow"
             ),
-            sum_due=sum(p.due for p in member_options),
-            sum_paid=sum(p.total_credit for p in member_options),
+            sum_due=sum_due,
+            sum_paid=sum_paid,
             sum_month_due=sum(p.month_due for p in member_options),
             sum_month_paid=sum(p.month_paid for p in member_options),
+            sum_outstanding=sum_due - sum_paid,
             total_members=len(member_options),
             is_club_admin=club.members.filter(
                 user=request.user, is_admin=True
