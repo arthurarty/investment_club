@@ -147,6 +147,57 @@
                         </div>
                     </div>
                 {% endif %}
+                {% if sidebar_current_club and sidebar_current_financial_year %}
+                    <div class="si-switch si-switch-fy">
+                        <span class="si-nav-section-label">Financial year</span>
+                        <button class="si-switch-btn"
+                                type="button"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="si-switch-badge si-switch-icon">
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="1.8"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <rect x="3" y="5" width="18" height="16" rx="2" />
+                                    <path d="M3 10h18M8 3v4M16 3v4" />
+                                </svg>
+                            </span>
+                            <span class="si-switch-meta">
+                                <span class="si-switch-name">FY {{ sidebar_current_financial_year.start_date.year }}{% if sidebar_current_financial_year == sidebar_latest_financial_year %}<span class="si-fy-tag">Latest</span>{% endif %}</span>
+                                <span class="si-switch-sub">{{ sidebar_current_financial_year.start_date|date:"M j" }} – {{ sidebar_current_financial_year.end_date|date:"M j, Y" }}</span>
+                            </span>
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+                        <div class="si-switch-menu" role="menu">
+                            {% for fy in sidebar_financial_years %}
+                                <a class="si-switch-opt {% if fy.id == sidebar_current_financial_year.id %}current{% endif %}"
+                                   href="{% url 'clubs:financial-year-detail' sidebar_current_club.id fy.id %}"
+                                   role="menuitem">
+                                    <span class="si-switch-opt-name">FY {{ fy.start_date.year }}
+                                        <span class="si-switch-opt-dates">{{ fy.start_date|date:"M j" }} – {{ fy.end_date|date:"M j, Y" }}</span>
+                                    </span>
+                                    {% if fy.id == sidebar_current_financial_year.id %}<span class="si-switch-check">✓</span>{% endif %}
+                                </a>
+                            {% endfor %}
+                            <a class="si-switch-opt si-switch-opt-all"
+                               href="{% url 'clubs:financial-year' sidebar_current_club.id %}">View all financial years</a>
+                        </div>
+                    </div>
+                {% endif %}
                 <nav class="si-sidebar-nav">
                     <span class="si-nav-section-label">Navigation</span>
                     <div class="si-nav-items">
@@ -165,6 +216,23 @@
                             </svg>
                             Dashboard
                         </a>
+                        {% if sidebar_current_club and sidebar_current_financial_year %}
+                            <a href="{% url 'clubs:financial-year-detail' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                               class="si-nav-item {% block nav_transactions_active %}{% endblock %}"
+                               title="Transactions for FY {{ sidebar_current_financial_year.start_date.year }}">
+                                <svg width="15"
+                                     height="15"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="1.8"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4" />
+                                </svg>
+                                Transactions
+                            </a>
+                        {% endif %}
                         <a href="{% block reports_url %}#{% endblock %}"
                            class="si-nav-item {% block nav_reports_active %}{% endblock %}">
                             <svg width="15"
@@ -241,21 +309,27 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
         </script>
-        <!-- SavingsInc club switcher -->
+        <!-- SavingsInc sidebar switchers -->
         <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var wrap = document.querySelector('.si-switch');
-  if (!wrap) return;
-  var btn = wrap.querySelector('.si-switch-btn');
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    btn.setAttribute('aria-expanded', wrap.classList.toggle('open'));
+  var wraps = document.querySelectorAll('.si-switch');
+  function closeAll(except) {
+    wraps.forEach(function(w) {
+      if (w === except) return;
+      w.classList.remove('open');
+      w.querySelector('.si-switch-btn').setAttribute('aria-expanded', 'false');
+    });
+  }
+  wraps.forEach(function(wrap) {
+    var btn = wrap.querySelector('.si-switch-btn');
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeAll(wrap);
+      btn.setAttribute('aria-expanded', wrap.classList.toggle('open'));
+    });
   });
   document.addEventListener('click', function(e) {
-    if (!wrap.contains(e.target)) {
-      wrap.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-    }
+    if (!e.target.closest('.si-switch')) closeAll(null);
   });
 });
         </script>

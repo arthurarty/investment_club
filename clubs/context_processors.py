@@ -26,8 +26,20 @@ def current_club(request):
     sidebar_current_club = user_clubs.filter(id=club_id).first()
     if sidebar_current_club is None:
         return {}
+    financial_years = list(
+        sidebar_current_club.financial_years.order_by("-start_date", "-id")[:10]
+    )
+    latest_financial_year = financial_years[0] if financial_years else None
+    financial_year_id = match.kwargs.get("financial_year_id")
+    sidebar_current_financial_year = next(
+        (fy for fy in financial_years if fy.id == financial_year_id),
+        latest_financial_year,
+    )
     return {
         "sidebar_current_club": sidebar_current_club,
         "sidebar_current_club_member_count": sidebar_current_club.members.count(),
         "sidebar_clubs": user_clubs[:10],
+        "sidebar_financial_years": financial_years,
+        "sidebar_latest_financial_year": latest_financial_year,
+        "sidebar_current_financial_year": sidebar_current_financial_year,
     }
