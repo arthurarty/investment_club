@@ -1,10 +1,11 @@
+from datetime import date
 from http import HTTPStatus
 
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import CustomUser as User
-from clubs.models import Club, ClubMembership
+from clubs.models import Club, ClubMembership, FinancialYear
 
 
 class CurrentClubSidebarTestCase(TestCase):
@@ -85,3 +86,33 @@ class CurrentClubSidebarTestCase(TestCase):
         self.assertNotContains(
             response, "Hidden Club", status_code=HTTPStatus.FORBIDDEN
         )
+
+    def _create_fy(self, club, year):
+        return FinancialYear.objects.create(
+            club=club,
+            start_date=date(year, 1, 1),
+            end_date=date(year, 12, 31),
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+    def test_transactions_links_to_latest_financial_year(self):
+        self._create_fy(self.club, 2025)
+        latest = self._create_fy(self.club, 2026)
+        response = self.client.get(reverse("clubs:detail", args=[self.club.id]))
+        self.assertEqual(response.context["sidebar_current_financial_year"], latest)
+        url = reverse("clubs:financial-year-detail", args=[self.club.id, latest.id])
+        self.assertContains(response, f'href="{url}"')
+        self.assertContains(response, "Transactions")
+
+    def test_selected_financial_year_from_url(self):
+        older = self._create_fy(self.club, 2025)
+        self._create_fy(self.club, 2026)
+        response = self.client.get(
+            reverse("clubs:financial-year-detail", args=[self.club.id, older.id])
+        )
+        self.assertEqual(response.context["sidebar_current_financial_year"], older)
+
+    def test_no_financial_year_hides_selector_and_transactions(self):
+        response = self.client.get(reverse("clubs:detail", args=[self.club.id]))
+        self.assertNotContains(response, "Transactions")
