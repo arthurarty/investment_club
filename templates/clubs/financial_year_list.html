@@ -2,9 +2,6 @@
 {% load static %}
 {% block page_title %}Reports{% if club %} — {{ club.name }}{% endif %} — SavingsInc{% endblock %}
 {% block nav_reports_active %}active{% endblock %}
-{% block reports_url %}
-    {% url 'clubs:financial-year-report-list' %}
-{% endblock %}
 {% block content %}
     <style>
         .si-fy-row { cursor: pointer; }
@@ -96,7 +93,7 @@
                 </div>
             {% else %}
                 <div class="si-empty">
-                    Ensure to select a club first. Head over the dashboard for that.
+                    Select a club with at least one financial year to view reports. Or create a financial year.
                     <div style="margin-top:12px">
                         <a href="{% url 'clubs:index' %}" class="si-btn si-btn-primary">Go to dashboard</a>
                     </div>
