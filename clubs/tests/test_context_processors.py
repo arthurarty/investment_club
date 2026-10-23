@@ -116,3 +116,17 @@ class CurrentClubSidebarTestCase(TestCase):
     def test_no_financial_year_hides_selector_and_transactions(self):
         response = self.client.get(reverse("clubs:detail", args=[self.club.id]))
         self.assertNotContains(response, "Transactions")
+
+    def test_reports_links_to_current_financial_year(self):
+        older = self._create_fy(self.club, 2025)
+        self._create_fy(self.club, 2026)
+        response = self.client.get(
+            reverse("clubs:financial-year-detail", args=[self.club.id, older.id])
+        )
+        url = reverse("clubs:financial-reports", args=[self.club.id, older.id])
+        self.assertContains(response, f'href="{url}"')
+
+    def test_reports_links_to_list_without_financial_year(self):
+        response = self.client.get(reverse("clubs:detail", args=[self.club.id]))
+        url = reverse("clubs:financial-year-report-list")
+        self.assertContains(response, f'href="{url}"')

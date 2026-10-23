@@ -233,7 +233,7 @@
                                 Transactions
                             </a>
                         {% endif %}
-                        <a href="{% block reports_url %}#{% endblock %}"
+                        <a href="{% if sidebar_current_club and sidebar_current_financial_year %}{% url 'clubs:financial-reports' sidebar_current_club.id sidebar_current_financial_year.id %}{% else %}{% url 'clubs:financial-year-report-list' %}{% endif %}"
                            class="si-nav-item {% block nav_reports_active %}{% endblock %}">
                             <svg width="15"
                                  height="15"
