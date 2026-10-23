@@ -194,7 +194,7 @@
                                 </a>
                             {% endfor %}
                             <a class="si-switch-opt si-switch-opt-all"
-                               href="{% url 'clubs:financial-year' sidebar_current_club.id %}">View all financial years</a>
+                               href="{% url 'clubs:detail' sidebar_current_club.id %}#financial-years">View all financial years</a>
                         </div>
                     </div>
                 {% endif %}
@@ -350,9 +350,19 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.classList.add('active');
         var pane = paneWrap.querySelector('[data-si-pane="' + target + '"]');
         if (pane) pane.classList.add('active');
+        history.replaceState(null, '', '#' + target);
       });
     });
   });
+  // Open the tab named in the URL hash, e.g. #financial-years
+  var hash = decodeURIComponent(location.hash.slice(1));
+  if (hash) {
+    var hashBtn = Array.prototype.find.call(
+      document.querySelectorAll('.si-tab-btn'),
+      function(b) { return b.dataset.siTab === hash; }
+    );
+    if (hashBtn) hashBtn.click();
+  }
 });
         </script>
     </body>
