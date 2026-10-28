@@ -190,6 +190,7 @@
                                 <tr>
                                     <th>Amount</th>
                                     <th>Frequency</th>
+                                    <th>Description</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -205,6 +206,7 @@
                                                 <span class="si-badge si-badge-gray">{{ due.due_period }}</span>
                                             {% endif %}
                                         </td>
+                                        <td>{{ due.description }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>

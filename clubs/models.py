@@ -156,6 +156,7 @@ class FinancialYearContribution(BaseTimestampedModel, models.Model):
     due_period = models.CharField(
         max_length=20, choices=DuePeriod.choices, default=DuePeriod.MONTHLY
     )
+    description = models.CharField(max_length=1000, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
