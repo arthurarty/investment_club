@@ -4,12 +4,13 @@ from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Sum
 from django.shortcuts import redirect, render
 from django.views import View
 
 from clubs.emails import send_contribution_email
 from clubs.forms.club_financials_forms import (
+    ExpenseForm,
     FinancialTransactionForm,
     FinancialYearContributionForm,
     FinancialYearForm,
@@ -151,6 +152,49 @@ class ClubFinancialYearDetailView(LoginRequiredMixin, View):
             "clubs/financial_year_detail.html",
             prepare_financial_year_context(club, financial_year, is_club_admin),
         )
+
+
+class ClubFinancialYearExpensesView(LoginRequiredMixin, View):
+    """
+    View to list the expenses (debit transactions) of a financial year.
+    """
+
+    def get(self, request, club_id, financial_year_id):
+        """
+        Handle GET requests to display the expenses of a financial year.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            is_club_admin = is_club_admin_or_creator(request, club)
+            is_member = club.members.filter(user=request.user).exists()
+            if not is_club_admin and not is_member:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
+            return redirect("clubs:index")
+        expenses = (
+            FinancialTransaction.objects.filter(
+                financial_year=financial_year, debit__gt=0
+            )
+            .select_related("club_member__user")
+            .order_by("-transaction_date", "-id")
+        )
+        months = [
+            (d.strftime("%Y-%m"), d.strftime("%B %Y"))
+            for d in expenses.dates("transaction_date", "month", order="DESC")
+        ]
+        context = {
+            "club": club,
+            "financial_year": financial_year,
+            "expenses": expenses,
+            "expense_count": len(expenses),
+            "total_spent": expenses.aggregate(total=Sum("debit"))["total"] or 0,
+            "latest_expense": expenses.first(),
+            "months": months,
+            "is_club_admin": is_club_admin,
+            "financial_transaction_form": ExpenseForm(financial_year=financial_year),
+        }
+        return render(request, "clubs/expenses.html", context)
 
 
 class FinancialYearDueCreateView(LoginRequiredMixin, View):

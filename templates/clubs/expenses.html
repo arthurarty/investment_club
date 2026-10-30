@@ -1,0 +1,240 @@
+{% extends "clubs/dashboard_base.html" %}
+{% load static %}
+{% block page_title %}{{ club.name }} — Expenses — SavingsInc{% endblock %}
+{% block nav_expenses_active %}active{% endblock %}
+{% block content %}
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">Expenses</h1>
+            <p class="si-topbar-subtitle">
+                {{ club.name }} · FY {{ financial_year.start_date.year }} ({{ financial_year.start_date|date:"M j" }} – {{ financial_year.end_date|date:"M j, Y" }})
+            </p>
+        </div>
+        {% if is_club_admin %}
+            <div class="si-topbar-actions">
+                <button type="button"
+                        class="si-btn si-btn-primary si-btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#recordExpenseModal">
+                    <svg width="13"
+                         height="13"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Record expense
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}"
+       class="si-back-link">
+        <svg width="12"
+             height="12"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to transactions
+    </a>
+    <div class="si-page-body">
+        <!-- Stat cards -->
+        <div class="si-stat-row">
+            <div class="si-stat-card">
+                <div class="si-stat-header">
+                    <span class="si-stat-label">Spent this year</span>
+                    <div class="si-stat-icon">
+                        <svg width="15"
+                             height="15"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+                            <path d="M9 8h6M9 12h6M9 16h3" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="si-stat-value">Ugx {{ total_spent|floatformat:0 }}</div>
+            </div>
+            <div class="si-stat-card">
+                <div class="si-stat-header">
+                    <span class="si-stat-label">Entries</span>
+                    <div class="si-stat-icon">
+                        <svg width="15"
+                             height="15"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="si-stat-value">{{ expense_count }}</div>
+            </div>
+            <div class="si-stat-card">
+                <div class="si-stat-header">
+                    <span class="si-stat-label">Latest expense</span>
+                    <div class="si-stat-icon">
+                        <svg width="15"
+                             height="15"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="16" rx="2" />
+                            <path d="M3 10h18M8 3v4M16 3v4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="si-stat-value" style="font-size:18px;margin-top:10px;">
+                    {% if latest_expense %}
+                        {{ latest_expense.transaction_date|date:"M j, Y" }}
+                    {% else %}
+                        <span class="muted">—</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Expenses table -->
+        <div class="si-card">
+            <div class="d-flex flex-wrap gap-2 p-3 border-bottom">
+                <input type="search"
+                       id="expenseSearch"
+                       class="form-control"
+                       style="flex:1;
+                              min-width:200px"
+                       placeholder="Search expenses"
+                       aria-label="Search expenses">
+                <select id="expenseMonth"
+                        class="form-select"
+                        style="width:auto;
+                               min-width:160px"
+                        aria-label="Month">
+                    <option value="">All months</option>
+                    {% for value, label in months %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="si-table-wrap">
+                <table class="si-table" id="expenseTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Recorded for</th>
+                            <th style="text-align:right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr data-month="{{ expense.transaction_date|date:'Y-m' }}"
+                                data-amount="{{ expense.debit|floatformat:'0u' }}">
+                                <td>
+                                    <span class="mono">{{ expense.transaction_date|date:"M j, Y" }}</span>
+                                </td>
+                                <td>{{ expense.description }}</td>
+                                <td>
+                                    {% if expense.club_member %}
+                                        <div class="si-member-cell">
+                                            <div class="si-avatar sm">{{ expense.club_member.user.first_name|slice:":1"|upper }}{{ expense.club_member.user.last_name|slice:":1"|upper }}</div>
+                                            <span style="font-size:12px;color:var(--si-text-2);">{{ expense.club_member.user.first_name }} {{ expense.club_member.user.last_name }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align:right">
+                                    <span class="debit">Ugx {{ expense.debit|floatformat:0 }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr id="expenseFoot"{% if not expenses %} hidden{% endif %}>
+                            <td colspan="3" style="font-weight:600">
+                                Total <span class="muted" id="expenseFootCount" style="font-weight:400"></span>
+                            </td>
+                            <td style="text-align:right;font-weight:600" id="expenseFootTotal"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="si-empty" id="expenseEmpty"{% if expenses %} hidden{% endif %}>
+                    <div>
+                        {% if expenses %}
+                            No expenses match these filters.
+                        {% else %}
+                            No expenses recorded yet.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block after_main %}
+    {% if is_club_admin %}
+        <!-- Record Expense Modal -->
+        <div class="modal fade"
+             id="recordExpenseModal"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Record expense</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-transaction' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ financial_transaction_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add expense</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  let rows = document.querySelectorAll('#expenseTable tbody tr');
+  let search = document.getElementById('expenseSearch');
+  let month = document.getElementById('expenseMonth');
+  function apply() {
+    let q = search.value.trim().toLowerCase(), m = month.value, total = 0, n = 0;
+    rows.forEach(function(r) {
+      let ok = (!m || r.dataset.month === m) && (!q || r.textContent.toLowerCase().indexOf(q) > -1);
+      r.hidden = !ok;
+      if (ok) { total += Number(r.dataset.amount); n++; }
+    });
+    document.getElementById('expenseFootTotal').textContent = 'Ugx ' + total.toLocaleString('en-US');
+    document.getElementById('expenseFootCount').textContent = n + (n === 1 ? ' expense' : ' expenses');
+    document.getElementById('expenseFoot').hidden = n === 0;
+    document.getElementById('expenseEmpty').hidden = n > 0 || rows.length === 0;
+  }
+  search.addEventListener('input', apply);
+  month.addEventListener('change', apply);
+  if (rows.length) apply();
+});
+    </script>
+{% endblock %}
