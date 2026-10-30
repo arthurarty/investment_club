@@ -660,9 +660,9 @@
         {% if form.errors %}
             <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var editModalEl = document.getElementById('editMemberModal');
+  const editModalEl = document.getElementById('editMemberModal');
   if (editModalEl) {
-    var editModal = new bootstrap.Modal(editModalEl);
+    const editModal = new bootstrap.Modal(editModalEl);
     editModal.show();
   }
 });

@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- SavingsInc sidebar switchers -->
         <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var wraps = document.querySelectorAll('.si-switch');
+  const wraps = document.querySelectorAll('.si-switch');
   function closeAll(except) {
     wraps.forEach(function(w) {
       if (w === except) return;
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   wraps.forEach(function(wrap) {
-    var btn = wrap.querySelector('.si-switch-btn');
+    const btn = wrap.querySelector('.si-switch-btn');
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       closeAll(wrap);
@@ -353,27 +353,27 @@ document.addEventListener('DOMContentLoaded', function() {
         <script>
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-si-tabs]').forEach(function(tabsEl) {
-    var btns = tabsEl.querySelectorAll('.si-tab-btn');
+    const btns = tabsEl.querySelectorAll('.si-tab-btn');
     btns.forEach(function(btn) {
       btn.addEventListener('click', function() {
-        var target = btn.dataset.siTab;
-        var container = tabsEl.closest('[data-si-tabgroup]') || tabsEl.parentElement;
+        const target = btn.dataset.siTab;
+        const container = tabsEl.closest('[data-si-tabgroup]') || tabsEl.parentElement;
         // Deactivate all tabs and panes in this group
         tabsEl.querySelectorAll('.si-tab-btn').forEach(function(b) { b.classList.remove('active'); });
-        var paneWrap = container.querySelector('[data-si-panes]') || container;
+        const paneWrap = container.querySelector('[data-si-panes]') || container;
         paneWrap.querySelectorAll('.si-tab-pane').forEach(function(p) { p.classList.remove('active'); });
         // Activate selected
         btn.classList.add('active');
-        var pane = paneWrap.querySelector('[data-si-pane="' + target + '"]');
+        const pane = paneWrap.querySelector('[data-si-pane="' + target + '"]');
         if (pane) pane.classList.add('active');
         history.replaceState(null, '', '#' + target);
       });
     });
   });
   // Open the tab named in the URL hash, e.g. #financial-years
-  var hash = decodeURIComponent(location.hash.slice(1));
+  const hash = decodeURIComponent(location.hash.slice(1));
   if (hash) {
-    var hashBtn = Array.prototype.find.call(
+    const hashBtn = Array.prototype.find.call(
       document.querySelectorAll('.si-tab-btn'),
       function(b) { return b.dataset.siTab === hash; }
     );

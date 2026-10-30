@@ -290,7 +290,7 @@
     </div>
     <script>
         (function () {
-            var wrap = document.getElementById('member-filter-wrap');
+            const wrap = document.getElementById('member-filter-wrap');
             document.querySelectorAll('[data-si-tab]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     wrap.hidden = btn.dataset.siTab !== 'monthly';
