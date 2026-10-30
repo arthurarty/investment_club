@@ -10,6 +10,7 @@ from clubs.models import (
     Club,
     ClubMembership,
     DuePeriod,
+    FinancialTransaction,
     FinancialYear,
     FinancialYearContribution,
     FinancialYearParticipant,
@@ -747,3 +748,121 @@ class TestFinancialYearIndividualDueCreateView(MsgTestCase):
             )
         ]
         self.assertMessages(response, expected_messages, ordered=True)
+
+
+class TestClubFinancialYearExpensesView(TestCase):
+    """
+    Test case for the financial year expenses view.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="john.doe@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="Finance Club",
+            description="A club for financial enthusiasts.",
+            contact_email="jane@example.com",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        ClubMembership.objects.create(user=self.user, club=self.club, is_admin=True)
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2026-01-01",
+            end_date="2026-12-31",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        for description, credit, debit in (
+            ("Meeting refreshments", None, 120000),
+            ("Bank charges", None, 15000),
+            ("Monthly contribution", 50000, None),
+        ):
+            FinancialTransaction.objects.create(
+                financial_year=self.financial_year,
+                description=description,
+                credit=credit,
+                debit=debit,
+                transaction_date="2026-10-04",
+                created_by=self.user,
+                updated_by=self.user,
+            )
+        self.url = reverse(
+            "clubs:financial-year-expenses",
+            args=[self.club.id, self.financial_year.id],
+        )
+
+    def test_lists_only_debit_transactions(self):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/expenses.html")
+        self.assertEqual(response.context["expense_count"], 2)
+        self.assertEqual(response.context["total_spent"], 135000)
+        self.assertNotContains(response, "Monthly contribution")
+
+    def test_non_member_forbidden(self):
+        outsider = User.objects.create_user(
+            email="outsider@example.com", password="testPass123"
+        )
+        self.client.force_login(outsider)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+
+class TestExpenseCreateView(TestClubFinancialYearExpensesView):
+    """
+    Test case for recording an expense through the dedicated create view.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.member = ClubMembership.objects.get(user=self.user, club=self.club)
+        FinancialYearParticipant.objects.create(
+            financial_year=self.financial_year,
+            club_member=self.member,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.create_url = reverse(
+            "clubs:financial-year-expense",
+            args=[self.club.id, self.financial_year.id],
+        )
+
+    def test_creates_expense_and_redirects(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.create_url,
+            {
+                "debit": "25000",
+                "transaction_date": "2026-10-05",
+                "description": "Printing",
+            },
+        )
+        self.assertRedirects(response, self.url)
+        expense = FinancialTransaction.objects.get(description="Printing")
+        self.assertEqual(expense.debit, 25000)
+        self.assertIsNone(expense.credit)
+        self.assertEqual(expense.created_by, self.user)
+
+    def test_rejects_non_positive_amount(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.create_url,
+            {"debit": "0", "transaction_date": "2026-10-05", "description": "Bad"},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/expenses.html")
+        self.assertTrue(response.context["expense_form"].errors["debit"])
+        self.assertFalse(FinancialTransaction.objects.filter(description="Bad"))
+
+    def test_non_admin_forbidden(self):
+        other = User.objects.create_user(email="m@example.com", password="testPass123")
+        ClubMembership.objects.create(user=other, club=self.club)
+        self.client.force_login(other)
+        response = self.client.post(
+            self.create_url,
+            {"debit": "100", "transaction_date": "2026-10-05", "description": "X"},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)

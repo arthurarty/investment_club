@@ -8,7 +8,6 @@ from django.db.models import QuerySet
 from django.shortcuts import redirect, render
 from django.views import View
 
-from clubs.emails import send_contribution_email
 from clubs.forms.club_financials_forms import (
     FinancialTransactionForm,
     FinancialYearContributionForm,
@@ -190,55 +189,6 @@ class FinancialYearDueCreateView(LoginRequiredMixin, View):
             request,
             "clubs/financial_year_detail.html",
             prepare_financial_year_context(club, financial_year, allowed),
-        )
-
-
-class FinancialTransactionCreateView(LoginRequiredMixin, View):
-    """
-    View to handle the creation of a new financial transaction for a financial year.
-    """
-
-    def post(self, request, club_id: int, financial_year_id: int):
-        """
-        Handle POST requests to create a new financial transaction.
-
-        A payment from a member is recorded as a transaction.
-        """
-        try:
-            club = Club.objects.get(id=club_id)
-            financial_year = club.financial_years.get(id=financial_year_id)
-            allowed = is_club_admin_or_creator(request, club)
-            if not allowed:
-                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
-        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
-            return redirect("clubs:index")
-        form = FinancialTransactionForm(request.POST, financial_year=financial_year)
-        if not form.is_valid():
-            return render(
-                request,
-                "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year, allowed),
-            )
-        new_transaction = form.save(commit=False)
-        new_transaction.financial_year = financial_year
-        new_transaction.created_by = request.user
-        new_transaction.updated_by = request.user
-        new_transaction.save()
-        messages.success(
-            request,
-            message=f"Transaction '{new_transaction.description}' added successfully.",
-        )
-        send_email = False
-        if new_transaction.credit and not new_transaction.debit:
-            send_email = True
-        if not new_transaction.club_member:
-            send_email = False
-        if send_email:
-            send_contribution_email(new_transaction, request=request)
-        return redirect(
-            "clubs:financial-year-detail",
-            club_id=club.id,
-            financial_year_id=financial_year.id,
         )
 
 

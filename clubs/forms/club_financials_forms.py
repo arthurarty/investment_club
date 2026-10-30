@@ -98,6 +98,29 @@ class FinancialTransactionForm(forms.ModelForm):
             ).select_related("user")
 
 
+class ExpenseForm(FinancialTransactionForm):
+    """
+    Form for recording an expense (money paid out) for a Financial Year.
+    """
+
+    class Meta(FinancialTransactionForm.Meta):
+        fields = ["club_member", "debit", "transaction_date", "description"]
+        labels = {"debit": "Amount"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["debit"].required = True
+
+    def clean_debit(self):
+        """
+        An expense must be a positive amount.
+        """
+        debit = self.cleaned_data["debit"]
+        if debit <= 0:
+            raise forms.ValidationError("The amount must be greater than zero.")
+        return debit
+
+
 class IndividualDueForm(forms.ModelForm):
     """
     Form for creating an IndividualDue for a Financial Year.
