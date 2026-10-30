@@ -809,3 +809,60 @@ class TestClubFinancialYearExpensesView(TestCase):
         self.client.force_login(outsider)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+
+class TestExpenseCreateView(TestClubFinancialYearExpensesView):
+    """
+    Test case for recording an expense through the dedicated create view.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.member = ClubMembership.objects.get(user=self.user, club=self.club)
+        FinancialYearParticipant.objects.create(
+            financial_year=self.financial_year,
+            club_member=self.member,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.create_url = reverse(
+            "clubs:financial-year-expense",
+            args=[self.club.id, self.financial_year.id],
+        )
+
+    def test_creates_expense_and_redirects(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.create_url,
+            {
+                "debit": "25000",
+                "transaction_date": "2026-10-05",
+                "description": "Printing",
+            },
+        )
+        self.assertRedirects(response, self.url)
+        expense = FinancialTransaction.objects.get(description="Printing")
+        self.assertEqual(expense.debit, 25000)
+        self.assertIsNone(expense.credit)
+        self.assertEqual(expense.created_by, self.user)
+
+    def test_rejects_non_positive_amount(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.create_url,
+            {"debit": "0", "transaction_date": "2026-10-05", "description": "Bad"},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/expenses.html")
+        self.assertTrue(response.context["expense_form"].errors["debit"])
+        self.assertFalse(FinancialTransaction.objects.filter(description="Bad"))
+
+    def test_non_admin_forbidden(self):
+        other = User.objects.create_user(email="m@example.com", password="testPass123")
+        ClubMembership.objects.create(user=other, club=self.club)
+        self.client.force_login(other)
+        response = self.client.post(
+            self.create_url,
+            {"debit": "100", "transaction_date": "2026-10-05", "description": "X"},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
