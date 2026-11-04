@@ -232,6 +232,8 @@
                                 </svg>
                                 Transactions
                             </a>
+                            <a href="{% url 'clubs:financial-year-dues' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                               class="si-nav-item {% block nav_dues_active %}{% endblock %}">Dues</a>
                             <a href="{% url 'clubs:financial-year-expenses' sidebar_current_club.id sidebar_current_financial_year.id %}"
                                class="si-nav-item {% block nav_expenses_active %}{% endblock %}"
                                title="Expenses for FY {{ sidebar_current_financial_year.start_date.year }}">
