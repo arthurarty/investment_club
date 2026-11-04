@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Custom apps
     "accounts",
     "clubs",
+    "website",
     "django_recaptcha",
 ]
 

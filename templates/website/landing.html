@@ -1,0 +1,394 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome — SavingsInc</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+              rel="stylesheet">
+        <link href="{% static 'css/landing.css' %}" rel="stylesheet">
+    </head>
+    <body>
+        <header class="top">
+            <div class="wrap nav">
+                <a class="brand" href="{% url 'website:landing' %}">
+                    <div class="brand-mark">
+                        <svg viewBox="0 0 24 24"
+                             width="22"
+                             height="22"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 8v8M8 12h8"></path>
+                        </svg>
+                    </div>
+                    <span class="brand-name">SavingsInc</span>
+                </a>
+                <nav class="links">
+                    <a href="#impact">Impact</a>
+                    <a href="#features">What it does</a>
+                    <a href="#how">How it works</a>
+                </nav>
+                <a class="btn btn-outline" href="#how">Register a club</a>
+                <a class="btn btn-light" href="{% url 'accounts:index' %}">
+                    Sign in
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        </header>
+        <section class="hero">
+            <div class="wrap hero-grid">
+                <div>
+                    <span class="eyebrow">Built for savings clubs</span>
+                    <h1>Every shilling counted. <em>Every member</em> trusted.</h1>
+                    <p class="lead">Savings clubs already help millions of Ugandans pay school fees, grow farms and start businesses. SavingsInc replaces the passbook and the exercise book with clear, shared records, so your club can spend meetings on growth instead of arithmetic.</p>
+                    <div class="hero-cta">
+                        <a class="btn btn-light" href="{% url 'accounts:index' %}">
+                            Sign in to your club
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M5 12h14"></path>
+                                <path d="M12 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                        <a class="btn btn-outline" href="#impact">See the impact</a>
+                    </div>
+                    <p class="hero-note">Made for investment clubs, SACCO groups and merry-go-rounds.</p>
+                </div>
+                <div class="ledger" aria-label="Example club summary">
+                    <div class="ledger-head">
+                        <div>
+                            <div class="ledger-club">Xcel Investment Club</div>
+                            <div class="ledger-sub">October 2026 · 24 members</div>
+                        </div>
+                        <span class="pill">Books balanced</span>
+                    </div>
+                    <div class="ledger-total">
+                        <small>Total club savings</small>
+                        <strong>UGX 18,450,000</strong>
+                    </div>
+                    <div class="row">
+                        <div class="av">NA</div>
+                        <div class="who">Nakato Aisha<span>Monthly contribution</span></div>
+                        <div class="amt">+ 200,000</div>
+                    </div>
+                    <div class="row">
+                        <div class="av b">OS</div>
+                        <div class="who">Okello Samuel<span>Loan repayment</span></div>
+                        <div class="amt">+ 350,000</div>
+                    </div>
+                    <div class="row">
+                        <div class="av c">KM</div>
+                        <div class="who">Kato Moses<span>Loan disbursed · school fees</span></div>
+                        <div class="amt out">− 1,200,000</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="wrap stats" id="impact">
+            <div class="stat-grid">
+                <div class="stat"><b>3 in 10</b><span>Ugandan adults belong to a village savings group</span></div>
+                <div class="stat"><b>47%</b><span>of people who save use a village savings group</span></div>
+                <div class="stat"><b>UGX 3.4T</b><span>saved through community groups every year</span></div>
+                <div class="stat"><b>4×</b><span>members borrow about four times what they save</span></div>
+            </div>
+            <p class="source">Source: FinScope Uganda 2023, Financial Sector Deepening Uganda</p>
+        </div>
+        <main class="wrap">
+            <section class="block">
+                <div class="kicker">The impact of savings clubs</div>
+                <h2>Uganda's most trusted bank often meets under a mango tree.</h2>
+                <p class="intro">Long before mobile money, neighbours pooled their savings to look after each other. Today savings clubs are the most common way Ugandans save and borrow, reaching families that banks rarely serve.</p>
+                <div class="impact-grid">
+                    <div class="impact">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M22 10 12 5 2 10l10 5 10-5z"></path>
+                                <path d="M6 12v5c3 2 9 2 12 0v-5"></path>
+                            </svg>
+                        </div>
+                        <h3>Children stay in school</h3>
+                        <p>Term fees arrive three times a year. A club loan or a planned share-out means a child goes back to class instead of staying home.</p>
+                    </div>
+                    <div class="impact">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M12 22V12"></path>
+                                <path d="M12 12C12 7 8 4 3 4c0 5 4 8 9 8z"></path>
+                                <path d="M12 15c0-4 3-7 9-7 0 4-3 7-9 7z"></path>
+                            </svg>
+                        </div>
+                        <h3>Farms and businesses grow</h3>
+                        <p>Small loans buy seed, fertiliser, a second sewing machine or stock for a duka, and members repay from what they earn.</p>
+                    </div>
+                    <div class="impact">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 6.5-7 11-7 11z"></path>
+                            </svg>
+                        </div>
+                        <h3>Families get through hard times</h3>
+                        <p>Welfare funds cover hospital bills, funerals and failed harvests, so one bad month doesn't wipe out years of progress.</p>
+                    </div>
+                    <div class="impact">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <circle cx="9" cy="8" r="3.2"></circle>
+                                <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path>
+                                <path d="M16 4.5a3 3 0 0 1 0 6"></path>
+                                <path d="M18 14c2 .7 3 2.8 3 6"></path>
+                            </svg>
+                        </div>
+                        <h3>Women lead</h3>
+                        <p>Women make up most savings group members and many of their chairpersons and treasurers, gaining a voice in household and community decisions.</p>
+                    </div>
+                    <div class="impact">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M3 21h18"></path>
+                                <path d="M5 21V10l7-5 7 5v11"></path>
+                                <path d="M10 21v-5h4v5"></path>
+                            </svg>
+                        </div>
+                        <h3>Homes get built</h3>
+                        <p>Year-end share-outs turn steady weekly savings into iron sheets, bricks, land and livestock.</p>
+                    </div>
+                    <div class="impact">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M12 2v20"></path>
+                                <path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <h3>A first step into finance</h3>
+                        <p>A club's track record is often a member's first credit history, and a path to SACCOs, banks and bigger opportunities.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="problem">
+                <div>
+                    <div class="kicker">The record keeping gap</div>
+                    <h2>Clubs run on trust, and trust runs on good records.</h2>
+                    <p>Most clubs still track contributions, loans and interest in exercise books and passbooks. When a book goes missing or a figure doesn't add up, it's the members' confidence that suffers. Very few groups keep their records digitally today.</p>
+                </div>
+                <div>
+                    <div class="bars">
+                        <div>
+                            <div class="bar-label"><span>Groups registered with a constitution</span><b>~50%</b></div>
+                            <div class="track">
+                                <div class="fill" style="width:50%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="bar-label"><span>Groups using mobile money</span><b>~30%</b></div>
+                            <div class="track">
+                                <div class="fill" style="width:30%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="bar-label"><span>Groups with a formal bank account</span><b>~20%</b></div>
+                            <div class="track">
+                                <div class="fill" style="width:20%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="bar-label"><span>Groups storing savings in digital wallets</span><b>&lt;10%</b></div>
+                            <div class="track">
+                                <div class="fill" style="width:9%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="source">Source: FinScope Uganda 2023</p>
+                </div>
+            </section>
+            <section class="block" id="features">
+                <div class="kicker">What SavingsInc does</div>
+                <h2>The treasurer's book, without the late nights.</h2>
+                <p class="intro">One shared, always-balanced record for the whole club, which every member can trust and the officials can manage in minutes.</p>
+                <div class="feat-grid">
+                    <div class="feat">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                <path d="M3 10h18"></path>
+                                <path d="M7 15h3"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Contributions & savings</h3>
+                            <p>Record every member's deposit and see running balances per member and for the club. Members get an email receipt for each contribution.</p>
+                        </div>
+                    </div>
+                    <div class="feat">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M7 4v16"></path>
+                                <path d="M3 8l4-4 4 4"></path>
+                                <path d="M17 20V4"></path>
+                                <path d="M13 16l4 4 4-4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Loans & repayments</h3>
+                            <p>Track who borrowed, how much, the interest due and what's been repaid, so there are no disputes at the next meeting.</p>
+                        </div>
+                    </div>
+                    <div class="feat">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M6 2h9l5 5v15H6z"></path>
+                                <path d="M14 2v6h6"></path>
+                                <path d="M9 13h6M9 17h4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Expenses</h3>
+                            <p>Log club spending, from meeting refreshments to bank charges, with a clear category and approver for each.</p>
+                        </div>
+                    </div>
+                    <div class="feat">
+                        <div class="ic">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M5 21V10"></path>
+                                <path d="M12 21V4"></path>
+                                <path d="M19 21v-7"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Monthly & yearly reports</h3>
+                            <p>Monthly reports emailed to every member, plus financial-year summaries ready for share-out day.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="block" id="how">
+                <div class="kicker">How it works</div>
+                <h2>Up and running before your next meeting.</h2>
+                <div class="steps">
+                    <div class="step">
+                        <h3>Register your club</h3>
+                        <p>Add your club's name, financial year and contribution rules.</p>
+                    </div>
+                    <div class="step">
+                        <h3>Invite your members</h3>
+                        <p>Each member gets an email to set a password and view their own records.</p>
+                    </div>
+                    <div class="step">
+                        <h3>Record as you meet</h3>
+                        <p>The treasurer enters contributions, loans and expenses. The books balance themselves.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="cta">
+                <div>
+                    <h2>Ready to open the books?</h2>
+                    <p>Sign in to your club, or talk to us about bringing your group on board.</p>
+                </div>
+                <div class="acts">
+                    {% comment %} <a class="btn btn-ghost" href="#how">Register a club</a> {% endcomment %}
+                    <a class="btn btn-primary" href="{% url 'accounts:index' %}">
+                        Sign in
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <div class="wrap">
+                <div class="brand">
+                    <div class="brand-mark" style="color:var(--leaf)">
+                        <svg viewBox="0 0 24 24"
+                             width="18"
+                             height="18"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 8v8M8 12h8"></path>
+                        </svg>
+                    </div>
+                    <span class="brand-name">SavingsInc</span>
+                </div>
+                <span class="sp"></span>
+                <span>Record keeping for savings clubs · Kampala, Uganda</span>
+                <span>© {{ current_year }} SavingsInc</span>
+            </div>
+        </footer>
+    </body>
+</html>
