@@ -23,7 +23,7 @@ from accounts.forms.custom_admin_form import CustomAdminLoginForm
 admin.site.login_form = CustomAdminLoginForm
 
 urlpatterns = [
-    path("", include("clubs.urls")),
+    path("", include("website.urls")),
     path("savings-inc-admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("clubs/", include("clubs.urls")),
