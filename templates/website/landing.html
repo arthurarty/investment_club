@@ -47,8 +47,55 @@
                         <path d="M12 5l7 7-7 7"></path>
                     </svg>
                 </a>
+                <button class="burger"
+                        type="button"
+                        aria-label="Open menu"
+                        aria-expanded="false"
+                        aria-controls="mobile-menu">
+                    <span class="bars-ic"><span>Menu</span></span>
+                </button>
+            </div>
+            <div class="mobile-menu" id="mobile-menu">
+                <div class="wrap">
+                    <nav aria-label="Main">
+                        <a href="#impact">Impact</a>
+                        <a href="#features">What it does</a>
+                        <a href="#how">How it works</a>
+                    </nav>
+                    <div class="m-acts">
+                        <a class="btn btn-light" href="{% url 'accounts:index' %}">Sign in</a>
+                        <a class="btn btn-outline" href="#how">Register a club</a>
+                    </div>
+                </div>
             </div>
         </header>
+        <script>
+            const siteHeader = document.querySelector('.top');
+            const burger = siteHeader.querySelector('.burger');
+
+            const setOpen = (open) => {
+                siteHeader.classList.toggle('open', open);
+                burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+            };
+
+            burger.addEventListener('click', () => setOpen(!siteHeader.classList.contains('open')));
+            siteHeader.querySelectorAll('.mobile-menu a').forEach((a) => {
+                a.addEventListener('click', () => setOpen(false));
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && siteHeader.classList.contains('open')) {
+                    setOpen(false);
+                    burger.focus();
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (siteHeader.classList.contains('open') && !siteHeader.contains(e.target)) setOpen(false);
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 860) setOpen(false);
+            });
+        </script>
         <section class="hero">
             <div class="wrap hero-grid">
                 <div>
@@ -352,7 +399,6 @@
                     <p>Sign in to your club, or talk to us about bringing your group on board.</p>
                 </div>
                 <div class="acts">
-                    {% comment %} <a class="btn btn-ghost" href="#how">Register a club</a> {% endcomment %}
                     <a class="btn btn-primary" href="{% url 'accounts:index' %}">
                         Sign in
                         <svg viewBox="0 0 24 24"
@@ -386,8 +432,10 @@
                     <span class="brand-name">SavingsInc</span>
                 </div>
                 <span class="sp"></span>
-                <span>Record keeping for savings clubs · Kampala, Uganda</span>
-                <span>© {{ current_year }} SavingsInc</span>
+                Record keeping for savings clubs © {{ current_year }} SavingsInc by<a class="credit"
+   href="https://elevateug.com/"
+   target="_blank"
+   rel="noopener">Arthur N - Elevate Ug</a>
             </div>
         </footer>
     </body>
