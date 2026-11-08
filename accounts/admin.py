@@ -64,7 +64,7 @@ class CustomUserAdmin(UserAdmin):
         ),
         ("Important dates", {"fields": ("last_login",)}),
     )
-    readonly_fields = ("date_joined", "gender", "occupation")
+    readonly_fields = ("date_joined", "occupation")
 
     add_fieldsets = (
         (
