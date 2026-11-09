@@ -590,6 +590,33 @@ class TestFinancialYearParticipantCreateView(MsgTestCase):
             ).exists()
         )
 
+    def test_create_participant_already_exists(self):
+        """
+        Test that adding an existing participant again re-renders the form
+        and does not create a duplicate.
+        """
+        FinancialYearParticipant.objects.create(
+            financial_year=self.financial_year,
+            club_member=self.club_member,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-participant",
+            args=[self.club.id, self.financial_year.id],
+        )
+        response = self.client.post(url, {"club_member": self.club_member.id})
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertEqual(
+            FinancialYearParticipant.objects.filter(
+                financial_year=self.financial_year,
+                club_member=self.club_member,
+            ).count(),
+            1,
+        )
+
     def test_create_participant_nonexistent_club_redirects_to_index(self):
         """
         Test that POST to non-existent club redirects to clubs index.
