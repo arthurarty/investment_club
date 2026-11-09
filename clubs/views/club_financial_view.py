@@ -51,10 +51,15 @@ class FinancialYearContext:
 
 
 def prepare_financial_year_context(
-    club: Club, financial_year, is_club_admin: bool = True
+    club: Club,
+    financial_year,
+    is_club_admin: bool = True,
+    participant_form: FinancialYearParticipantForm | None = None,
 ) -> dict:
     """
     Prepare context data for a financial year detail view.
+
+    An already-bound participant_form can be passed in to re-render its errors.
     """
     participants = FinancialYearParticipant.objects.filter(
         financial_year=financial_year
@@ -78,7 +83,8 @@ def prepare_financial_year_context(
         financial_transaction_form=FinancialTransactionForm(
             financial_year=financial_year
         ),
-        participant_form=FinancialYearParticipantForm(club=club),
+        participant_form=participant_form
+        or FinancialYearParticipantForm(club=club, financial_year=financial_year),
         individual_due_form=IndividualDueForm(club=club),
         individual_dues=individual_dues,
         is_club_admin=is_club_admin,
@@ -209,12 +215,16 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
                 return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
         except (Club.DoesNotExist, FinancialYear.DoesNotExist):
             return redirect("clubs:index")
-        form = FinancialYearParticipantForm(request.POST, club=club)
+        form = FinancialYearParticipantForm(
+            request.POST, club=club, financial_year=financial_year
+        )
         if not form.is_valid():
             return render(
                 request,
                 "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year, allowed),
+                prepare_financial_year_context(
+                    club, financial_year, allowed, participant_form=form
+                ),
             )
         new_participant = form.save(commit=False)
         new_participant.financial_year = financial_year

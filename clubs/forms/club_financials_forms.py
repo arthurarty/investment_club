@@ -57,12 +57,24 @@ class FinancialYearParticipantForm(forms.ModelForm):
             "club_member": forms.Select(attrs={"class": "form-select"}),
         }
 
-    def __init__(self, *args, club=None, **kwargs):
+    def __init__(self, *args, club=None, financial_year=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.financial_year = financial_year
         if club is not None:
             self.fields["club_member"].queryset = ClubMembership.objects.filter(
                 club=club, is_active=True
             ).select_related("user")
+
+    def clean_club_member(self):
+        member = self.cleaned_data["club_member"]
+        if (
+            self.financial_year
+            and self.financial_year.participants.filter(club_member=member).exists()
+        ):
+            raise forms.ValidationError(
+                "This member is already a participant in this financial year."
+            )
+        return member
 
 
 class FinancialTransactionForm(forms.ModelForm):
