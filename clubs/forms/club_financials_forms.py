@@ -28,6 +28,16 @@ class FinancialYearForm(forms.ModelForm):
         }
 
 
+class CommaSeparatedNumberInput(forms.TextInput):
+    """
+    Text input whose submitted value may contain thousands separators.
+    """
+
+    def value_from_datadict(self, data, files, name):
+        value = super().value_from_datadict(data, files, name)
+        return value.replace(",", "") if isinstance(value, str) else value
+
+
 class FinancialYearContributionForm(forms.ModelForm):
     """
     Form for adding a contribution to a Financial Year.
@@ -87,10 +97,24 @@ class FinancialTransactionForm(forms.ModelForm):
         fields = ["club_member", "credit", "debit", "transaction_date", "description"]
         widgets = {
             "club_member": forms.Select(attrs={"class": "form-select"}),
-            "credit": forms.NumberInput(
-                attrs={"step": "1.00", "class": "form-control"}
+            "credit": CommaSeparatedNumberInput(
+                attrs={
+                    "class": "form-control",
+                    "inputmode": "numeric",
+                    "autocomplete": "off",
+                    "placeholder": "0",
+                    "data-amount-input": "",
+                }
             ),
-            "debit": forms.NumberInput(attrs={"step": "1.00", "class": "form-control"}),
+            "debit": CommaSeparatedNumberInput(
+                attrs={
+                    "class": "form-control",
+                    "inputmode": "numeric",
+                    "autocomplete": "off",
+                    "placeholder": "0",
+                    "data-amount-input": "",
+                }
+            ),
             "transaction_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),

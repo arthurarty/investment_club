@@ -146,14 +146,14 @@
                                         <td>{{ trans.description }}</td>
                                         <td>
                                             {% if trans.credit %}
-                                                <span class="credit">Ugx {{ trans.credit|floatformat:0 }}</span>
+                                                <span class="credit">Ugx {{ trans.credit|floatformat:"2g" }}</span>
                                             {% else %}
                                                 <span class="muted">—</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if trans.debit %}
-                                                <span class="debit">Ugx {{ trans.debit|floatformat:0 }}</span>
+                                                <span class="debit">Ugx {{ trans.debit|floatformat:"2g" }}</span>
                                             {% else %}
                                                 <span class="muted">—</span>
                                             {% endif %}
@@ -246,7 +246,7 @@
                                                 <span style="font-size:12px;">{{ due.club_member.user.first_name }} {{ due.club_member.user.last_name }}</span>
                                             </div>
                                         </td>
-                                        <td><span class="mono">Ugx {{ due.amount|floatformat:0 }}</span></td>
+                                        <td><span class="mono">Ugx {{ due.amount|floatformat:"2g" }}</span></td>
                                         <td><span class="mono" style="font-size:12px;">{{ due.due_date }}</span></td>
                                         <td style="color:var(--si-text-2);">{{ due.description }}</td>
                                     </tr>
@@ -415,4 +415,5 @@
             </div>
         </div>
     {% endif %}
+    <script src="{% static 'js/expenses.js' %}"></script>
 {% endblock %}
