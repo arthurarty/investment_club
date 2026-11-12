@@ -873,6 +873,20 @@ class TestExpenseCreateView(TestClubFinancialYearExpensesView):
         self.assertIsNone(expense.credit)
         self.assertEqual(expense.created_by, self.user)
 
+    def test_accepts_comma_separated_amount(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.create_url,
+            {
+                "debit": "1,250,000",
+                "transaction_date": "2026-10-05",
+                "description": "Venue",
+            },
+        )
+        self.assertRedirects(response, self.url)
+        expense = FinancialTransaction.objects.get(description="Venue")
+        self.assertEqual(expense.debit, 1250000)
+
     def test_rejects_non_positive_amount(self):
         self.client.force_login(self.user)
         response = self.client.post(

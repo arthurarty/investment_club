@@ -1280,3 +1280,23 @@ textarea.form-control { resize: vertical; }
   font-weight: 600;
   flex-shrink: 0;
 }
+
+/* ── Amount input with currency prefix (record expense) ── */
+.si-amount-wrap {
+  position: relative;
+}
+
+.si-amount-wrap span {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--si-text-3);
+  pointer-events: none;
+}
+
+.si-amount-wrap .form-control {
+  padding-left: 48px;
+}
