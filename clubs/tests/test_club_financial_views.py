@@ -887,6 +887,21 @@ class TestExpenseCreateView(TestClubFinancialYearExpensesView):
         expense = FinancialTransaction.objects.get(description="Venue")
         self.assertEqual(expense.debit, 1250000)
 
+    def test_accepts_amount_above_eight_digits(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.create_url,
+            {
+                "debit": "100,000,000",
+                "transaction_date": "2026-10-05",
+                "description": "Land",
+            },
+        )
+        self.assertRedirects(response, self.url)
+        expense = FinancialTransaction.objects.get(description="Land")
+        expense.refresh_from_db()
+        self.assertEqual(expense.debit, 100000000)
+
     def test_rejects_non_positive_amount(self):
         self.client.force_login(self.user)
         response = self.client.post(
