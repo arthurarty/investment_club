@@ -146,17 +146,6 @@ class ExpenseForm(FinancialTransactionForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["debit"].required = True
-        # The amount is shown comma separated (e.g. 1,250,000) as it is typed,
-        # so use a text input and strip the commas before validation.
-        self.fields["debit"].widget = CommaSeparatedNumberInput(
-            attrs={
-                "class": "form-control",
-                "inputmode": "numeric",
-                "autocomplete": "off",
-                "placeholder": "0",
-                "data-amount-input": "",
-            }
-        )
 
     def clean_debit(self):
         """
