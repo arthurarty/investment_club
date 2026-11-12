@@ -1,7 +1,7 @@
 from django.urls import path
 
 from clubs.views.club_category_view import ClubCategoryListView
-from clubs.views.club_due_view import ClubDueListView
+from clubs.views.club_due_view import ClubDueListView, ClubIndividualDueListView
 from clubs.views.club_financial_view import (
     ClubFinancialYearCreateView,
     ClubFinancialYearDetailView,
@@ -9,6 +9,7 @@ from clubs.views.club_financial_view import (
     FinancialYearIndividualDueCreateView,
     FinancialYearParticipantCreateView,
 )
+from clubs.views.club_participant_view import ClubParticipantListView
 from clubs.views.club_reports_view import (
     FinancialReportListView,
     FinancialReportView,
@@ -76,6 +77,11 @@ urlpatterns = [
         name="financial-year-due",
     ),
     path(
+        "<int:club_id>/financial-year/<int:financial_year_id>/individual-dues/",
+        ClubIndividualDueListView.as_view(),
+        name="financial-year-individual-dues",
+    ),
+    path(
         "<int:club_id>/financial-year/<int:financial_year_id>/individual-due/",
         FinancialYearIndividualDueCreateView.as_view(),
         name="financial-year-individual-due",
@@ -84,6 +90,11 @@ urlpatterns = [
         "<int:club_id>/financial-year/<int:financial_year_id>/transaction/",
         FinancialTransactionCreateView.as_view(),
         name="financial-transaction",
+    ),
+    path(
+        "<int:club_id>/financial-year/<int:financial_year_id>/participants/",
+        ClubParticipantListView.as_view(),
+        name="financial-year-participants",
     ),
     path(
         "<int:club_id>/financial-year/<int:financial_year_id>/participant/",

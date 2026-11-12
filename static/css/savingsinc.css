@@ -310,6 +310,21 @@ body {
 
 .si-nav-item.active svg { opacity: 1; }
 
+.si-nav-count {
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.si-nav-item.active .si-nav-count {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
 .si-sidebar-bottom {
   padding-top: 12px;
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -479,6 +494,29 @@ body {
   border-radius: var(--si-radius-md);
   box-shadow: var(--si-shadow-sm);
   overflow: hidden;
+}
+
+.si-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--si-border);
+}
+
+.si-card-head-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.si-count-pill {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--si-green-100);
+  color: var(--si-green-700);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 /* ── Club row card ───────────────────────────────────── */

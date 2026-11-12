@@ -535,7 +535,7 @@ class TestFinancialYearParticipantCreateView(MsgTestCase):
         self.assertEqual(
             response.url,
             reverse(
-                "clubs:financial-year-detail",
+                "clubs:financial-year-participants",
                 args=[self.club.id, self.financial_year.id],
             ),
         )
@@ -583,7 +583,7 @@ class TestFinancialYearParticipantCreateView(MsgTestCase):
         data = {"club_member": ""}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertTemplateUsed(response, "clubs/financial_year_participants.html")
         self.assertFalse(
             FinancialYearParticipant.objects.filter(
                 financial_year=self.financial_year,
@@ -608,7 +608,7 @@ class TestFinancialYearParticipantCreateView(MsgTestCase):
         )
         response = self.client.post(url, {"club_member": self.club_member.id})
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertTemplateUsed(response, "clubs/financial_year_participants.html")
         self.assertEqual(
             FinancialYearParticipant.objects.filter(
                 financial_year=self.financial_year,
@@ -756,8 +756,14 @@ class TestFinancialYearIndividualDueCreateView(MsgTestCase):
             "due_date": "2023-06-15",
         }
         response = self.client.post(url, data)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTemplateUsed(response, "clubs/financial_year_detail.html")
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(
+            response.url,
+            reverse(
+                "clubs:financial-year-individual-dues",
+                args=[self.club.id, self.financial_year.id],
+            ),
+        )
         self.assertTrue(
             IndividualDue.objects.filter(
                 financial_year=self.financial_year,
@@ -775,6 +781,125 @@ class TestFinancialYearIndividualDueCreateView(MsgTestCase):
             )
         ]
         self.assertMessages(response, expected_messages, ordered=True)
+
+    def test_create_individual_due_invalid_data(self):
+        """
+        Test that invalid data re-renders the individual dues page.
+        """
+        self.client.login(email=self.user.email, password="testPass123")
+        url = reverse(
+            "clubs:financial-year-individual-due",
+            args=[self.club.id, self.financial_year.id],
+        )
+        response = self.client.post(url, {"club_member": self.club_member.id})
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_year_individual_dues.html")
+        self.assertFalse(IndividualDue.objects.exists())
+
+
+class TestFinancialYearListPages(TestCase):
+    """
+    Test case for the participants and individual dues pages.
+    """
+
+    def setUp(self):
+        """
+        Set up a club with a financial year, a participant and an individual due.
+        """
+        self.user = User.objects.create_user(
+            email="jane.doe@example.com",
+            password="testPass123",
+            first_name="Jane",
+            last_name="Doe",
+        )
+        self.club = Club.objects.create(
+            name="Investment Club",
+            description="A club for investment enthusiasts.",
+            contact_email=self.user.email,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2023-01-01",
+            end_date="2023-12-31",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.club_member = ClubMembership.objects.create(
+            user=self.user,
+            club=self.club,
+            is_admin=True,
+            invited_by=self.user,
+        )
+        FinancialYearParticipant.objects.create(
+            club_member=self.club_member,
+            financial_year=self.financial_year,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        IndividualDue.objects.create(
+            club_member=self.club_member,
+            financial_year=self.financial_year,
+            description="Late payment fine",
+            amount="500.00",
+            due_date="2023-06-15",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.args = [self.club.id, self.financial_year.id]
+        self.client.login(email=self.user.email, password="testPass123")
+
+    def test_participants_page(self):
+        response = self.client.get(
+            reverse("clubs:financial-year-participants", args=self.args)
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_year_participants.html")
+        self.assertEqual(len(response.context["participants"]), 1)
+        self.assertEqual(response.context["sidebar_participant_count"], 1)
+        self.assertContains(response, self.user.email)
+
+    def test_individual_dues_page(self):
+        response = self.client.get(
+            reverse("clubs:financial-year-individual-dues", args=self.args)
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_year_individual_dues.html")
+        self.assertEqual(len(response.context["individual_dues"]), 1)
+        self.assertContains(response, "Late payment fine")
+
+    def test_transactions_page_has_no_tabs_and_sidebar_links_to_pages(self):
+        response = self.client.get(
+            reverse("clubs:financial-year-detail", args=self.args)
+        )
+        self.assertNotContains(response, 'class="si-tabs"')
+        self.assertNotContains(response, "Late payment fine")
+        for name in (
+            "clubs:financial-year-participants",
+            "clubs:financial-year-individual-dues",
+        ):
+            self.assertContains(response, f'href="{reverse(name, args=self.args)}"')
+
+    def test_pages_forbidden_for_non_members(self):
+        stranger = User.objects.create_user(
+            email="stranger@example.com", password="testPass123"
+        )
+        self.client.login(email=stranger.email, password="testPass123")
+        for name in (
+            "clubs:financial-year-participants",
+            "clubs:financial-year-individual-dues",
+        ):
+            response = self.client.get(reverse(name, args=self.args))
+            self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_pages_redirect_for_unknown_financial_year(self):
+        for name in (
+            "clubs:financial-year-participants",
+            "clubs:financial-year-individual-dues",
+        ):
+            response = self.client.get(reverse(name, args=[self.club.id, 9999]))
+            self.assertRedirects(response, reverse("clubs:index"))
 
 
 class TestClubFinancialYearExpensesView(TestCase):
