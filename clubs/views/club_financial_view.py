@@ -22,6 +22,8 @@ from clubs.models import (
     FinancialYearContribution,
     FinancialYearParticipant,
 )
+from clubs.views.club_due_view import prepare_individual_dues_context
+from clubs.views.club_participant_view import prepare_participants_context
 from clubs.views.utils import is_club_admin_or_creator
 
 
@@ -38,9 +40,6 @@ class FinancialYearContext:
     transactions: QuerySet
     financial_contribution_form: FinancialYearContributionForm
     financial_transaction_form: FinancialTransactionForm
-    participant_form: FinancialYearParticipantForm
-    individual_due_form: IndividualDueForm
-    individual_dues: QuerySet
     is_club_admin: bool = True
 
     def to_dict(self) -> dict[str, Any]:
@@ -67,7 +66,6 @@ def prepare_financial_year_context(
         .order_by("-transaction_date")
         .select_related("club_member__user", "category")
     )
-    individual_dues = financial_year.individual_dues.select_related("club_member__user")
     context = FinancialYearContext(
         club=club,
         financial_year=financial_year,
@@ -78,11 +76,6 @@ def prepare_financial_year_context(
         financial_transaction_form=FinancialTransactionForm(
             financial_year=financial_year
         ),
-        participant_form=FinancialYearParticipantForm(
-            club=club, financial_year=financial_year
-        ),
-        individual_due_form=IndividualDueForm(club=club),
-        individual_dues=individual_dues,
         is_club_admin=is_club_admin,
     )
     return context.to_dict()
@@ -220,8 +213,8 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
                     messages.warning(request, str(error))
             return render(
                 request,
-                "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year, allowed),
+                "clubs/financial_year_participants.html",
+                prepare_participants_context(club, financial_year, allowed, form),
             )
         new_participant = form.save(commit=False)
         new_participant.financial_year = financial_year
@@ -235,7 +228,7 @@ class FinancialYearParticipantCreateView(LoginRequiredMixin, View):
             ),
         )
         return redirect(
-            "clubs:financial-year-detail",
+            "clubs:financial-year-participants",
             club_id=club.id,
             financial_year_id=financial_year.id,
         )
@@ -259,10 +252,13 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
             return redirect("clubs:index")
         form = IndividualDueForm(request.POST, club=club)
         if not form.is_valid():
+            for field_errors in form.errors.values():
+                for error in field_errors:
+                    messages.warning(request, str(error))
             return render(
                 request,
-                "clubs/financial_year_detail.html",
-                prepare_financial_year_context(club, financial_year, allowed),
+                "clubs/financial_year_individual_dues.html",
+                prepare_individual_dues_context(club, financial_year, allowed, form),
             )
         new_due = form.save(commit=False)
         new_due.financial_year = financial_year
@@ -276,8 +272,8 @@ class FinancialYearIndividualDueCreateView(LoginRequiredMixin, View):
                 f"for {new_due.club_member.user.email}."
             ),
         )
-        return render(
-            request,
-            "clubs/financial_year_detail.html",
-            prepare_financial_year_context(club, financial_year, allowed),
+        return redirect(
+            "clubs:financial-year-individual-dues",
+            club_id=club.id,
+            financial_year_id=financial_year.id,
         )

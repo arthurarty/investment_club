@@ -42,4 +42,9 @@ def current_club(request):
         "sidebar_financial_years": financial_years,
         "sidebar_latest_financial_year": latest_financial_year,
         "sidebar_current_financial_year": sidebar_current_financial_year,
+        "sidebar_participant_count": (
+            sidebar_current_financial_year.participants.count()
+            if sidebar_current_financial_year
+            else 0
+        ),
     }
