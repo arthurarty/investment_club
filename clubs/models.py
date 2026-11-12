@@ -152,7 +152,7 @@ class FinancialYearContribution(BaseTimestampedModel, models.Model):
     financial_year = models.ForeignKey(
         FinancialYear, on_delete=models.CASCADE, related_name="contributions"
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=2)
     due_period = models.CharField(
         max_length=20, choices=DuePeriod.choices, default=DuePeriod.MONTHLY
     )
@@ -215,7 +215,7 @@ class IndividualDue(BaseTimestampedModel, models.Model):
         ClubMembership, on_delete=models.CASCADE, related_name="individual_dues"
     )
     description = models.CharField(max_length=1000)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=6)
     due_date = models.DateField()
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -242,10 +242,10 @@ class FinancialTransaction(BaseTimestampedModel, models.Model):
     )
     description = models.CharField(max_length=1000)
     credit = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=24, decimal_places=6, blank=True, null=True
     )  # Money received
     debit = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=24, decimal_places=6, blank=True, null=True
     )  # Money spent
     transaction_date = models.DateField()
     club_member = models.ForeignKey(
