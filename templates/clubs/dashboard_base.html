@@ -251,6 +251,24 @@
                                 Expenses
                             </a>
                         {% endif %}
+                        {% if sidebar_current_club %}
+                            <a href="{% url 'clubs:categories' sidebar_current_club.id %}"
+                               class="si-nav-item {% block nav_categories_active %}{% endblock %}"
+                               title="Transaction categories for {{ sidebar_current_club.name }}">
+                                <svg width="15"
+                                     height="15"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="1.8"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z" />
+                                    <path d="M7 7h.01" />
+                                </svg>
+                                Categories
+                            </a>
+                        {% endif %}
                         <a href="{% if sidebar_current_club and sidebar_current_financial_year %}{% url 'clubs:financial-reports' sidebar_current_club.id sidebar_current_financial_year.id %}{% else %}{% url 'clubs:financial-year-report-list' %}{% endif %}"
                            class="si-nav-item {% block nav_reports_active %}{% endblock %}">
                             <svg width="15"

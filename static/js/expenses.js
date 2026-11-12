@@ -2,15 +2,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Expense table filtering (only on the expenses page).
   const search = document.getElementById('expenseSearch');
   const month = document.getElementById('expenseMonth');
-  if (search && month) {
+  const category = document.getElementById('expenseCategory');
+  if (search && month && category) {
     const rows = document.querySelectorAll('#expenseTable tbody tr');
     const apply = function() {
       const q = search.value.trim().toLowerCase();
       const m = month.value;
+      const c = category.value;
       let total = 0;
       let n = 0;
       rows.forEach(function(r) {
-        const ok = (!m || r.dataset.month === m) && (!q || r.textContent.toLowerCase().indexOf(q) > -1);
+        const ok = (!m || r.dataset.month === m) && (!c || r.dataset.category === c) && (!q || r.textContent.toLowerCase().indexOf(q) > -1);
         r.hidden = !ok;
         if (ok) { total += Number(r.dataset.amount); n++; }
       });
@@ -21,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     search.addEventListener('input', apply);
     month.addEventListener('change', apply);
+    category.addEventListener('change', apply);
     if (rows.length) apply();
   }
 

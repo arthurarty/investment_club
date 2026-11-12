@@ -134,6 +134,7 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Description</th>
+                                    <th>Category</th>
                                     <th>Credit</th>
                                     <th>Debit</th>
                                     <th>Member</th>
@@ -144,6 +145,13 @@
                                     <tr>
                                         <td><span class="mono">{{ trans.transaction_date }}</span></td>
                                         <td>{{ trans.description }}</td>
+                                        <td>
+                                            {% if trans.category %}
+                                                {{ trans.category.name }}
+                                            {% else %}
+                                                <span class="muted">—</span>
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             {% if trans.credit %}
                                                 <span class="credit">Ugx {{ trans.credit|floatformat:"2g" }}</span>
@@ -169,7 +177,7 @@
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="5"
+                                        <td colspan="6"
                                             style="text-align:center;
                                                    color:var(--si-text-3);
                                                    padding:32px">

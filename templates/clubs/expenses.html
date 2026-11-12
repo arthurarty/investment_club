@@ -129,6 +129,15 @@
                     <option value="">All months</option>
                     {% for value, label in months %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
                 </select>
+                <select id="expenseCategory"
+                        class="form-select"
+                        style="width:auto;
+                               min-width:160px"
+                        aria-label="Category">
+                    <option value="">All categories</option>
+                    {% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}
+                    <option value="none">Uncategorised</option>
+                </select>
             </div>
             <div class="si-table-wrap">
                 <table class="si-table" id="expenseTable">
@@ -136,6 +145,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Description</th>
+                            <th>Category</th>
                             <th>Recorded for</th>
                             <th style="text-align:right">Amount</th>
                         </tr>
@@ -143,11 +153,19 @@
                     <tbody>
                         {% for expense in expenses %}
                             <tr data-month="{{ expense.transaction_date|date:'Y-m' }}"
+                                data-category="{{ expense.category_id|default:'none' }}"
                                 data-amount="{{ expense.debit|floatformat:'0u' }}">
                                 <td>
                                     <span class="mono">{{ expense.transaction_date|date:"M j, Y" }}</span>
                                 </td>
                                 <td>{{ expense.description }}</td>
+                                <td>
+                                    {% if expense.category %}
+                                        {{ expense.category.name }}
+                                    {% else %}
+                                        <span class="muted">—</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if expense.club_member %}
                                         <div class="si-member-cell">
@@ -166,7 +184,7 @@
                     </tbody>
                     <tfoot>
                         <tr id="expenseFoot"{% if not expenses %} hidden{% endif %}>
-                            <td colspan="3" style="font-weight:600">
+                            <td colspan="4" style="font-weight:600">
                                 Total <span class="muted" id="expenseFootCount" style="font-weight:400"></span>
                             </td>
                             <td style="text-align:right;font-weight:600" id="expenseFootTotal"></td>

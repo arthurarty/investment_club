@@ -65,7 +65,7 @@ def prepare_financial_year_context(
     transactions = (
         FinancialTransaction.objects.filter(financial_year=financial_year)
         .order_by("-transaction_date")
-        .select_related("club_member__user")
+        .select_related("club_member__user", "category")
     )
     individual_dues = financial_year.individual_dues.select_related("club_member__user")
     context = FinancialYearContext(

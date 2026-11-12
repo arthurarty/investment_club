@@ -7,6 +7,7 @@ from clubs.models import (
     FinancialYearContribution,
     FinancialYearParticipant,
     IndividualDue,
+    TransactionCategory,
 )
 
 
@@ -87,6 +88,35 @@ class FinancialYearParticipantForm(forms.ModelForm):
         return member
 
 
+class TransactionCategoryForm(forms.ModelForm):
+    """
+    Form for adding a transaction category to a club.
+    """
+
+    class Meta:
+        model = TransactionCategory
+        fields = ["name"]
+        widgets = {"name": forms.TextInput(attrs={"class": "form-control"})}
+
+    def __init__(self, *args, club=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.club = club
+
+    def clean_name(self):
+        """
+        A club cannot have two categories with the same name.
+        """
+        name = self.cleaned_data["name"].strip()
+        if (
+            self.club
+            and self.club.transaction_categories.filter(name__iexact=name).exists()
+        ):
+            raise forms.ValidationError(
+                "This club already has a category with this name."
+            )
+        return name
+
+
 class FinancialTransactionForm(forms.ModelForm):
     """
     Form for recording a financial transaction for a Financial Year.
@@ -94,9 +124,17 @@ class FinancialTransactionForm(forms.ModelForm):
 
     class Meta:
         model = FinancialTransaction
-        fields = ["club_member", "credit", "debit", "transaction_date", "description"]
+        fields = [
+            "club_member",
+            "category",
+            "credit",
+            "debit",
+            "transaction_date",
+            "description",
+        ]
         widgets = {
             "club_member": forms.Select(attrs={"class": "form-select"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
             "credit": CommaSeparatedNumberInput(
                 attrs={
                     "class": "form-control",
@@ -132,6 +170,9 @@ class FinancialTransactionForm(forms.ModelForm):
                 financial_years__financial_year=financial_year,
                 financial_years__is_active=True,
             ).select_related("user")
+            self.fields["category"].queryset = TransactionCategory.objects.filter(
+                club_id=financial_year.club_id
+            )
 
 
 class ExpenseForm(FinancialTransactionForm):
@@ -140,7 +181,7 @@ class ExpenseForm(FinancialTransactionForm):
     """
 
     class Meta(FinancialTransactionForm.Meta):
-        fields = ["club_member", "debit", "transaction_date", "description"]
+        fields = ["club_member", "category", "debit", "transaction_date", "description"]
         labels = {"debit": "Amount"}
 
     def __init__(self, *args, **kwargs):
