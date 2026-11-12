@@ -242,10 +242,10 @@ class FinancialTransaction(BaseTimestampedModel, models.Model):
     )
     description = models.CharField(max_length=1000)
     credit = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=24, decimal_places=6, blank=True, null=True
     )  # Money received
     debit = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=24, decimal_places=6, blank=True, null=True
     )  # Money spent
     transaction_date = models.DateField()
     club_member = models.ForeignKey(
