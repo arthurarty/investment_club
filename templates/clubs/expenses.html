@@ -65,7 +65,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="si-stat-value">Ugx {{ total_spent|floatformat:0 }}</div>
+                <div class="si-stat-value">Ugx {{ total_spent|floatformat:"2g" }}</div>
             </div>
             <div class="si-stat-card">
                 <div class="si-stat-header">
@@ -159,7 +159,7 @@
                                     {% endif %}
                                 </td>
                                 <td style="text-align:right">
-                                    <span class="debit">Ugx {{ expense.debit|floatformat:0 }}</span>
+                                    <span class="debit">Ugx {{ expense.debit|floatformat:"2g" }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -191,6 +191,7 @@
         <!-- Record Expense Modal -->
         <div class="modal fade"
              id="recordExpenseModal"
+             {% if expense_form.errors %}data-show-on-load="true"{% endif %}
              tabindex="-1"
              aria-hidden="true">
             <div class="modal-dialog">
@@ -215,56 +216,5 @@
             </div>
         </div>
     {% endif %}
-    <script>
-document.addEventListener('DOMContentLoaded', function() {
-  let rows = document.querySelectorAll('#expenseTable tbody tr');
-  let search = document.getElementById('expenseSearch');
-  let month = document.getElementById('expenseMonth');
-  function apply() {
-    let q = search.value.trim().toLowerCase(), m = month.value, total = 0, n = 0;
-    rows.forEach(function(r) {
-      let ok = (!m || r.dataset.month === m) && (!q || r.textContent.toLowerCase().indexOf(q) > -1);
-      r.hidden = !ok;
-      if (ok) { total += Number(r.dataset.amount); n++; }
-    });
-    document.getElementById('expenseFootTotal').textContent = 'Ugx ' + total.toLocaleString('en-US');
-    document.getElementById('expenseFootCount').textContent = n + (n === 1 ? ' expense' : ' expenses');
-    document.getElementById('expenseFoot').hidden = n === 0;
-    document.getElementById('expenseEmpty').hidden = n > 0 || rows.length === 0;
-  }
-  // Record expense: show the amount comma separated as it is typed.
-  const amount = document.querySelector('#recordExpenseModal [data-amount-input]');
-  if (amount) {
-    const wrap = document.createElement('div');
-    wrap.className = 'si-amount-wrap';
-    const prefix = document.createElement('span');
-    prefix.textContent = 'UGX';
-    prefix.setAttribute('aria-hidden', 'true');
-    amount.parentNode.insertBefore(wrap, amount);
-    wrap.append(prefix, amount);
-
-    const format = function() {
-      const caret = amount.selectionStart || 0;
-      const digitsBefore = amount.value.slice(0, caret).replace(/\D/g, '').length;
-      const digits = amount.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 13);
-      const out = digits ? Number(digits).toLocaleString('en-US') : '';
-      amount.value = out;
-      let i = 0, seen = 0;
-      while (i < out.length && seen < digitsBefore) {
-        if (/\d/.test(out[i])) seen++;
-        i++;
-      }
-      amount.setSelectionRange(i, i);
-    };
-    amount.addEventListener('input', format);
-    if (amount.value) format();
-  }
-  search.addEventListener('input', apply);
-  month.addEventListener('change', apply);
-  if (rows.length) apply();
-  {% if expense_form.errors %}
-  new bootstrap.Modal(document.getElementById('recordExpenseModal')).show();
-  {% endif %}
-});
-    </script>
+    <script src="{% static 'js/expenses.js' %}"></script>
 {% endblock %}
