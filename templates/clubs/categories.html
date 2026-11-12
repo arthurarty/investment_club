@@ -1,0 +1,97 @@
+{% extends "clubs/dashboard_base.html" %}
+{% load static %}
+{% block page_title %}{{ club.name }} — Categories — SavingsInc{% endblock %}
+{% block nav_categories_active %}active{% endblock %}
+{% block content %}
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">Categories</h1>
+            <p class="si-topbar-subtitle">{{ club.name }} · Used to group money received and money spent</p>
+        </div>
+        {% if is_club_admin %}
+            <div class="si-topbar-actions">
+                <button type="button"
+                        class="si-btn si-btn-primary si-btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addCategoryModal">
+                    <svg width="13"
+                         height="13"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add category
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    <div class="si-page-body">
+        <div class="si-card">
+            <div class="si-table-wrap">
+                <table class="si-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th style="text-align:right">Transactions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <td>
+                                    <span class="si-category-badge"
+                                          style="--category-color: {{ category.color }}">{{ category.name }}</span>
+                                </td>
+                                <td style="text-align:right">
+                                    <span class="mono">{{ category.transaction_count }}</span>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2"
+                                    style="text-align:center;
+                                           color:var(--si-text-3);
+                                           padding:32px">No categories yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block after_main %}
+    {% if is_club_admin %}
+        <!-- Add Category Modal -->
+        <div class="modal fade"
+             id="addCategoryModal"
+             {% if category_form.errors %}data-show-on-load="true"{% endif %}
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add category</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:categories' club.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ category_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add category</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <script src="{% static 'js/expenses.js' %}"></script>
+{% endblock %}

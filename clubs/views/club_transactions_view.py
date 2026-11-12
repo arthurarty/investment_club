@@ -24,7 +24,7 @@ def prepare_expenses_context(
     """
     expenses = (
         FinancialTransaction.objects.filter(financial_year=financial_year, debit__gt=0)
-        .select_related("club_member__user")
+        .select_related("club_member__user", "category")
         .order_by("-transaction_date", "-id")
     )
     months = [
@@ -39,6 +39,7 @@ def prepare_expenses_context(
         "total_spent": expenses.aggregate(total=Sum("debit"))["total"] or 0,
         "latest_expense": expenses.first(),
         "months": months,
+        "categories": club.transaction_categories.all(),
         "is_club_admin": is_club_admin,
         "expense_form": expense_form or ExpenseForm(financial_year=financial_year),
     }

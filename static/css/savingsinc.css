@@ -698,6 +698,20 @@ body {
   color: var(--si-text-2);
 }
 
+/* Category badge: tinted from the category's own color (--category-color). */
+.si-category-badge {
+  --category-color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--category-color) 16%, white);
+  color: color-mix(in srgb, var(--category-color) 65%, black);
+}
+
 /* ── Buttons ─────────────────────────────────────────── */
 .si-btn {
   display: inline-flex;

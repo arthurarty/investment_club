@@ -1,5 +1,7 @@
 from django.conf import settings
-from django.db import models
+from django.core.validators import RegexValidator
+from django.db import models, transaction
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 from common.models import BaseTimestampedModel
@@ -46,6 +48,18 @@ class DuePeriod(models.TextChoices):
     YEARLY = "yearly", "Yearly"
 
 
+# Color given to a category when none is chosen.
+DEFAULT_CATEGORY_COLOR = "#6b7280"
+
+# Categories every new club starts with, mapped to their badge color.
+# Clubs can add their own afterwards.
+DEFAULT_TRANSACTION_CATEGORIES = {
+    "Bank charges": "#2f5aa8",
+    "Admin Expenses": "#6b3fa0",
+    "Member Contributions": "#2e7d4f",
+}
+
+
 class Club(BaseTimestampedModel, models.Model):
     """
     Model representing an investment club.
@@ -67,6 +81,71 @@ class Club(BaseTimestampedModel, models.Model):
 
     def __str__(self):
         return f"{self.pk} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        """
+        Save the club, giving a newly created club the default
+        transaction categories.
+        """
+        is_new = self._state.adding
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            if is_new:
+                TransactionCategory.objects.bulk_create(
+                    TransactionCategory(
+                        club=self,
+                        name=name,
+                        color=color,
+                        created_by=self.created_by,
+                        updated_by=self.updated_by,
+                    )
+                    for name, color in DEFAULT_TRANSACTION_CATEGORIES.items()
+                )
+
+
+class TransactionCategory(BaseTimestampedModel, models.Model):
+    """
+    Model representing a category that a club uses to group its
+    financial transactions (both money received and money spent).
+    """
+
+    club = models.ForeignKey(
+        Club, on_delete=models.CASCADE, related_name="transaction_categories"
+    )
+    name = models.CharField(max_length=150)
+    # Hex color (e.g. "#2f5aa8") used to render the category's badge.
+    color = models.CharField(
+        max_length=7,
+        default=DEFAULT_CATEGORY_COLOR,
+        validators=[
+            RegexValidator(
+                r"^#[0-9a-fA-F]{6}$",
+                "Enter a color as a hex value such as #2f5aa8.",
+            )
+        ],
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_transaction_categories",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_transaction_categories",
+    )
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "transaction categories"
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"), "club", name="unique_category_name_per_club"
+            )
+        ]
+
+    def __str__(self):
+        return self.name
 
 
 class ClubMembership(BaseTimestampedModel, models.Model):
@@ -248,6 +327,13 @@ class FinancialTransaction(BaseTimestampedModel, models.Model):
         max_digits=24, decimal_places=6, blank=True, null=True
     )  # Money spent
     transaction_date = models.DateField()
+    category = models.ForeignKey(
+        TransactionCategory,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="transactions",
+    )
     club_member = models.ForeignKey(
         ClubMembership,
         on_delete=models.SET_NULL,
