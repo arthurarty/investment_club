@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models.functions import Lower
 from django.utils import timezone
@@ -47,12 +48,16 @@ class DuePeriod(models.TextChoices):
     YEARLY = "yearly", "Yearly"
 
 
-# Categories every new club starts with. Clubs can add their own afterwards.
-DEFAULT_TRANSACTION_CATEGORIES = (
-    "Bank charges",
-    "Admin Expenses",
-    "Member Contributions",
-)
+# Color given to a category when none is chosen.
+DEFAULT_CATEGORY_COLOR = "#6b7280"
+
+# Categories every new club starts with, mapped to their badge color.
+# Clubs can add their own afterwards.
+DEFAULT_TRANSACTION_CATEGORIES = {
+    "Bank charges": "#2f5aa8",
+    "Admin Expenses": "#6b3fa0",
+    "Member Contributions": "#2e7d4f",
+}
 
 
 class Club(BaseTimestampedModel, models.Model):
@@ -90,10 +95,11 @@ class Club(BaseTimestampedModel, models.Model):
                     TransactionCategory(
                         club=self,
                         name=name,
+                        color=color,
                         created_by=self.created_by,
                         updated_by=self.updated_by,
                     )
-                    for name in DEFAULT_TRANSACTION_CATEGORIES
+                    for name, color in DEFAULT_TRANSACTION_CATEGORIES.items()
                 )
 
 
@@ -107,6 +113,17 @@ class TransactionCategory(BaseTimestampedModel, models.Model):
         Club, on_delete=models.CASCADE, related_name="transaction_categories"
     )
     name = models.CharField(max_length=150)
+    # Hex color (e.g. "#2f5aa8") used to render the category's badge.
+    color = models.CharField(
+        max_length=7,
+        default=DEFAULT_CATEGORY_COLOR,
+        validators=[
+            RegexValidator(
+                r"^#[0-9a-fA-F]{6}$",
+                "Enter a color as a hex value such as #2f5aa8.",
+            )
+        ],
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,

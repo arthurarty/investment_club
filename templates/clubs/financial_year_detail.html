@@ -147,7 +147,8 @@
                                         <td>{{ trans.description }}</td>
                                         <td>
                                             {% if trans.category %}
-                                                {{ trans.category.name }}
+                                                <span class="si-category-badge"
+                                                      style="--category-color: {{ trans.category.color }}">{{ trans.category.name }}</span>
                                             {% else %}
                                                 <span class="muted">—</span>
                                             {% endif %}

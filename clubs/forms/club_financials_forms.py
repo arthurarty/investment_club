@@ -95,8 +95,13 @@ class TransactionCategoryForm(forms.ModelForm):
 
     class Meta:
         model = TransactionCategory
-        fields = ["name"]
-        widgets = {"name": forms.TextInput(attrs={"class": "form-control"})}
+        fields = ["name", "color"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "color": forms.TextInput(
+                attrs={"type": "color", "class": "form-control form-control-color"}
+            ),
+        }
 
     def __init__(self, *args, club=None, **kwargs):
         super().__init__(*args, **kwargs)

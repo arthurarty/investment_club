@@ -42,7 +42,10 @@
                     <tbody>
                         {% for category in categories %}
                             <tr>
-                                <td>{{ category.name }}</td>
+                                <td>
+                                    <span class="si-category-badge"
+                                          style="--category-color: {{ category.color }}">{{ category.name }}</span>
+                                </td>
                                 <td style="text-align:right">
                                     <span class="mono">{{ category.transaction_count }}</span>
                                 </td>

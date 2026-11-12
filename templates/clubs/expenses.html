@@ -161,7 +161,8 @@
                                 <td>{{ expense.description }}</td>
                                 <td>
                                     {% if expense.category %}
-                                        {{ expense.category.name }}
+                                        <span class="si-category-badge"
+                                              style="--category-color: {{ expense.category.color }}">{{ expense.category.name }}</span>
                                     {% else %}
                                         <span class="muted">—</span>
                                     {% endif %}

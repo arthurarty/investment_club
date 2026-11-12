@@ -10,6 +10,7 @@ from django.urls import reverse
 from accounts.models import CustomUser as User
 from clubs.forms.club_financials_forms import FinancialTransactionForm
 from clubs.models import (
+    DEFAULT_CATEGORY_COLOR,
     DEFAULT_TRANSACTION_CATEGORIES,
     Club,
     ClubMembership,
@@ -67,6 +68,21 @@ class TestTransactionCategoryModel(CategoryTestDataMixin, TestCase):
 
     def test_default_categories_record_the_club_creator(self):
         self.assertEqual(self.category.created_by, self.user)
+
+    def test_default_categories_get_their_colors(self):
+        self.assertEqual(
+            self.category.color, DEFAULT_TRANSACTION_CATEGORIES["Bank charges"]
+        )
+
+    def test_color_defaults_when_not_given(self):
+        category = TransactionCategory.objects.create(
+            club=self.club,
+            name="Investments",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        self.assertEqual(category.color, DEFAULT_CATEGORY_COLOR)
 
     def test_updating_a_club_does_not_add_categories_again(self):
         self.club.description = "Updated"
@@ -166,11 +182,14 @@ class TestClubCategoryListView(CategoryTestDataMixin, MsgTestCase):
     def test_admin_can_add_category(self):
         self.client.force_login(self.user)
 
-        response = self.client.post(self.url, {"name": "  Investments "}, follow=True)
+        response = self.client.post(
+            self.url, {"name": "  Investments ", "color": "#b45309"}, follow=True
+        )
 
         self.assertRedirects(response, self.url)
         category = self.club.transaction_categories.get(name="Investments")
         self.assertEqual(category.created_by, self.user)
+        self.assertEqual(category.color, "#b45309")
         self.assertMessages(
             response,
             [
@@ -184,7 +203,9 @@ class TestClubCategoryListView(CategoryTestDataMixin, MsgTestCase):
     def test_duplicate_name_is_rejected(self):
         self.client.force_login(self.user)
 
-        response = self.client.post(self.url, {"name": "bank CHARGES"})
+        response = self.client.post(
+            self.url, {"name": "bank CHARGES", "color": "#b45309"}
+        )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTrue(response.context["category_form"].errors["name"])
@@ -193,16 +214,34 @@ class TestClubCategoryListView(CategoryTestDataMixin, MsgTestCase):
             len(DEFAULT_TRANSACTION_CATEGORIES),
         )
 
+    def test_invalid_color_is_rejected(self):
+        self.client.force_login(self.user)
+
+        for color in ("red", "#12345", "#gggggg", "#1234567"):
+            with self.subTest(color=color):
+                response = self.client.post(
+                    self.url, {"name": "Investments", "color": color}
+                )
+
+                self.assertTrue(response.context["category_form"].errors["color"])
+
+    def test_list_renders_category_badge_with_its_color(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, f"--category-color: {self.category.color}")
+
     def test_same_name_allowed_in_another_club(self):
         self.client.force_login(self.user)
-        self.client.post(self.url, {"name": "Investments"})
+        self.client.post(self.url, {"name": "Investments", "color": "#b45309"})
         ClubMembership.objects.create(
             user=self.user, club=self.other_club, is_admin=True
         )
 
         self.client.post(
             reverse("clubs:categories", args=[self.other_club.id]),
-            {"name": "Investments"},
+            {"name": "Investments", "color": "#b45309"},
         )
 
         self.assertEqual(
@@ -216,7 +255,9 @@ class TestClubCategoryListView(CategoryTestDataMixin, MsgTestCase):
         ClubMembership.objects.create(user=member, club=self.club)
         self.client.force_login(member)
 
-        response = self.client.post(self.url, {"name": "Investments"})
+        response = self.client.post(
+            self.url, {"name": "Investments", "color": "#b45309"}
+        )
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertFalse(TransactionCategory.objects.filter(name="Investments"))
@@ -327,6 +368,7 @@ class TestTransactionCategoryAssignment(CategoryTestDataMixin, TestCase):
         )
 
         self.assertContains(response, f'data-category="{self.category.id}"')
+        self.assertContains(response, f"--category-color: {self.category.color}")
         self.assertContains(response, 'id="expenseCategory"')
 
     def test_financial_year_page_shows_category(self):
