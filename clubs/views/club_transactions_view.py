@@ -2,8 +2,10 @@ from http import HTTPStatus
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from django.shortcuts import redirect, render
+from django.utils.formats import date_format
 from django.views import View
 
 from clubs.emails import send_contribution_email
@@ -180,13 +182,36 @@ class ExpenseCreateView(FinancialYearTransactionCreateBaseView):
 
 # Tracked transaction fields mapped to how the history names them.
 TRANSACTION_HISTORY_LABELS = {
-    "description": "description",
-    "credit": "credit",
-    "debit": "debit",
-    "transaction_date": "date",
-    "category_id": "category",
-    "club_member_id": "member",
+    "description": "Description",
+    "credit": "Credit",
+    "debit": "Debit",
+    "transaction_date": "Date",
+    "category_id": "Category",
+    "club_member_id": "Member",
 }
+
+
+def history_value(event, field: str) -> str:
+    """
+    How the history shows the value a tracked field had at an event.
+    Returns an empty string when the field was not set.
+    """
+    value = getattr(event, field)
+    if value is None:
+        return ""
+    try:
+        if field in ("credit", "debit"):
+            return f"Ugx {value:,.2f}"
+        if field == "transaction_date":
+            return date_format(value, "M j, Y")
+        if field == "category_id":
+            return event.category.name
+        if field == "club_member_id":
+            return user_display_name(event.club_member.user)
+    except ObjectDoesNotExist:
+        # Events outlive the category or member they point to.
+        return "Removed"
+    return str(value)
 
 
 def user_display_name(user) -> str:
@@ -201,9 +226,14 @@ def prepare_transaction_history(transaction: FinancialTransaction) -> list[dict]
     Build the history of a transaction from its tracked events, newest first.
 
     Each entry has the `user` who acted, `when` they did, and for edits the
-    `changes` (names of the fields that changed).
+    `changes`: a `field` name with its `old` and `new` value for each field
+    that changed.
     """
-    events = list(transaction.events.select_related("updated_by").order_by("pgh_id"))
+    events = list(
+        transaction.events.select_related(
+            "updated_by", "category", "club_member__user"
+        ).order_by("pgh_id")
+    )
     history = []
     if not events or events[0].pgh_label != "insert":
         # Recorded before history tracking was set up.
@@ -222,10 +252,18 @@ def prepare_transaction_history(transaction: FinancialTransaction) -> list[dict]
             "changes": None,
         }
         if event.pgh_label != "insert":
+            # With no earlier event (the transaction predates history
+            # tracking) there is nothing to compare against, so the edit is
+            # listed without naming fields.
             entry["changes"] = [
-                label
+                {
+                    "field": label,
+                    "old": history_value(previous, field),
+                    "new": history_value(event, field),
+                }
                 for field, label in TRANSACTION_HISTORY_LABELS.items()
-                if previous is None or getattr(previous, field) != getattr(event, field)
+                if previous is not None
+                and getattr(previous, field) != getattr(event, field)
             ]
         history.append(entry)
         previous = event

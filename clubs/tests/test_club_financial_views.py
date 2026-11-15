@@ -17,6 +17,7 @@ from clubs.models import (
     IndividualDue,
 )
 from clubs.views.club_financial_view import prepare_financial_year_context
+from clubs.views.club_transactions_view import prepare_transaction_history
 from common.message_test_case import MsgTestCase
 
 
@@ -1190,18 +1191,86 @@ class TestFinancialTransactionDetailView(MsgTestCase):
             [Message(messages.SUCCESS, "Transaction 'November contribution' updated.")],
         )
 
-    def test_edit_is_added_to_history(self):
+    def record_event(self, label, **changes):
+        """
+        Record a history event the way the database triggers do in Postgres
+        (the tests run on SQLite, which has no triggers).
+        """
+        for field, value in changes.items():
+            setattr(self.transaction, field, value)
+        return FinancialTransaction.pgh_event_model.objects.create(
+            pgh_obj=self.transaction,
+            pgh_label=label,
+            id=self.transaction.id,
+            financial_year=self.financial_year,
+            description=self.transaction.description,
+            credit=self.transaction.credit,
+            debit=self.transaction.debit,
+            transaction_date=self.transaction.transaction_date,
+            category=self.transaction.category,
+            club_member=self.transaction.club_member,
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+
+    def test_edits_are_listed_in_history_newest_first(self):
+        self.record_event("insert")
+        self.record_event("update", description="November contribution", credit=150000)
+        self.record_event("update", club_member=None)
+
+        history = prepare_transaction_history(self.transaction)
+
+        self.assertIsNone(history[2]["changes"])
+        self.assertEqual(
+            history[1]["changes"],
+            [
+                {
+                    "field": "Description",
+                    "old": "Monthly contribution",
+                    "new": "November contribution",
+                },
+                {
+                    "field": "Credit",
+                    "old": "Ugx 120,000.00",
+                    "new": "Ugx 150,000.00",
+                },
+            ],
+        )
+        self.assertEqual(
+            history[0]["changes"],
+            [{"field": "Member", "old": "member@example.com", "new": ""}],
+        )
+
+    def test_history_shows_old_and_new_values(self):
+        self.record_event("insert")
+        self.record_event("update", debit=5000, transaction_date="2026-11-02")
         self.client.force_login(self.admin)
-        self.client.post(self.url, self.valid_data)
 
         response = self.client.get(self.url)
 
-        history = response.context["history"]
-        self.assertEqual(len(history), 2)
-        self.assertEqual(history[0]["changes"], ["description", "credit", "date"])
-        self.assertIsNotNone(response.context["last_edited"])
+        self.assertContains(response, "<s>None</s>", html=True)
+        self.assertContains(response, "<b>Ugx 5,000.00</b>", html=True)
+        self.assertContains(response, "<s>Nov 1, 2026</s>", html=True)
+        self.assertContains(response, "<b>Nov 2, 2026</b>", html=True)
 
-    def test_unchanged_submission_adds_no_history(self):
+    def test_history_of_untracked_transaction_keeps_who_recorded_it(self):
+        self.record_event("update", description="November contribution")
+
+        history = prepare_transaction_history(self.transaction)
+
+        self.assertEqual(len(history), 2)
+        self.assertIsNone(history[1]["changes"])
+        self.assertEqual(history[0]["changes"], [])
+
+    def test_last_edited_comes_from_latest_edit(self):
+        event = self.record_event("update", description="November contribution")
+        self.client.force_login(self.admin)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context["last_edited"], event.pgh_created_at)
+
+    def test_unchanged_submission_does_not_save(self):
         self.client.force_login(self.admin)
         unchanged = {
             "description": "Monthly contribution",
@@ -1211,11 +1280,13 @@ class TestFinancialTransactionDetailView(MsgTestCase):
             "category": "",
             "club_member": self.member.id,
         }
+        saved_at = self.transaction.updated_at
 
         response = self.client.post(self.url, unchanged)
 
         self.assertRedirects(response, self.url)
-        self.assertEqual(self.transaction.events.count(), 1)
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.updated_at, saved_at)
 
     def test_member_cannot_edit_transaction(self):
         self.client.force_login(self.member_user)

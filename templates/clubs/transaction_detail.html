@@ -284,9 +284,22 @@
                                         {% if entry.changes is None %}
                                             Recorded by <b>{{ entry.user }}</b>
                                         {% elif entry.changes %}
-                                            <b>{{ entry.user }}</b> changed the {{ entry.changes|join:", " }}
+                                            <b>{{ entry.user }}</b> edited the transaction
+                                            <ul class="si-history-changes">
+                                                {% for change in entry.changes %}
+                                                    <li>
+                                                        <span class="si-history-field">{{ change.field }}</span>
+                                                        <span>
+                                                            <s>{{ change.old|default:"None" }}</s>
+                                                            <span aria-hidden="true">→</span>
+                                                            <span class="visually-hidden">changed to</span>
+                                                            <b>{{ change.new|default:"None" }}</b>
+                                                        </span>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
                                         {% else %}
-                                            <b>{{ entry.user }}</b> saved the transaction
+                                            <b>{{ entry.user }}</b> edited the transaction
                                         {% endif %}
                                         <small>{{ entry.when|date:"M j, Y" }} · {{ entry.when|date:"g:i A" }}</small>
                                     </div>
