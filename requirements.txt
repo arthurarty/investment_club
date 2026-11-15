@@ -9,6 +9,8 @@ coverage==7.11.0
 distlib==0.4.3
 Django==6.0.8
 django-anymail==15.0
+django-pghistory==3.9.2
+django-pgtrigger==4.17.0
 django-recaptcha==4.1.0
 filelock==3.24.2
 gunicorn==23.0.0
@@ -20,10 +22,11 @@ nodeenv==1.9.1
 packaging==26.3
 pathspec==1.1.1
 phonenumbers==9.0.32
-platformdirs==4.4
+platformdirs==4.4.0
 pre_commit==4.3.0
 psycopg2-binary==2.9.10
 pyflakes==3.4.0
+python-discovery==1.9.4
 python-dotenv==1.1.1
 pytokens==0.4.1
 PyYAML==6.0.2
