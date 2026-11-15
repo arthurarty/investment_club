@@ -1354,6 +1354,7 @@ textarea.form-control { resize: vertical; }
 }
 
 /* ── Table row link (opens the row's detail page) ────── */
+.si-row-clickable { cursor: pointer; }
 .si-row-link { color: inherit; font-weight: 500; text-decoration: none; }
 .si-row-link:hover { color: var(--si-green-700); text-decoration: underline; }
 

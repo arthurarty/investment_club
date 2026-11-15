@@ -152,7 +152,8 @@
                     </thead>
                     <tbody>
                         {% for expense in expenses %}
-                            <tr data-month="{{ expense.transaction_date|date:'Y-m' }}"
+                            <tr class="si-row-clickable"
+                                data-month="{{ expense.transaction_date|date:'Y-m' }}"
                                 data-category="{{ expense.category_id|default:'none' }}"
                                 data-amount="{{ expense.debit|floatformat:'0u' }}">
                                 <td>

@@ -55,6 +55,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (amount.value) format();
   });
 
+  // Clicking anywhere on a transaction row opens the page its link points to.
+  document.querySelectorAll('.si-row-clickable').forEach(function(row) {
+    row.addEventListener('click', function(e) {
+      // Leave real links and text selection alone.
+      if (e.target.closest('a, button') || String(window.getSelection())) return;
+      row.querySelector('.si-row-link').click();
+    });
+  });
+
   // Re-open a modal after a failed submit (templates set data-show-on-load="true").
   document.querySelectorAll('.modal[data-show-on-load="true"]').forEach(function(modal) {
     new bootstrap.Modal(modal).show();
