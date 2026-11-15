@@ -138,9 +138,12 @@
                     </thead>
                     <tbody>
                         {% for trans in transactions %}
-                            <tr>
+                            <tr class="si-row-clickable">
                                 <td><span class="mono">{{ trans.transaction_date }}</span></td>
-                                <td>{{ trans.description }}</td>
+                                <td>
+                                    <a class="si-row-link"
+                                       href="{% url 'clubs:financial-transaction-detail' club.id financial_year.id trans.id %}">{{ trans.description }}</a>
+                                </td>
                                 <td>
                                     {% if trans.category %}
                                         <span class="si-category-badge"

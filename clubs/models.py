@@ -1,3 +1,4 @@
+import pghistory
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models, transaction
@@ -148,6 +149,7 @@ class TransactionCategory(BaseTimestampedModel, models.Model):
         return self.name
 
 
+@pghistory.track()
 class ClubMembership(BaseTimestampedModel, models.Model):
     """
     Model representing a member of an investment club.
@@ -193,6 +195,7 @@ class ClubMembership(BaseTimestampedModel, models.Model):
         return f"{self.user.first_name} in {self.club.name}"
 
 
+@pghistory.track()
 class FinancialYear(BaseTimestampedModel, models.Model):
     """
     Model representing a financial year for a club.
@@ -222,6 +225,7 @@ class FinancialYear(BaseTimestampedModel, models.Model):
         return f"FY {self.start_date}->{self.end_date} for {self.club}"
 
 
+@pghistory.track()
 class FinancialYearContribution(BaseTimestampedModel, models.Model):
     """
     Model represents the amounts of money per due period that club
@@ -281,6 +285,7 @@ class FinancialYearParticipant(BaseTimestampedModel, models.Model):
         return f"{self.club_member} in {self.financial_year}"
 
 
+@pghistory.track()
 class IndividualDue(BaseTimestampedModel, models.Model):
     """
     Represents dues that only apply a particular club member within a financial year.
@@ -311,9 +316,11 @@ class IndividualDue(BaseTimestampedModel, models.Model):
         return f"Due {self.amount} - {self.financial_year} - {self.club_member}"
 
 
+@pghistory.track()
 class FinancialTransaction(BaseTimestampedModel, models.Model):
     """
     Model representing a financial transaction within a financial year.
+    A transaction could either be credit(earning) or a debit(expense).
     """
 
     financial_year = models.ForeignKey(

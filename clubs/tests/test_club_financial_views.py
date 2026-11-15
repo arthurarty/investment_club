@@ -17,6 +17,7 @@ from clubs.models import (
     IndividualDue,
 )
 from clubs.views.club_financial_view import prepare_financial_year_context
+from clubs.views.club_transactions_view import prepare_transaction_history
 from common.message_test_case import MsgTestCase
 
 
@@ -1047,3 +1048,264 @@ class TestExpenseCreateView(TestClubFinancialYearExpensesView):
             {"debit": "100", "transaction_date": "2026-10-05", "description": "X"},
         )
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+
+class TestFinancialTransactionDetailView(MsgTestCase):
+    """
+    Test case for viewing and editing a single financial transaction.
+    """
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin@example.com",
+            password="testPass123",
+            first_name="Ada",
+            last_name="Admin",
+        )
+        self.member_user = User.objects.create_user(
+            email="member@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="Finance Club",
+            description="A club for financial enthusiasts.",
+            contact_email="jane@example.com",
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        ClubMembership.objects.create(user=self.admin, club=self.club, is_admin=True)
+        self.member = ClubMembership.objects.create(
+            user=self.member_user, club=self.club
+        )
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2026-01-01",
+            end_date="2026-12-31",
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        self.transaction = FinancialTransaction.objects.create(
+            financial_year=self.financial_year,
+            description="Monthly contribution",
+            credit=120000,
+            transaction_date="2026-11-01",
+            club_member=self.member,
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        self.url = reverse(
+            "clubs:financial-transaction-detail",
+            args=[self.club.id, self.financial_year.id, self.transaction.id],
+        )
+        self.valid_data = {
+            "description": "November contribution",
+            "credit": "150,000",
+            "debit": "",
+            "transaction_date": "2026-11-02",
+            "category": "",
+            "club_member": self.member.id,
+        }
+
+    def test_requires_login(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertIn("next=", response.url)
+
+    def test_admin_sees_transaction_and_edit_form(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/transaction_detail.html")
+        self.assertEqual(response.context["transaction"], self.transaction)
+        self.assertTrue(response.context["is_money_in"])
+        self.assertContains(response, "Edit transaction")
+        self.assertEqual(response.context["transaction_form"].initial["credit"], 120000)
+
+    def test_member_sees_transaction_without_edit_form(self):
+        self.client.force_login(self.member_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, "Monthly contribution")
+        self.assertIsNone(response.context["transaction_form"])
+        self.assertNotContains(response, "Edit transaction")
+
+    def test_non_member_forbidden(self):
+        outsider = User.objects.create_user(
+            email="outsider@example.com", password="testPass123"
+        )
+        self.client.force_login(outsider)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_transaction_of_another_financial_year_redirects(self):
+        other_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        self.client.force_login(self.admin)
+
+        response = self.client.get(
+            reverse(
+                "clubs:financial-transaction-detail",
+                args=[self.club.id, other_year.id, self.transaction.id],
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("clubs:financial-year-detail", args=[self.club.id, other_year.id]),
+        )
+
+    def test_history_starts_with_who_recorded_it(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(self.url)
+
+        history = response.context["history"]
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["user"], "Ada Admin")
+        self.assertIsNone(history[0]["changes"])
+        self.assertIsNone(response.context["last_edited"])
+
+    def test_admin_can_edit_transaction(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(self.url, self.valid_data)
+
+        self.assertRedirects(response, self.url)
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.description, "November contribution")
+        self.assertEqual(self.transaction.credit, 150000)
+        self.assertEqual(self.transaction.updated_by, self.admin)
+        self.assertMessages(
+            response,
+            [Message(messages.SUCCESS, "Transaction 'November contribution' updated.")],
+        )
+
+    def record_event(self, label, **changes):
+        """
+        Record a history event the way the database triggers do in Postgres
+        (the tests run on SQLite, which has no triggers).
+        """
+        for field, value in changes.items():
+            setattr(self.transaction, field, value)
+        return FinancialTransaction.pgh_event_model.objects.create(
+            pgh_obj=self.transaction,
+            pgh_label=label,
+            id=self.transaction.id,
+            financial_year=self.financial_year,
+            description=self.transaction.description,
+            credit=self.transaction.credit,
+            debit=self.transaction.debit,
+            transaction_date=self.transaction.transaction_date,
+            category=self.transaction.category,
+            club_member=self.transaction.club_member,
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+
+    def test_edits_are_listed_in_history_newest_first(self):
+        self.record_event("insert")
+        self.record_event("update", description="November contribution", credit=150000)
+        self.record_event("update", club_member=None)
+
+        history = prepare_transaction_history(self.transaction)
+
+        self.assertIsNone(history[2]["changes"])
+        self.assertEqual(
+            history[1]["changes"],
+            [
+                {
+                    "field": "Description",
+                    "old": "Monthly contribution",
+                    "new": "November contribution",
+                },
+                {
+                    "field": "Credit",
+                    "old": "Ugx 120,000.00",
+                    "new": "Ugx 150,000.00",
+                },
+            ],
+        )
+        self.assertEqual(
+            history[0]["changes"],
+            [{"field": "Member", "old": "member@example.com", "new": ""}],
+        )
+
+    def test_history_shows_old_and_new_values(self):
+        self.record_event("insert")
+        self.record_event("update", debit=5000, transaction_date="2026-11-02")
+        self.client.force_login(self.admin)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "<s>None</s>", html=True)
+        self.assertContains(response, "<b>Ugx 5,000.00</b>", html=True)
+        self.assertContains(response, "<s>Nov 1, 2026</s>", html=True)
+        self.assertContains(response, "<b>Nov 2, 2026</b>", html=True)
+
+    def test_history_of_untracked_transaction_keeps_who_recorded_it(self):
+        self.record_event("update", description="November contribution")
+
+        history = prepare_transaction_history(self.transaction)
+
+        self.assertEqual(len(history), 2)
+        self.assertIsNone(history[1]["changes"])
+        self.assertEqual(history[0]["changes"], [])
+
+    def test_last_edited_comes_from_latest_edit(self):
+        event = self.record_event("update", description="November contribution")
+        self.client.force_login(self.admin)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context["last_edited"], event.pgh_created_at)
+
+    def test_unchanged_submission_does_not_save(self):
+        self.client.force_login(self.admin)
+        unchanged = {
+            "description": "Monthly contribution",
+            "credit": "120,000",
+            "debit": "",
+            "transaction_date": "2026-11-01",
+            "category": "",
+            "club_member": self.member.id,
+        }
+        saved_at = self.transaction.updated_at
+
+        response = self.client.post(self.url, unchanged)
+
+        self.assertRedirects(response, self.url)
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.updated_at, saved_at)
+
+    def test_member_cannot_edit_transaction(self):
+        self.client.force_login(self.member_user)
+
+        response = self.client.post(self.url, self.valid_data)
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.description, "Monthly contribution")
+
+    def test_edit_requires_an_amount(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(self.url, {**self.valid_data, "credit": ""})
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(response.context["transaction_form"].non_field_errors())
+        self.assertEqual(
+            response.context["transaction"].description, "Monthly contribution"
+        )
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.credit, 120000)
