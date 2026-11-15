@@ -1,0 +1,307 @@
+{% extends "clubs/dashboard_base.html" %}
+{% load static %}
+{% block page_title %}{{ transaction.description }} — Transactions — SavingsInc{% endblock %}
+{% block nav_transactions_active %}active{% endblock %}
+{% block content %}
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">{{ transaction.description }}</h1>
+            <p class="si-topbar-subtitle">
+                Transaction #TX-{{ transaction.id|stringformat:"04d" }} · {{ club.name }} · FY {{ financial_year.start_date.year }}
+            </p>
+        </div>
+        {% if is_club_admin %}
+            <div class="si-topbar-actions"
+                 id="transactionViewActions"
+                 {% if transaction_form.errors %}hidden{% endif %}>
+                <button type="button"
+                        class="si-btn si-btn-primary si-btn-sm"
+                        id="transactionEditBtn">
+                    <svg width="13"
+                         height="13"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+                    </svg>
+                    Edit transaction
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}"
+       class="si-back-link">
+        <svg width="12"
+             height="12"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to transactions
+    </a>
+    <div class="si-page-body">
+        <div class="si-detail-grid">
+            <!-- View mode -->
+            <section class="si-card"
+                     id="transactionViewCard"
+                     {% if transaction_form.errors %}hidden{% endif %}>
+                <div class="si-amount-hero">
+                    <div class="si-amount-icon{% if not is_money_in %} out{% endif %}">
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             aria-hidden="true">
+                            {% if is_money_in %}
+                                <path d="M12 5v14" />
+                                <path d="M19 12l-7 7-7-7" />
+                            {% else %}
+                                <path d="M12 19V5" />
+                                <path d="M5 12l7-7 7 7" />
+                            {% endif %}
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="si-stat-label">
+                            {% if is_money_in %}
+                                Money in
+                            {% else %}
+                                Money out
+                            {% endif %}
+                        </div>
+                        <div class="si-amount-value{% if not is_money_in %} out{% endif %}">
+                            Ugx
+                            {% if is_money_in %}
+                                {{ transaction.credit|default:0|floatformat:"2g" }}
+                            {% else %}
+                                {{ transaction.debit|floatformat:"2g" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="si-amount-split">
+                        <div>
+                            <span class="si-stat-label">Credit</span>
+                            <b>
+                                {% if transaction.credit %}
+                                    Ugx {{ transaction.credit|floatformat:"2g" }}
+                                {% else %}
+                                    <span class="muted">—</span>
+                                {% endif %}
+                            </b>
+                        </div>
+                        <div>
+                            <span class="si-stat-label">Debit</span>
+                            <b>
+                                {% if transaction.debit %}
+                                    Ugx {{ transaction.debit|floatformat:"2g" }}
+                                {% else %}
+                                    <span class="muted">—</span>
+                                {% endif %}
+                            </b>
+                        </div>
+                    </div>
+                </div>
+                <div class="si-card-body">
+                    <dl class="si-facts">
+                        <div class="si-fact">
+                            <dt class="si-stat-label">Transaction date</dt>
+                            <dd>
+                                {{ transaction.transaction_date|date:"M j, Y" }}
+                            </dd>
+                        </div>
+                        <div class="si-fact">
+                            <dt class="si-stat-label">Category</dt>
+                            <dd>
+                                {% if transaction.category %}
+                                    <span class="si-category-badge"
+                                          style="--category-color: {{ transaction.category.color }}">{{ transaction.category.name }}</span>
+                                {% else %}
+                                    <span class="muted">—</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div class="si-fact">
+                            <dt class="si-stat-label">Member</dt>
+                            <dd>
+                                {% if transaction.club_member %}
+                                    <div class="si-member-cell">
+                                        <div class="si-avatar">
+                                            {{ transaction.club_member.user.first_name|slice:":1"|upper }}{{ transaction.club_member.user.last_name|slice:":1"|upper }}
+                                        </div>
+                                        <span>{{ transaction.club_member.user.first_name }} {{ transaction.club_member.user.last_name }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="muted">—</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div class="si-fact">
+                            <dt class="si-stat-label">Description</dt>
+                            <dd>
+                                {{ transaction.description }}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            </section>
+            {% if is_club_admin %}
+                <!-- Edit mode -->
+                <form class="si-card"
+                      id="transactionEditCard"
+                      method="post"
+                      action="{% url 'clubs:financial-transaction-detail' club.id financial_year.id transaction.id %}"
+                      {% if not transaction_form.errors %}hidden{% endif %}>
+                    {% csrf_token %}
+                    <div class="si-card-head">
+                        <h2 class="si-card-head-title">Edit transaction</h2>
+                        <span class="si-form-hint">Changes are saved to the club's records and the history.</span>
+                    </div>
+                    <div class="si-card-body">
+                        <div class="si-form-grid">
+                            <div class="si-field full">
+                                <label for="{{ transaction_form.description.id_for_label }}"
+                                       class="form-label">Description</label>
+                                {{ transaction_form.description }}
+                                {% if transaction_form.description.errors %}
+                                    <div class="si-field-error">{{ transaction_form.description.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="si-field">
+                                <label for="{{ transaction_form.credit.id_for_label }}" class="form-label">
+                                    Credit <span class="si-field-opt">money in</span>
+                                </label>
+                                {{ transaction_form.credit }}
+                                {% if transaction_form.credit.errors %}
+                                    <div class="si-field-error">{{ transaction_form.credit.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="si-field">
+                                <label for="{{ transaction_form.debit.id_for_label }}" class="form-label">
+                                    Debit <span class="si-field-opt">money out</span>
+                                </label>
+                                {{ transaction_form.debit }}
+                                {% if transaction_form.debit.errors %}
+                                    <div class="si-field-error">{{ transaction_form.debit.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            {% if transaction_form.non_field_errors %}
+                                <div class="si-field full">
+                                    <div class="si-field-error">{{ transaction_form.non_field_errors|join:", " }}</div>
+                                </div>
+                            {% endif %}
+                            <div class="si-field">
+                                <label for="{{ transaction_form.transaction_date.id_for_label }}"
+                                       class="form-label">Transaction date</label>
+                                {{ transaction_form.transaction_date }}
+                                {% if transaction_form.transaction_date.errors %}
+                                    <div class="si-field-error">{{ transaction_form.transaction_date.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="si-field">
+                                <label for="{{ transaction_form.category.id_for_label }}" class="form-label">
+                                    Category <span class="si-field-opt">optional</span>
+                                </label>
+                                {{ transaction_form.category }}
+                                {% if transaction_form.category.errors %}
+                                    <div class="si-field-error">{{ transaction_form.category.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="si-field">
+                                <label for="{{ transaction_form.club_member.id_for_label }}"
+                                       class="form-label">
+                                    Club member <span class="si-field-opt">optional</span>
+                                </label>
+                                {{ transaction_form.club_member }}
+                                {% if transaction_form.club_member.errors %}
+                                    <div class="si-field-error">{{ transaction_form.club_member.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="si-form-actions bordered">
+                            <button type="submit" class="si-btn si-btn-primary">Save changes</button>
+                            <button type="button" class="si-btn si-btn-ghost" id="transactionCancelBtn">Cancel</button>
+                            <span class="si-form-spacer"></span>
+                            <span class="si-form-hint" id="transactionDirtyHint" aria-live="polite"></span>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+            <!-- Side -->
+            <aside class="si-detail-side">
+                <section class="si-card">
+                    <div class="si-card-head">
+                        <h2 class="si-card-head-title">Record</h2>
+                    </div>
+                    <div class="si-card-body">
+                        <div class="si-side-row">
+                            <span>Club</span><b>{{ club.name }}</b>
+                        </div>
+                        <div class="si-side-row">
+                            <span>Financial year</span><b>FY {{ financial_year.start_date.year }}</b>
+                        </div>
+                        <div class="si-side-row">
+                            <span>Recorded by</span><b>{{ recorded_by }}</b>
+                        </div>
+                        <div class="si-side-row">
+                            <span>Recorded on</span><b>{{ transaction.created_at|date:"M j, Y" }}</b>
+                        </div>
+                        <div class="si-side-row">
+                            <span>Last edited</span>
+                            <b>
+                                {% if last_edited %}
+                                    {{ last_edited|date:"M j, Y" }} · {{ last_edited|date:"g:i A" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </b>
+                        </div>
+                    </div>
+                </section>
+                <section class="si-card">
+                    <div class="si-card-head">
+                        <h2 class="si-card-head-title">History</h2>
+                    </div>
+                    <div class="si-card-body">
+                        <ul class="si-history">
+                            {% for entry in history %}
+                                <li>
+                                    <span class="si-history-dot" aria-hidden="true"></span>
+                                    <div>
+                                        {% if entry.changes is None %}
+                                            Recorded by <b>{{ entry.user }}</b>
+                                        {% elif entry.changes %}
+                                            <b>{{ entry.user }}</b> changed the {{ entry.changes|join:", " }}
+                                        {% else %}
+                                            <b>{{ entry.user }}</b> saved the transaction
+                                        {% endif %}
+                                        <small>{{ entry.when|date:"M j, Y" }} · {{ entry.when|date:"g:i A" }}</small>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </div>
+{% endblock %}
+{% block after_main %}
+    {% if is_club_admin %}
+        <script src="{% static 'js/expenses.js' %}"></script>
+        <script src="{% static 'js/transaction_detail.js' %}"></script>
+    {% endif %}
+{% endblock %}

@@ -180,6 +180,54 @@ class FinancialTransactionForm(forms.ModelForm):
             )
 
 
+class FinancialTransactionUpdateForm(FinancialTransactionForm):
+    """
+    Form for editing an existing financial transaction.
+    """
+
+    class Meta(FinancialTransactionForm.Meta):
+        widgets = {
+            **FinancialTransactionForm.Meta.widgets,
+            "description": forms.TextInput(attrs={"class": "form-control"}),
+        }
+        labels = {"club_member": "Club member"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["category"].empty_label = "No category"
+        self.fields["club_member"].empty_label = "No member"
+        if self.instance.club_member_id:
+            # Keep the recorded member selectable even if they have since
+            # stopped participating in the financial year.
+            self.fields["club_member"].queryset = (
+                self.fields["club_member"].queryset
+                | ClubMembership.objects.filter(pk=self.instance.club_member_id)
+            ).distinct()
+        for name in ("credit", "debit"):
+            value = self.initial.get(name)
+            if value is None:
+                continue
+            if value == value.to_integral_value():
+                # Stored with six decimal places; show whole amounts as such.
+                self.initial[name] = int(value)
+            else:
+                # The comma formatting script only understands whole numbers.
+                self.fields[name].widget.attrs.pop("data-amount-input", None)
+
+    def clean(self):
+        """
+        A transaction must move money in or out.
+        """
+        cleaned_data = super().clean()
+        if (
+            not self.errors
+            and not cleaned_data.get("credit")
+            and not cleaned_data.get("debit")
+        ):
+            raise forms.ValidationError("Enter a credit or a debit amount.")
+        return cleaned_data
+
+
 class ExpenseForm(FinancialTransactionForm):
     """
     Form for recording an expense (money paid out) for a Financial Year.

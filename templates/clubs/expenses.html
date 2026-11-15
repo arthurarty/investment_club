@@ -158,7 +158,10 @@
                                 <td>
                                     <span class="mono">{{ expense.transaction_date|date:"M j, Y" }}</span>
                                 </td>
-                                <td>{{ expense.description }}</td>
+                                <td>
+                                    <a class="si-row-link"
+                                       href="{% url 'clubs:financial-transaction-detail' club.id financial_year.id expense.id %}">{{ expense.description }}</a>
+                                </td>
                                 <td>
                                     {% if expense.category %}
                                         <span class="si-category-badge"

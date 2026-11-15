@@ -19,6 +19,7 @@ from clubs.views.club_transactions_view import (
     ClubFinancialYearExpensesView,
     ExpenseCreateView,
     FinancialTransactionCreateView,
+    FinancialTransactionDetailView,
 )
 from clubs.views.club_views import ClubDetailView, ClubsListView
 from clubs.views.member_views import (
@@ -90,6 +91,11 @@ urlpatterns = [
         "<int:club_id>/financial-year/<int:financial_year_id>/transaction/",
         FinancialTransactionCreateView.as_view(),
         name="financial-transaction",
+    ),
+    path(
+        "<int:club_id>/financial-year/<int:financial_year_id>/transaction/<int:transaction_id>/",
+        FinancialTransactionDetailView.as_view(),
+        name="financial-transaction-detail",
     ),
     path(
         "<int:club_id>/financial-year/<int:financial_year_id>/participants/",

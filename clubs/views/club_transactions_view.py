@@ -7,7 +7,11 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from clubs.emails import send_contribution_email
-from clubs.forms.club_financials_forms import ExpenseForm, FinancialTransactionForm
+from clubs.forms.club_financials_forms import (
+    ExpenseForm,
+    FinancialTransactionForm,
+    FinancialTransactionUpdateForm,
+)
 from clubs.models import Club, FinancialTransaction, FinancialYear
 from clubs.views.club_financial_view import prepare_financial_year_context
 from clubs.views.utils import is_club_admin_or_creator
@@ -171,4 +175,171 @@ class ExpenseCreateView(FinancialYearTransactionCreateBaseView):
             "clubs:financial-year-expenses",
             club_id=club.id,
             financial_year_id=financial_year.id,
+        )
+
+
+# Tracked transaction fields mapped to how the history names them.
+TRANSACTION_HISTORY_LABELS = {
+    "description": "description",
+    "credit": "credit",
+    "debit": "debit",
+    "transaction_date": "date",
+    "category_id": "category",
+    "club_member_id": "member",
+}
+
+
+def user_display_name(user) -> str:
+    """
+    A user's full name, falling back to their email when no name is set.
+    """
+    return f"{user.first_name} {user.last_name}".strip() or user.email
+
+
+def prepare_transaction_history(transaction: FinancialTransaction) -> list[dict]:
+    """
+    Build the history of a transaction from its tracked events, newest first.
+
+    Each entry has the `user` who acted, `when` they did, and for edits the
+    `changes` (names of the fields that changed).
+    """
+    events = list(transaction.events.select_related("updated_by").order_by("pgh_id"))
+    history = []
+    if not events or events[0].pgh_label != "insert":
+        # Recorded before history tracking was set up.
+        history.append(
+            {
+                "user": user_display_name(transaction.created_by),
+                "when": transaction.created_at,
+                "changes": None,
+            }
+        )
+    previous = None
+    for event in events:
+        entry = {
+            "user": user_display_name(event.updated_by),
+            "when": event.pgh_created_at,
+            "changes": None,
+        }
+        if event.pgh_label != "insert":
+            entry["changes"] = [
+                label
+                for field, label in TRANSACTION_HISTORY_LABELS.items()
+                if previous is None or getattr(previous, field) != getattr(event, field)
+            ]
+        history.append(entry)
+        previous = event
+    history.reverse()
+    return history
+
+
+class FinancialTransactionDetailView(LoginRequiredMixin, View):
+    """
+    View to show a single financial transaction, and let club admins edit it.
+    """
+
+    template_name = "clubs/transaction_detail.html"
+
+    def load(self, request, club_id, financial_year_id, transaction_id):
+        """
+        Fetch the club, financial year and transaction named in the URL.
+        Returns (club, financial_year, transaction, is_club_admin, response);
+        when `response` is set the request should end with it.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
+            return None, None, None, False, redirect("clubs:index")
+        is_club_admin = is_club_admin_or_creator(request, club)
+        is_member = club.members.filter(user=request.user).exists()
+        if not is_club_admin and not is_member:
+            forbidden = render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+            return club, financial_year, None, False, forbidden
+        transaction = (
+            financial_year.transactions.select_related(
+                "club_member__user", "category", "created_by"
+            )
+            .filter(id=transaction_id)
+            .first()
+        )
+        if transaction is None:
+            not_found = redirect(
+                "clubs:financial-year-detail",
+                club_id=club.id,
+                financial_year_id=financial_year.id,
+            )
+            return club, financial_year, None, is_club_admin, not_found
+        return club, financial_year, transaction, is_club_admin, None
+
+    def render_detail(
+        self, request, club, financial_year, transaction, is_club_admin, form=None
+    ):
+        """
+        Render the transaction page. Admins also get the edit form.
+        """
+        history = prepare_transaction_history(transaction)
+        edits = [entry for entry in history if entry["changes"] is not None]
+        if is_club_admin and form is None:
+            form = FinancialTransactionUpdateForm(
+                instance=transaction, financial_year=financial_year
+            )
+        context = {
+            "club": club,
+            "financial_year": financial_year,
+            "transaction": transaction,
+            "is_money_in": (transaction.credit or 0) >= (transaction.debit or 0),
+            "recorded_by": user_display_name(transaction.created_by),
+            "last_edited": edits[0]["when"] if edits else None,
+            "history": history,
+            "is_club_admin": is_club_admin,
+            "transaction_form": form,
+        }
+        return render(request, self.template_name, context)
+
+    def get(self, request, club_id, financial_year_id, transaction_id):
+        """
+        Handle GET requests to display a transaction to club members.
+        """
+        club, financial_year, transaction, is_club_admin, response = self.load(
+            request, club_id, financial_year_id, transaction_id
+        )
+        if response:
+            return response
+        return self.render_detail(
+            request, club, financial_year, transaction, is_club_admin
+        )
+
+    def post(self, request, club_id, financial_year_id, transaction_id):
+        """
+        Handle POST requests to edit a transaction. Club admins only.
+        """
+        club, financial_year, transaction, is_club_admin, response = self.load(
+            request, club_id, financial_year_id, transaction_id
+        )
+        if response:
+            return response
+        if not is_club_admin:
+            return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+        form = FinancialTransactionUpdateForm(
+            request.POST, instance=transaction, financial_year=financial_year
+        )
+        if not form.is_valid():
+            # The form has modified the instance; show the saved values.
+            transaction.refresh_from_db()
+            return self.render_detail(
+                request, club, financial_year, transaction, True, form=form
+            )
+        if form.has_changed():
+            updated = form.save(commit=False)
+            updated.updated_by = request.user
+            updated.save()
+            messages.success(
+                request, message=f"Transaction '{updated.description}' updated."
+            )
+        return redirect(
+            "clubs:financial-transaction-detail",
+            club_id=club.id,
+            financial_year_id=financial_year.id,
+            transaction_id=transaction.id,
         )
