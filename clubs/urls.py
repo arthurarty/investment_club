@@ -26,6 +26,7 @@ from clubs.views.club_transactions_view import (
 )
 from clubs.views.club_views import ClubDetailView, ClubsListView
 from clubs.views.member_views import (
+    ClubMemberListView,
     ClubMemberShipCreateView,
     ClubMemberShipDetailView,
 )
@@ -35,6 +36,11 @@ app_name = "clubs"
 urlpatterns = [
     path("", ClubsListView.as_view(), name="index"),
     path("<int:club_id>/", ClubDetailView.as_view(), name="detail"),
+    path(
+        "<int:club_id>/members/",
+        ClubMemberListView.as_view(),
+        name="club-members",
+    ),
     path(
         "<int:club_id>/member/create",
         ClubMemberShipCreateView.as_view(),

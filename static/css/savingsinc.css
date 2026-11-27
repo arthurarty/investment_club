@@ -1557,3 +1557,102 @@ textarea.form-control { resize: vertical; }
   .si-amount-split { margin-left: 0; width: 100%; text-align: left; }
 }
 .si-topbar-actions[hidden] { display: none; }
+
+/* ── Members list: toolbar & pager ───────────────────── */
+.si-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--si-border);
+}
+
+.si-search {
+  position: relative;
+  flex: 1 1 240px;
+}
+
+.si-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--si-text-3);
+  pointer-events: none;
+}
+
+.si-search .form-control { padding-left: 36px; }
+
+.si-toolbar .form-select {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 140px;
+  padding-right: 36px;
+}
+
+.si-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--si-border);
+  font-size: 12px;
+  color: var(--si-text-2);
+}
+
+.si-pager-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.si-pager-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.si-pager-size .form-select {
+  width: auto;
+  padding: 4px 30px 4px 10px;
+  font-size: 12px;
+}
+
+.si-pager-btns {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.si-pg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--si-border);
+  border-radius: var(--si-radius-sm);
+  background: var(--si-surface);
+  color: var(--si-text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.si-pg:hover { background: var(--si-surface-2); color: var(--si-text-1); text-decoration: none; }
+.si-pg.on { background: var(--si-green-700); border-color: var(--si-green-700); color: #fff; }
+.si-pg.disabled { opacity: 0.45; pointer-events: none; }
+.si-pg-gap { padding: 0 4px; color: var(--si-text-3); }
+
+@media (max-width: 640px) {
+  .si-pg-step span { display: none; }
+  .si-pager { justify-content: center; }
+}
