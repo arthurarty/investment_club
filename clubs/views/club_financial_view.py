@@ -81,6 +81,44 @@ def prepare_financial_year_context(
     return context.to_dict()
 
 
+def prepare_financial_year_list_context(
+    club: Club, is_club_admin: bool, form: FinancialYearForm | None = None
+) -> dict:
+    """
+    Prepare context data for the club's financial years list page.
+    """
+    return {
+        "club": club,
+        "financial_years": club.financial_years.order_by("-start_date", "-id"),
+        "financial_year_form": form or FinancialYearForm(),
+        "is_creator_or_admin": is_club_admin,
+    }
+
+
+class ClubFinancialYearListView(LoginRequiredMixin, View):
+    """
+    View to list all financial years of a club.
+    """
+
+    def get(self, request, club_id):
+        """
+        Handle GET requests to display the club's financial years.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+        except Club.DoesNotExist:
+            return redirect("clubs:index")
+        is_club_admin = is_club_admin_or_creator(request, club)
+        is_member = club.members.filter(user=request.user).exists()
+        if not is_club_admin and not is_member:
+            return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+        return render(
+            request,
+            "clubs/financial_years.html",
+            prepare_financial_year_list_context(club, is_club_admin),
+        )
+
+
 class ClubFinancialYearCreateView(LoginRequiredMixin, View):
     """
     View to handle the creation of a new financial year for a club.
@@ -99,13 +137,11 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
             return redirect("clubs:index")
         form = FinancialYearForm(request.POST)
         if not form.is_valid():
-            members = club.members.select_related("user").all()[:25]
-            context = {
-                "club": club,
-                "members": members,
-                "financial_year_form": form,
-            }
-            return render(request, "clubs/detail.html", context)
+            return render(
+                request,
+                "clubs/financial_years.html",
+                prepare_financial_year_list_context(club, allowed, form),
+            )
 
         new_financial_year = form.save(commit=False)
         new_financial_year.club = club
@@ -119,7 +155,7 @@ class ClubFinancialYearCreateView(LoginRequiredMixin, View):
                 f"{new_financial_year.end_date} created successfully."
             ),
         )
-        return redirect("clubs:detail", club_id=club.id)
+        return redirect("clubs:financial-year-list", club_id=club.id)
 
 
 class ClubFinancialYearDetailView(LoginRequiredMixin, View):
