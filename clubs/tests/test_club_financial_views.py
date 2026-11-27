@@ -118,7 +118,9 @@ class TestClubFinancialYearCreateView(MsgTestCase):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)  # Redirect on success
-        self.assertEqual(response.url, reverse("clubs:detail", args=[self.club.id]))
+        self.assertEqual(
+            response.url, reverse("clubs:financial-year-list", args=[self.club.id])
+        )
         self.assertTrue(
             FinancialYear.objects.filter(
                 club=self.club, start_date="2024-01-01", end_date="2024-12-31"
@@ -144,7 +146,7 @@ class TestClubFinancialYearCreateView(MsgTestCase):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTPStatus.OK)  # Form re-rendered
-        self.assertTemplateUsed(response, "clubs/detail.html")
+        self.assertTemplateUsed(response, "clubs/financial_years.html")
         self.assertFalse(
             FinancialYear.objects.filter(club=self.club, end_date="2022-12-31").exists()
         )
@@ -1309,3 +1311,50 @@ class TestFinancialTransactionDetailView(MsgTestCase):
         )
         self.transaction.refresh_from_db()
         self.assertEqual(self.transaction.credit, 120000)
+
+
+class TestClubFinancialYearListView(TestCase):
+    """
+    Test case for the ClubFinancialYearListView.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="list.member@example.com", password="testPass123"
+        )
+        self.club = Club.objects.create(
+            name="List Club",
+            description="Club for the list view.",
+            contact_email=self.user.email,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        ClubMembership.objects.create(user=self.user, club=self.club, is_admin=True)
+        self.financial_year = FinancialYear.objects.create(
+            club=self.club,
+            start_date="2024-01-01",
+            end_date="2024-12-31",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        self.url = reverse("clubs:financial-year-list", args=[self.club.id])
+
+    def test_lists_financial_years(self):
+        self.client.login(email=self.user.email, password="testPass123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/financial_years.html")
+        self.assertContains(response, "FY 2024")
+
+    def test_non_member_gets_403(self):
+        stranger = User.objects.create_user(
+            email="stranger.list@example.com", password="testPass123"
+        )
+        self.client.login(email=stranger.email, password="testPass123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_unknown_club_redirects_to_index(self):
+        self.client.login(email=self.user.email, password="testPass123")
+        response = self.client.get(reverse("clubs:financial-year-list", args=[9999]))
+        self.assertRedirects(response, reverse("clubs:index"))

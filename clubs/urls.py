@@ -5,6 +5,7 @@ from clubs.views.club_due_view import ClubDueListView, ClubIndividualDueListView
 from clubs.views.club_financial_view import (
     ClubFinancialYearCreateView,
     ClubFinancialYearDetailView,
+    ClubFinancialYearListView,
     FinancialYearDueCreateView,
     FinancialYearIndividualDueCreateView,
     FinancialYearParticipantCreateView,
@@ -48,6 +49,11 @@ urlpatterns = [
         "<int:club_id>/categories/",
         ClubCategoryListView.as_view(),
         name="categories",
+    ),
+    path(
+        "<int:club_id>/financial-years/",
+        ClubFinancialYearListView.as_view(),
+        name="financial-year-list",
     ),
     path(
         "<int:club_id>/financial-year/",

@@ -1,0 +1,213 @@
+{% extends "clubs/dashboard_base.html" %}
+{% load static %}
+{% block page_title %}Financial years — {{ club.name }} — SavingsInc{% endblock %}
+{% block content %}
+    <style>
+        .si-fy-icon {
+            width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+            background: var(--si-green-100); color: var(--si-green-700);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .si-fy-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .si-fy-note { color: var(--si-text-3); font-size: 12px; }
+        .si-fy-row-current { background: var(--si-green-50, transparent); }
+        .si-fy-act { text-align: right; }
+        .si-fy-current {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--si-text-3); font-size: 12px; font-weight: 600;
+        }
+        .si-fy-foot {
+            padding: 14px 20px; border-top: 1px solid var(--si-border, #ece8e1);
+            color: var(--si-text-3); font-size: 12px;
+        }
+    </style>
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">Financial years</h1>
+            <p class="si-topbar-subtitle">
+                {{ club.name }} · {{ financial_years|length }} financial year{{ financial_years|length|pluralize }}. Choose one to work in, or start a new one.
+            </p>
+        </div>
+        {% if is_creator_or_admin %}
+            <div class="si-topbar-actions">
+                <button type="button"
+                        class="si-btn si-btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#clubFinancialYearFormModal">
+                    <svg width="14"
+                         height="14"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <path d="M3 10h18M8 2v4M16 2v4" />
+                        <path d="M12 13v5M9.5 15.5h5" />
+                    </svg>
+                    New financial year
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    <a href="{% url 'clubs:detail' club.id %}" class="si-back-link">
+        <svg width="12"
+             height="12"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to {{ club.name }}
+    </a>
+    <div class="si-page-body">
+        <div class="si-card">
+            <div class="si-table-wrap">
+                <table class="si-table">
+                    <thead>
+                        <tr>
+                            <th>Financial year</th>
+                            <th>Start date</th>
+                            <th>End date</th>
+                            <th>Status</th>
+                            <th class="si-fy-act">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for financial_year in financial_years %}
+                            <tr {% if financial_year.id == sidebar_current_financial_year.id %}class="si-fy-row-current"{% endif %}>
+                                <td>
+                                    <div class="si-member-cell">
+                                        <div class="si-fy-icon">
+                                            <svg width="17"
+                                                 height="17"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                                <path d="M3 10h18M8 2v4M16 2v4" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="si-fy-name">
+                                                FY {{ financial_year.start_date.year }}
+                                                {% if financial_year.id == sidebar_latest_financial_year.id %}<span class="si-fy-tag">Latest</span>{% endif %}
+                                            </div>
+                                            <div class="si-fy-note">
+                                                {% if financial_year.id == sidebar_current_financial_year.id %}
+                                                    You're working in this year
+                                                {% else %}
+                                                    {{ financial_year.start_date|date:"M Y" }} – {{ financial_year.end_date|date:"M Y" }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="mono">{{ financial_year.start_date|date:"M j, Y" }}</span></td>
+                                <td><span class="mono">{{ financial_year.end_date|date:"M j, Y" }}</span></td>
+                                <td>
+                                    {% if financial_year.is_active %}
+                                        <span class="si-badge si-badge-green">Active</span>
+                                    {% else %}
+                                        <span class="si-badge si-badge-gray">Closed</span>
+                                    {% endif %}
+                                </td>
+                                <td class="si-fy-act">
+                                    {% if financial_year.id == sidebar_current_financial_year.id %}
+                                        <span class="si-fy-current">
+                                            <svg width="14"
+                                                 height="14"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2.2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M20 6L9 17l-5-5" />
+                                            </svg>
+                                            Current
+                                        </span>
+                                    {% else %}
+                                        <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}"
+                                           class="si-view-link">
+                                            <svg width="13"
+                                                 height="13"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                            View
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5"
+                                    style="text-align:center;
+                                           color:var(--si-text-3);
+                                           padding:32px">No financial years yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="si-fy-foot">Viewing a year switches the sidebar, transactions, dues and reports to that year.</div>
+        </div>
+    </div>
+{% endblock %}
+{% block after_main %}
+    {% if is_creator_or_admin %}
+        <!-- New Financial Year Modal -->
+        <div class="modal fade"
+             id="clubFinancialYearFormModal"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">New financial year</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-year' club.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ financial_year_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Create financial year</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Fill the end date as one year (minus a day) after the start date.
+            const startInput = document.getElementById('id_start_date');
+            const endInput = document.getElementById('id_end_date');
+            if (startInput && endInput) {
+                startInput.addEventListener('change', function () {
+                    if (!startInput.value) return;
+                    const end = new Date(startInput.value + 'T00:00:00Z');
+                    end.setUTCFullYear(end.getUTCFullYear() + 1);
+                    end.setUTCDate(end.getUTCDate() - 1);
+                    endInput.value = end.toISOString().slice(0, 10);
+                });
+            }
+        </script>
+    {% endif %}
+{% endblock %}
