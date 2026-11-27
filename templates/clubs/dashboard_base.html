@@ -304,6 +304,22 @@
                                 </svg>
                                 Expenses
                             </a>
+                            <a href="{% url 'clubs:financial-year-revenue' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                               class="si-nav-item {% block nav_revenue_active %}{% endblock %}"
+                               title="Revenue for FY {{ sidebar_current_financial_year.start_date.year }}">
+                                <svg width="15"
+                                     height="15"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="1.8"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M3 17l6-6 4 4 8-8" />
+                                    <path d="M14 7h7v7" />
+                                </svg>
+                                Revenue
+                            </a>
                         {% endif %}
                         {% if sidebar_current_club %}
                             <a href="{% url 'clubs:categories' sidebar_current_club.id %}"

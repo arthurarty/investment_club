@@ -381,3 +381,62 @@ class FinancialTransactionDetailView(LoginRequiredMixin, View):
             financial_year_id=financial_year.id,
             transaction_id=transaction.id,
         )
+
+
+class IncomeView(LoginRequiredMixin, View):
+    """
+    View to display details of a specific financial year for a club.
+    """
+
+    def prepare_income_context(
+        self,
+        club: Club,
+        financial_year: FinancialYear,
+        is_club_admin: bool = True,
+        expense_form: ExpenseForm | None = None,
+    ):
+        """
+        Prepare a context that contains only the credits/revenue received by a club.
+        """
+        credits = (
+            FinancialTransaction.objects.filter(
+                financial_year=financial_year, credit__gt=0
+            )
+            .select_related("club_member__user", "category")
+            .order_by("-transaction_date", "-id")
+        )
+        months = [
+            (d.strftime("%Y-%m"), d.strftime("%B %Y"))
+            for d in credits.dates("transaction_date", "month", order="DESC")
+        ]
+        return {
+            "club": club,
+            "financial_year": financial_year,
+            "credits": credits,
+            "credit_count": len(credits),
+            "total_received": credits.aggregate(total=Sum("credit"))["total"] or 0,
+            "latest_credit": credits.first(),
+            "months": months,
+            "categories": club.transaction_categories.all(),
+            "is_club_admin": is_club_admin,
+            "expense_form": expense_form or ExpenseForm(financial_year=financial_year),
+        }
+
+    def get(self, request, club_id, financial_year_id):
+        """
+        Handle GET requests to display the expenses of a financial year.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            is_club_admin = is_club_admin_or_creator(request, club)
+            is_member = club.members.filter(user=request.user).exists()
+            if not is_club_admin and not is_member:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
+            return redirect("clubs:index")
+        return render(
+            request,
+            "clubs/revenue.html",
+            self.prepare_income_context(club, financial_year, is_club_admin),
+        )
