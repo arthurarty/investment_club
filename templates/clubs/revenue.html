@@ -10,6 +10,26 @@
                 {{ club.name }} · FY {{ financial_year.start_date.year }} ({{ financial_year.start_date|date:"M j" }} – {{ financial_year.end_date|date:"M j, Y" }})
             </p>
         </div>
+        {% if is_club_admin %}
+            <div class="si-topbar-actions">
+                <button type="button"
+                        class="si-btn si-btn-primary si-btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#recordRevenueModal">
+                    <svg width="13"
+                         height="13"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Record revenue
+                </button>
+            </div>
+        {% endif %}
     </div>
     <a href="{% url 'clubs:financial-year-detail' club.id financial_year.id %}"
        class="si-back-link">
@@ -190,5 +210,34 @@
     </div>
 {% endblock %}
 {% block after_main %}
+    {% if is_club_admin %}
+        <!-- Record Revenue Modal -->
+        <div class="modal fade"
+             id="recordRevenueModal"
+             {% if revenue_form.errors %}data-show-on-load="true"{% endif %}
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Record revenue</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'clubs:financial-year-revenue-create' club.id financial_year.id %}"
+                          method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">{{ revenue_form.as_p }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add revenue</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     <script src="{% static 'js/expenses.js' %}"></script>
 {% endblock %}

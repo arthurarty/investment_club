@@ -13,6 +13,7 @@ from clubs.forms.club_financials_forms import (
     ExpenseForm,
     FinancialTransactionForm,
     FinancialTransactionUpdateForm,
+    RevenueForm,
 )
 from clubs.models import Club, FinancialTransaction, FinancialYear
 from clubs.views.club_financial_view import prepare_financial_year_context
@@ -22,7 +23,7 @@ from clubs.views.utils import is_club_admin_or_creator
 def prepare_expenses_context(
     club: Club,
     financial_year: FinancialYear,
-    is_club_admin: bool = True,
+    is_club_admin: bool = False,
     expense_form: ExpenseForm | None = None,
 ) -> dict:
     """
@@ -392,8 +393,8 @@ class IncomeView(LoginRequiredMixin, View):
         self,
         club: Club,
         financial_year: FinancialYear,
-        is_club_admin: bool = True,
-        expense_form: ExpenseForm | None = None,
+        is_club_admin: bool = False,
+        revenue_form: RevenueForm | None = None,
     ):
         """
         Prepare a context that contains only the credits/revenue received by a club.
@@ -419,7 +420,7 @@ class IncomeView(LoginRequiredMixin, View):
             "months": months,
             "categories": club.transaction_categories.all(),
             "is_club_admin": is_club_admin,
-            "expense_form": expense_form or ExpenseForm(financial_year=financial_year),
+            "revenue_form": revenue_form or RevenueForm(financial_year=financial_year),
         }
 
     def get(self, request, club_id, financial_year_id):
@@ -439,4 +440,40 @@ class IncomeView(LoginRequiredMixin, View):
             request,
             "clubs/revenue.html",
             self.prepare_income_context(club, financial_year, is_club_admin),
+        )
+
+
+class RevenueCreateView(FinancialYearTransactionCreateBaseView):
+    """
+    View to handle the recording of new revenue for a financial year.
+    """
+
+    form_class = RevenueForm
+
+    def form_invalid(self, request, club, financial_year, form):
+        """
+        Re-render the revenue page with the form errors.
+        """
+        return render(
+            request,
+            "clubs/revenue.html",
+            IncomeView().prepare_income_context(
+                club, financial_year, True, revenue_form=form
+            ),
+        )
+
+    def form_valid(self, request, club, financial_year, transaction):
+        """
+        Confirm the revenue and return to the revenue page.
+        """
+        messages.success(
+            request,
+            message=f"Revenue '{transaction.description}' recorded successfully.",
+        )
+        if transaction.club_member:
+            send_contribution_email(transaction, request=request)
+        return redirect(
+            "clubs:financial-year-revenue",
+            club_id=club.id,
+            financial_year_id=financial_year.id,
         )
