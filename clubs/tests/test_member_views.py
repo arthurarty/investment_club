@@ -19,6 +19,7 @@ from clubs.models import (
     MembershipCategory,
     MembershipStatus,
 )
+from clubs.views.member_views import MEMBER_PAGE_SIZES
 from common.message_test_case import MsgTestCase
 
 
@@ -696,3 +697,113 @@ class ClubMemberShipDetailViewTestCase(MsgTestCase):
 
         self.member.refresh_from_db()
         self.assertEqual(self.member.category, original_category)
+
+
+class ClubMemberListViewTestCase(MsgTestCase):
+    """
+    Test case for the ClubMemberListView
+    """
+
+    view_name = "clubs:club-members"
+    password = "testPass1232g"
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin@example.com",
+            password=self.password,
+            first_name="Ada",
+            last_name="Admin",
+        )
+        self.club = Club.objects.create(
+            name="Test Club",
+            description="A club for testing.",
+            contact_email="club@example.com",
+            created_by=self.admin,
+            updated_by=self.admin,
+        )
+        ClubMembership.objects.create(club=self.club, user=self.admin, is_admin=True)
+        self.bob = self._add_member("bob@example.com", "Bob", "Builder")
+        self.carol = self._add_member(
+            "carol@example.com",
+            "Carol",
+            "Chair",
+            category=MembershipCategory.COMMITTEE,
+        )
+        self.dan = self._add_member(
+            "dan@example.com", "Dan", "Dormant", is_active=False
+        )
+        self.client = Client()
+        self.client.login(email=self.admin.email, password=self.password)
+        self.url = reverse(self.view_name, kwargs={"club_id": self.club.id})
+
+    def _add_member(self, email, first_name, last_name, **membership_kwargs):
+        user = User.objects.create_user(
+            email=email,
+            password=self.password,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        return ClubMembership.objects.create(
+            club=self.club, user=user, **membership_kwargs
+        )
+
+    def test_lists_all_members(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTemplateUsed(response, "clubs/members.html")
+        self.assertEqual(len(response.context["members"]), 4)
+
+    def test_search_matches_name_or_email(self):
+        with self.subTest("name"):
+            response = self.client.get(self.url, {"q": "carol"})
+            self.assertEqual(list(response.context["members"]), [self.carol])
+        with self.subTest("email"):
+            response = self.client.get(self.url, {"q": "bob@"})
+            self.assertEqual(list(response.context["members"]), [self.bob])
+
+    def test_role_filter(self):
+        with self.subTest("admin"):
+            response = self.client.get(self.url, {"role": "admin"})
+            self.assertEqual(len(response.context["members"]), 1)
+        with self.subTest("committee"):
+            response = self.client.get(self.url, {"role": "committee"})
+            self.assertEqual(list(response.context["members"]), [self.carol])
+        with self.subTest("ordinary"):
+            response = self.client.get(self.url, {"role": "ordinary"})
+            self.assertEqual(len(response.context["members"]), 2)
+
+    def test_status_filter(self):
+        with self.subTest("inactive"):
+            response = self.client.get(self.url, {"status": "inactive"})
+            self.assertEqual(list(response.context["members"]), [self.dan])
+        with self.subTest("active"):
+            response = self.client.get(self.url, {"status": "active"})
+            self.assertEqual(len(response.context["members"]), 3)
+
+    def test_invalid_filters_are_ignored(self):
+        response = self.client.get(
+            self.url, {"role": "nope", "status": "nope", "per_page": "abc"}
+        )
+        self.assertEqual(len(response.context["members"]), 4)
+        self.assertEqual(response.context["per_page"], MEMBER_PAGE_SIZES[0])
+
+    def test_pagination(self):
+        for i in range(12):
+            self._add_member(f"extra{i}@example.com", "Extra", f"M{i}")
+        response = self.client.get(self.url, {"per_page": 10, "page": 2})
+        self.assertEqual(len(response.context["members"]), 6)
+        self.assertEqual(response.context["page_obj"].number, 2)
+
+    def test_non_member_forbidden(self):
+        User.objects.create_user(email="out@example.com", password=self.password)
+        self.client.login(email="out@example.com", password=self.password)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_unknown_club_redirects(self):
+        response = self.client.get(reverse(self.view_name, kwargs={"club_id": 9999}))
+        self.assertRedirects(response, reverse("clubs:index"))
+
+    def test_sidebar_has_members_link(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, self.url)

@@ -1,0 +1,247 @@
+{% extends "clubs/dashboard_base.html" %}
+{% block page_title %}{{ club.name }} — Members — SavingsInc{% endblock %}
+{% block nav_members_active %}active{% endblock %}
+{% block content %}
+    <div class="si-topbar">
+        <div>
+            <h1 class="si-topbar-title">All members</h1>
+            <p class="si-topbar-subtitle">Everyone in {{ club.name }}. Participants are the members taking part in a financial year.</p>
+        </div>
+        {% if is_creator_or_admin %}
+            <div class="si-topbar-actions">
+                <a href="{% url 'clubs:club-member-create' club.id %}"
+                   class="si-btn si-btn-primary">
+                    <svg width="14"
+                         height="14"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add member
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="si-page-body">
+        <div class="si-card">
+            <form method="get" id="membersFilterForm" class="si-toolbar">
+                <div class="si-search">
+                    <svg width="15"
+                         height="15"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M20 20l-3.5-3.5" />
+                    </svg>
+                    <input class="form-control"
+                           type="search"
+                           name="q"
+                           value="{{ search }}"
+                           placeholder="Search by name or email"
+                           aria-label="Search members">
+                </div>
+                <select class="form-select"
+                        name="role"
+                        aria-label="Filter by role"
+                        data-auto-submit>
+                    <option value="">All roles</option>
+                    <option value="admin" {% if selected_role == "admin" %}selected{% endif %}>Admin</option>
+                    <option value="committee"
+                            {% if selected_role == "committee" %}selected{% endif %}>Committee</option>
+                    <option value="ordinary"
+                            {% if selected_role == "ordinary" %}selected{% endif %}>Ordinary</option>
+                </select>
+                <select class="form-select"
+                        name="status"
+                        aria-label="Filter by status"
+                        data-auto-submit>
+                    <option value="">All statuses</option>
+                    <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive</option>
+                </select>
+            </form>
+            <div class="si-table-wrap">
+                <table class="si-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members %}
+                            <tr>
+                                <td>
+                                    <div class="si-member-cell">
+                                        <div class="si-avatar">{{ member.user.first_name|slice:":1"|upper }}{{ member.user.last_name|slice:":1"|upper }}</div>
+                                        <div>
+                                            <div class="si-member-name">{{ member.user.first_name }} {{ member.user.last_name }}</div>
+                                            <div class="si-member-email">{{ member.user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if member.is_admin %}
+                                        <span class="si-badge si-badge-amber">Admin</span>
+                                    {% else %}
+                                        <span class="si-badge si-badge-gray">{{ member.get_category_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if member.is_active %}
+                                        <span class="si-badge si-badge-green">Active</span>
+                                    {% else %}
+                                        <span class="si-badge si-badge-gray">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span style="color:var(--si-text-2);font-size:12px;">{{ member.start_date|date:"M j, Y" }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'clubs:club-member-detail' club.id member.id %}"
+                                       class="si-view-link">
+                                        <svg width="13"
+                                             height="13"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="1.8"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if not members %}
+                <div class="si-empty">
+                    {% if total_members %}
+                        No members match your search.
+                    {% else %}
+                        No members yet.
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="si-pager">
+                <div class="si-pager-info">
+                    <span>
+                        {% if page_obj.paginator.count %}
+                            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} member{{ page_obj.paginator.count|pluralize }}
+                        {% else %}
+                            Showing 0 members
+                        {% endif %}
+                    </span>
+                    <label class="si-pager-size">
+                        Rows per page
+                        <select class="form-select"
+                                form="membersFilterForm"
+                                name="per_page"
+                                data-auto-submit>
+                            {% for size in page_sizes %}
+                                <option value="{{ size }}" {% if size == per_page %}selected{% endif %}>{{ size }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <nav class="si-pager-btns" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a class="si-pg si-pg-step"
+                               href="?{{ query_string }}&page={{ page_obj.previous_page_number }}"
+                               aria-label="Previous page">
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M15 18l-6-6 6-6" />
+                                </svg>
+                                <span>Previous</span>
+                            </a>
+                        {% else %}
+                            <span class="si-pg si-pg-step disabled" aria-disabled="true">
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M15 18l-6-6 6-6" />
+                                </svg>
+                                <span>Previous</span>
+                            </span>
+                        {% endif %}
+                        {% for number in page_numbers %}
+                            {% if number is None %}
+                                <span class="si-pg-gap">…</span>
+                            {% elif number == page_obj.number %}
+                                <span class="si-pg on" aria-current="page">{{ number }}</span>
+                            {% else %}
+                                <a class="si-pg" href="?{{ query_string }}&page={{ number }}">{{ number }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <a class="si-pg si-pg-step"
+                               href="?{{ query_string }}&page={{ page_obj.next_page_number }}"
+                               aria-label="Next page">
+                                <span>Next</span>
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </a>
+                        {% else %}
+                            <span class="si-pg si-pg-step disabled" aria-disabled="true">
+                                <span>Next</span>
+                                <svg width="14"
+                                     height="14"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </span>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        const filterForm = document.getElementById('membersFilterForm');
+        document.querySelectorAll('[data-auto-submit]').forEach(function(select) {
+            select.addEventListener('change', function() { filterForm.submit(); });
+        });
+    </script>
+{% endblock %}

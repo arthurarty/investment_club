@@ -297,25 +297,86 @@
                                     </div>
                                 </div>
                             </div>
-                            <a href="{% url 'clubs:financial-year-participants' sidebar_current_club.id sidebar_current_financial_year.id %}"
-                               class="si-nav-item {% block nav_participants_active %}{% endblock %}"
-                               title="Members taking part in FY {{ sidebar_current_financial_year.start_date.year }}">
-                                <svg width="15"
-                                     height="15"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.8"
-                                     stroke-linecap="round"
-                                     stroke-linejoin="round">
-                                    <circle cx="9" cy="8" r="3.2" />
-                                    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-                                    <path d="M16 4.6a3.2 3.2 0 0 1 0 6.3" />
-                                    <path d="M18 14.3c1.8.8 3 2.9 3 5.7" />
-                                </svg>
-                                Participants
-                                <span class="si-nav-count">{{ sidebar_participant_count }}</span>
-                            </a>
+                        {% endif %}
+                        {% if sidebar_current_club %}
+                            <div class="si-nav-group">
+                                <button type="button"
+                                        class="si-nav-item si-nav-toggle"
+                                        aria-expanded="false"
+                                        aria-controls="siMembersSub">
+                                    <svg width="15"
+                                         height="15"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="1.8"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <circle cx="9" cy="8" r="3.2" />
+                                        <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                                        <path d="M16 4.6a3.2 3.2 0 0 1 0 6.3" />
+                                        <path d="M18 14.3c1.8.8 3 2.9 3 5.7" />
+                                    </svg>
+                                    Members
+                                    <svg class="si-nav-chev"
+                                         width="14"
+                                         height="14"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div class="si-subnav" id="siMembersSub">
+                                    <div class="si-subnav-inner">
+                                        <a href="{% url 'clubs:club-members' sidebar_current_club.id %}"
+                                           class="si-sub-item {% block nav_members_active %}{% endblock %}"
+                                           title="Everyone in {{ sidebar_current_club.name }}">
+                                            <svg width="15"
+                                                 height="15"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                                <circle cx="9" cy="10" r="2.3" />
+                                                <path d="M5.5 16.5c.6-1.8 2-2.8 3.5-2.8s2.9 1 3.5 2.8" />
+                                                <path d="M15 9h3M15 13h3" />
+                                            </svg>
+                                            All members
+                                            <span class="si-nav-count">{{ sidebar_current_club_member_count }}</span>
+                                        </a>
+                                        {% if sidebar_current_financial_year %}
+                                            <a href="{% url 'clubs:financial-year-participants' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                                               class="si-sub-item {% block nav_participants_active %}{% endblock %}"
+                                               title="Members taking part in FY {{ sidebar_current_financial_year.start_date.year }}">
+                                                <svg width="15"
+                                                     height="15"
+                                                     viewBox="0 0 24 24"
+                                                     fill="none"
+                                                     stroke="currentColor"
+                                                     stroke-width="1.8"
+                                                     stroke-linecap="round"
+                                                     stroke-linejoin="round">
+                                                    <circle cx="9" cy="8" r="3.2" />
+                                                    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                                                    <path d="M16 4.6a3.2 3.2 0 0 1 0 6.3" />
+                                                    <path d="M18 14.3c1.8.8 3 2.9 3 5.7" />
+                                                </svg>
+                                                Participants
+                                                <span class="si-nav-count">{{ sidebar_participant_count }}</span>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if sidebar_current_club and sidebar_current_financial_year %}
                             <div class="si-nav-group">
                                 <button type="button"
                                         class="si-nav-item si-nav-toggle"
