@@ -217,21 +217,86 @@
                             Dashboard
                         </a>
                         {% if sidebar_current_club and sidebar_current_financial_year %}
-                            <a href="{% url 'clubs:financial-year-detail' sidebar_current_club.id sidebar_current_financial_year.id %}"
-                               class="si-nav-item {% block nav_transactions_active %}{% endblock %}"
-                               title="Transactions for FY {{ sidebar_current_financial_year.start_date.year }}">
-                                <svg width="15"
-                                     height="15"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.8"
-                                     stroke-linecap="round"
-                                     stroke-linejoin="round">
-                                    <path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4" />
-                                </svg>
-                                Transactions
-                            </a>
+                            <div class="si-nav-group">
+                                <button type="button"
+                                        class="si-nav-item si-nav-toggle"
+                                        aria-expanded="false"
+                                        aria-controls="siTxSub">
+                                    <svg width="15"
+                                         height="15"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="1.8"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4" />
+                                    </svg>
+                                    Transactions
+                                    <svg class="si-nav-chev"
+                                         width="14"
+                                         height="14"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div class="si-subnav" id="siTxSub">
+                                    <div class="si-subnav-inner">
+                                        <a href="{% url 'clubs:financial-year-detail' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                                           class="si-sub-item {% block nav_transactions_active %}{% endblock %}"
+                                           title="All transactions for FY {{ sidebar_current_financial_year.start_date.year }}">
+                                            <svg width="15"
+                                                 height="15"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M4 6h16M4 12h16M4 18h16" />
+                                            </svg>
+                                            All transactions
+                                        </a>
+                                        <a href="{% url 'clubs:financial-year-expenses' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                                           class="si-sub-item {% block nav_expenses_active %}{% endblock %}"
+                                           title="Expenses for FY {{ sidebar_current_financial_year.start_date.year }}">
+                                            <svg width="15"
+                                                 height="15"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+                                                <path d="M9 8h6M9 12h6M9 16h3" />
+                                            </svg>
+                                            Expenses
+                                        </a>
+                                        <a href="{% url 'clubs:financial-year-revenue' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                                           class="si-sub-item {% block nav_revenue_active %}{% endblock %}"
+                                           title="Revenue for FY {{ sidebar_current_financial_year.start_date.year }}">
+                                            <svg width="15"
+                                                 height="15"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M3 17l6-6 4 4 8-8" />
+                                                <path d="M14 7h7v7" />
+                                            </svg>
+                                            Revenue
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                             <a href="{% url 'clubs:financial-year-participants' sidebar_current_club.id sidebar_current_financial_year.id %}"
                                class="si-nav-item {% block nav_participants_active %}{% endblock %}"
                                title="Members taking part in FY {{ sidebar_current_financial_year.start_date.year }}">
@@ -251,59 +316,77 @@
                                 Participants
                                 <span class="si-nav-count">{{ sidebar_participant_count }}</span>
                             </a>
-                            <a href="{% url 'clubs:financial-year-dues' sidebar_current_club.id sidebar_current_financial_year.id %}"
-                               class="si-nav-item {% block nav_dues_active %}{% endblock %}"
-                               title="Dues for FY {{ sidebar_current_financial_year.start_date.year }}">
-                                <svg width="15"
-                                     height="15"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.8"
-                                     stroke-linecap="round"
-                                     stroke-linejoin="round">
-                                    <path d="M20 12a8 8 0 0 1-13.7 5.6" />
-                                    <path d="M4 12a8 8 0 0 1 13.7-5.6" />
-                                    <path d="M17.7 3v3.4h-3.6" />
-                                    <path d="M6.3 21v-3.4h3.6" />
-                                    <circle cx="12" cy="12" r="3.2" />
-                                </svg>
-                                Dues
-                            </a>
-                            <a href="{% url 'clubs:financial-year-individual-dues' sidebar_current_club.id sidebar_current_financial_year.id %}"
-                               class="si-nav-item {% block nav_individual_dues_active %}{% endblock %}"
-                               title="What each member owes for FY {{ sidebar_current_financial_year.start_date.year }}">
-                                <svg width="15"
-                                     height="15"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.8"
-                                     stroke-linecap="round"
-                                     stroke-linejoin="round">
-                                    <circle cx="9" cy="7.5" r="3.5" />
-                                    <path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5 1.2 0 2.3.3 3.2.9" />
-                                    <circle cx="17.5" cy="17" r="4" />
-                                    <path d="M17.5 15.2v3.6" />
-                                </svg>
-                                Individual dues
-                            </a>
-                            <a href="{% url 'clubs:financial-year-expenses' sidebar_current_club.id sidebar_current_financial_year.id %}"
-                               class="si-nav-item {% block nav_expenses_active %}{% endblock %}"
-                               title="Expenses for FY {{ sidebar_current_financial_year.start_date.year }}">
-                                <svg width="15"
-                                     height="15"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.8"
-                                     stroke-linecap="round"
-                                     stroke-linejoin="round">
-                                    <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
-                                    <path d="M9 8h6M9 12h6M9 16h3" />
-                                </svg>
-                                Expenses
-                            </a>
+                            <div class="si-nav-group">
+                                <button type="button"
+                                        class="si-nav-item si-nav-toggle"
+                                        aria-expanded="false"
+                                        aria-controls="siDuesSub">
+                                    <svg width="15"
+                                         height="15"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="1.8"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <path d="M20 12a8 8 0 0 1-13.7 5.6" />
+                                        <path d="M4 12a8 8 0 0 1 13.7-5.6" />
+                                        <path d="M17.7 3v3.4h-3.6" />
+                                        <path d="M6.3 21v-3.4h3.6" />
+                                        <circle cx="12" cy="12" r="3.2" />
+                                    </svg>
+                                    Dues
+                                    <svg class="si-nav-chev"
+                                         width="14"
+                                         height="14"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div class="si-subnav" id="siDuesSub">
+                                    <div class="si-subnav-inner">
+                                        <a href="{% url 'clubs:financial-year-dues' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                                           class="si-sub-item {% block nav_dues_active %}{% endblock %}"
+                                           title="What the club as a whole owes and has paid">
+                                            <svg width="15"
+                                                 height="15"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <circle cx="8" cy="8" r="2.6" /><circle cx="16" cy="8" r="2.6" />
+                                                <path d="M3 18c0-2.8 2.2-5 5-5 1.6 0 3 .7 4 1.9 1-1.2 2.4-1.9 4-1.9 2.8 0 5 2.2 5 5" />
+                                            </svg>
+                                            Club dues
+                                        </a>
+                                        <a href="{% url 'clubs:financial-year-individual-dues' sidebar_current_club.id sidebar_current_financial_year.id %}"
+                                           class="si-sub-item {% block nav_individual_dues_active %}{% endblock %}"
+                                           title="What each member owes for FY {{ sidebar_current_financial_year.start_date.year }}">
+                                            <svg width="15"
+                                                 height="15"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.8"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <circle cx="9" cy="7.5" r="3.5" />
+                                                <path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5 1.2 0 2.3.3 3.2.9" />
+                                                <circle cx="17.5" cy="17" r="4" />
+                                                <path d="M17.5 15.2v3.6" />
+                                            </svg>
+                                            Individual dues
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         {% endif %}
                         {% if sidebar_current_club %}
                             <a href="{% url 'clubs:categories' sidebar_current_club.id %}"
@@ -378,6 +461,23 @@
                         </div>
                     </div>
                 </div>
+                <!-- SavingsInc collapsible nav groups (runs before first paint so the open state never animates on load) -->
+                <script>
+(function() {
+  document.querySelectorAll('.si-nav-group').forEach(function(group) {
+    const btn = group.querySelector('.si-nav-toggle');
+    if (group.querySelector('.si-sub-item.active')) {
+      btn.classList.add('has-active');
+      group.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    btn.addEventListener('click', function() {
+      group.classList.add('animate');
+      btn.setAttribute('aria-expanded', String(group.classList.toggle('open')));
+    });
+  });
+})();
+                </script>
             </aside>
             <!-- Main content -->
             <main class="si-main">

@@ -13,6 +13,7 @@ from clubs.forms.club_financials_forms import (
     ExpenseForm,
     FinancialTransactionForm,
     FinancialTransactionUpdateForm,
+    RevenueForm,
 )
 from clubs.models import Club, FinancialTransaction, FinancialYear
 from clubs.views.club_financial_view import prepare_financial_year_context
@@ -22,7 +23,7 @@ from clubs.views.utils import is_club_admin_or_creator
 def prepare_expenses_context(
     club: Club,
     financial_year: FinancialYear,
-    is_club_admin: bool = True,
+    is_club_admin: bool = False,
     expense_form: ExpenseForm | None = None,
 ) -> dict:
     """
@@ -380,4 +381,99 @@ class FinancialTransactionDetailView(LoginRequiredMixin, View):
             club_id=club.id,
             financial_year_id=financial_year.id,
             transaction_id=transaction.id,
+        )
+
+
+class IncomeView(LoginRequiredMixin, View):
+    """
+    View to display details of a specific financial year for a club.
+    """
+
+    def prepare_income_context(
+        self,
+        club: Club,
+        financial_year: FinancialYear,
+        is_club_admin: bool = False,
+        revenue_form: RevenueForm | None = None,
+    ):
+        """
+        Prepare a context that contains only the credits/revenue received by a club.
+        """
+        credits = (
+            FinancialTransaction.objects.filter(
+                financial_year=financial_year, credit__gt=0
+            )
+            .select_related("club_member__user", "category")
+            .order_by("-transaction_date", "-id")
+        )
+        months = [
+            (d.strftime("%Y-%m"), d.strftime("%B %Y"))
+            for d in credits.dates("transaction_date", "month", order="DESC")
+        ]
+        return {
+            "club": club,
+            "financial_year": financial_year,
+            "credits": credits,
+            "credit_count": len(credits),
+            "total_received": credits.aggregate(total=Sum("credit"))["total"] or 0,
+            "latest_credit": credits.first(),
+            "months": months,
+            "categories": club.transaction_categories.all(),
+            "is_club_admin": is_club_admin,
+            "revenue_form": revenue_form or RevenueForm(financial_year=financial_year),
+        }
+
+    def get(self, request, club_id, financial_year_id):
+        """
+        Handle GET requests to display the expenses of a financial year.
+        """
+        try:
+            club = Club.objects.get(id=club_id)
+            is_club_admin = is_club_admin_or_creator(request, club)
+            is_member = club.members.filter(user=request.user).exists()
+            if not is_club_admin and not is_member:
+                return render(request, "clubs/403.html", status=HTTPStatus.FORBIDDEN)
+            financial_year = club.financial_years.get(id=financial_year_id)
+        except (Club.DoesNotExist, FinancialYear.DoesNotExist):
+            return redirect("clubs:index")
+        return render(
+            request,
+            "clubs/revenue.html",
+            self.prepare_income_context(club, financial_year, is_club_admin),
+        )
+
+
+class RevenueCreateView(FinancialYearTransactionCreateBaseView):
+    """
+    View to handle the recording of new revenue for a financial year.
+    """
+
+    form_class = RevenueForm
+
+    def form_invalid(self, request, club, financial_year, form):
+        """
+        Re-render the revenue page with the form errors.
+        """
+        return render(
+            request,
+            "clubs/revenue.html",
+            IncomeView().prepare_income_context(
+                club, financial_year, True, revenue_form=form
+            ),
+        )
+
+    def form_valid(self, request, club, financial_year, transaction):
+        """
+        Confirm the revenue and return to the revenue page.
+        """
+        messages.success(
+            request,
+            message=f"Revenue '{transaction.description}' recorded successfully.",
+        )
+        if transaction.club_member:
+            send_contribution_email(transaction, request=request)
+        return redirect(
+            "clubs:financial-year-revenue",
+            club_id=club.id,
+            financial_year_id=financial_year.id,
         )

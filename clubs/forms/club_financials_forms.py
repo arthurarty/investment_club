@@ -251,6 +251,35 @@ class ExpenseForm(FinancialTransactionForm):
         return debit
 
 
+class RevenueForm(FinancialTransactionForm):
+    """
+    Form for recording revenue (money received) for a Financial Year.
+    """
+
+    class Meta(FinancialTransactionForm.Meta):
+        fields = [
+            "club_member",
+            "category",
+            "credit",
+            "transaction_date",
+            "description",
+        ]
+        labels = {"credit": "Amount"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["credit"].required = True
+
+    def clean_credit(self):
+        """
+        Revenue must be a positive amount.
+        """
+        credit = self.cleaned_data["credit"]
+        if credit <= 0:
+            raise forms.ValidationError("The amount must be greater than zero.")
+        return credit
+
+
 class IndividualDueForm(forms.ModelForm):
     """
     Form for creating an IndividualDue for a Financial Year.
